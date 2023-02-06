@@ -1,0 +1,15 @@
+.deco {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    > * {
+        position: absolute;
+        font-size: 32px;
+        opacity: .2;
+        pointer-events: none;
+        font-family: var(--font-mono);
+        visibility: hidden;
+    }
+}
