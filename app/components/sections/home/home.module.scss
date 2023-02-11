@@ -1,0 +1,11 @@
+.name {
+    font-family: var(--lato-font);
+    color: #fff;
+    font-size: 80px;
+    line-height: 60px;
+    letter-spacing: .25rem;
+    & *:not(:first-child) {
+        color: transparent;
+        -webkit-text-stroke: 1px white;
+    }
+}

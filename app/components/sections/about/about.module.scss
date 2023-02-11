@@ -1,0 +1,185 @@
+// $a : 240px;
+// $b : 100px;
+// $s : 40;
+
+// @function pow($number, $exp) {
+//     $value: 1;
+
+//     @if $exp >0 {
+//         @for $i from 1 through $exp {
+//             $value: $value * $number;
+//         }
+//     }
+
+//     @else if $exp < 0 {
+//         @for $i from 1 through -$exp {
+//             $value: $value / $number;
+//         }
+//     }
+
+//     @return $value;
+// }
+
+// @function fact($number) {
+//     $value: 1;
+
+//     @if $number >0 {
+//         @for $i from 1 through $number {
+//             $value: $value * $i;
+//         }
+//     }
+
+//     @return $value;
+// }
+
+// @function pi() {
+//     @return 3.14159265359;
+// }
+
+// @function rad($angle) {
+//     $unit: unit($angle);
+//     $unitless: $angle / ($angle * 0 + 1);
+
+//     // If the angle has 'deg' as unit, convert to radians.
+//     @if $unit ==deg {
+//         $unitless: $unitless / 180 * pi();
+//     }
+
+//     @return $unitless;
+// }
+
+// @function sin($angle) {
+//     $sin: 0;
+//     $angle: rad($angle);
+
+//     // Iterate a bunch of times.
+//     @for $i from 0 through 10 {
+//         $sin: $sin +pow(-1, $i) * pow($angle, (2 * $i + 1)) / fact(2 * $i + 1);
+//     }
+
+//     @return $sin;
+// }
+
+// @function cos($angle) {
+//     $cos: 0;
+//     $angle: rad($angle);
+
+//     // Iterate a bunch of times.
+//     @for $i from 0 through 10 {
+//         $cos: $cos +pow(-1, $i) * pow($angle, 2 * $i) / fact(2 * $i);
+//     }
+
+//     @return $cos;
+// }
+
+// .ellipses {
+//     width: $a*2 ;
+//     height: $b*2;
+//     position: relative;
+// }
+
+// .ellipses .ellipse:nth-child(1), .ellipses .dots *:nth-child(1) {
+//     transform: rotate(35deg);
+// }
+
+// .ellipses .ellipse:nth-child(2) {
+//     transform: rotate(-35deg);
+// }
+
+// .ellipses .ellipse:nth-child(3) {
+//     transform: rotate(-90deg);
+// }
+
+// .ellipses .dots *:nth-child(1) {
+//     transform: rotate(35deg);
+//     & .dot {
+//         background: #e14445;
+//         outline: 6px solid #ba464785
+//     }
+// }
+
+// .ellipses .dots *:nth-child(2) {
+//     transform: rotate(-35deg);
+//     & .dot {
+//         animation-delay: -5s;
+//         background: #6bc86b;
+//         outline: 6px solid #6bc86b85;
+//     }
+// }
+
+// .ellipses .dots *:nth-child(3) {
+//     transform: rotate(-90deg);
+//     & .dot {
+//         background: #ffcd29;
+//         outline: 6px solid #ffcd2985;
+//     }
+// }
+
+
+// .ellipses .dots > * {
+//     position: absolute;
+//     display: inline-block;
+//     width: $a*2 ;
+//     height: $b*2;
+//     border-radius: 100%;
+// }
+
+// .ellipse {
+//     display: inline-block;
+//     width: $a*2 ;
+//     height: $b*2;
+//     border-radius: 100%;
+//     outline: solid 5px #8c8ca4;
+//     outline-offset: -5px;
+//     position: absolute;
+// }
+
+// .dot {
+//     width: 20px;
+//     height: 20px;
+//     left: $a - 10px;
+//     top: $b - 10px;
+//     border-radius: 100%;
+//     position: absolute;
+//     animation: move 10s linear infinite;
+//     z-index: 1;
+//     outline: 4px solid #151518;
+//     box-sizing: content-box;
+// }
+
+// @keyframes move {
+//     @for $i from 0 through $s {
+//         #{$i * 100% / $s} {
+//             transform: translate($a*cos(360deg/$s*$i), $b*sin(360deg/$s*$i), );
+//         }
+//     }
+// }
+
+.syntax {
+    padding: 1rem 0;
+    font-size: 120px;
+    line-height: 120px;
+    height: 120px;
+    font-family: monospace;
+    background: linear-gradient(to right,  #2359e8 0%, #611ea2 50%, #2359e8 100%);
+    background-size: 200% auto;
+
+    color: #000;
+    background-clip: text;
+    text-fill-color: transparent;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 4s ease infinite;
+
+    @keyframes shine {
+        to {
+            background-position: -200% center;
+        }
+    }
+
+    @media screen and (min-width: 768px) {
+        font-size: 180px;
+        line-height: 180px;
+        height: 180px;
+    }
+}
