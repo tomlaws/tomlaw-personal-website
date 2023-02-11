@@ -17,7 +17,7 @@ export default function Home() {
                 </div>
             </div>
             <p>
-                I'm a software engineer based in HK. 😀
+                I'm a software engineer based in HK 😀.
             </p>
             <button
                 onClick={() => {

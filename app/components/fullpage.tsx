@@ -8,6 +8,7 @@ import Home from "./sections/home/home";
 import About from "./sections/about/about";
 import { FullPageProvider } from "../hooks/full-page";
 import Works from "./sections/works/works";
+import Contact from "./sections/contact/contact";
 
 export default function Fullpage() {
     const decoRef = useRef<any>(null);
@@ -40,6 +41,11 @@ export default function Fullpage() {
                                 <div className="section">
                                     <div className={styles['section-content']}>
                                         <Works />
+                                    </div>
+                                </div>
+                                <div className="section">
+                                    <div className={styles['section-content']}>
+                                        <Contact />
                                     </div>
                                 </div>
                             </ReactFullpage.Wrapper>
