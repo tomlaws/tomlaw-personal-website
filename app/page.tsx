@@ -11,7 +11,7 @@ const lato = Lato({
 
 export default function Home() {
   return (
-    <main className={clsx([lato.className, styles.main])}>
+    <main className={clsx([lato.className, styles.main, 'overflow-x-hidden'])}>
       <Fullpage/>
     </main>
   )

@@ -22,6 +22,7 @@ export default function Works() {
                 src={movie}
                 alt="Mov!e"
                 style={{ objectFit: 'cover' }}
+                sizes="33vw"
             />,
             className: "lg:order-1 col-span-1",
             badges: [
@@ -38,6 +39,7 @@ export default function Works() {
                 src={pegasushk}
                 alt="Pegasushk"
                 style={{ objectFit: 'cover' }}
+                sizes="50vw"
             />,
             className: "lg:order-2 col-span-2 lg:col-span-2",
             badges: [
@@ -56,6 +58,7 @@ export default function Works() {
                 src={hikee}
                 alt="FYP"
                 style={{ objectFit: 'cover' }}
+                sizes="50vw"
             />,
             className: "order-3 lg:order-3 col-span-2 row-span-2",
             badges: [
@@ -74,6 +77,7 @@ export default function Works() {
                 src={elegantMaterial}
                 alt="Elegant Material"
                 style={{ objectFit: 'cover' }}
+                sizes="33vw"
             />,
             className: "order-4 lg:order-4 col-span-1 row-span-1",
             badges: [
@@ -92,6 +96,7 @@ export default function Works() {
                 src={bubbleShooter}
                 alt="Bubble Shooter"
                 style={{ objectFit: 'cover' }}
+                sizes="50vw"
             />,
             className: "order-5 lg:order-5 col-span-1 lg:col-span-2 row-span-2",
             badges: [
@@ -108,6 +113,7 @@ export default function Works() {
                 src={eDonor}
                 alt="E-Donor"
                 style={{ objectFit: 'cover' }}
+                sizes="33vw"
             />,
             className: "order-6 lg:order-6 col-span-1 row-span-1",
             badges: [
@@ -124,6 +130,7 @@ export default function Works() {
                 src={touroll}
                 alt="Touroll"
                 style={{ objectFit: 'cover' }}
+                sizes="33vw"
             />,
             className: "order-last lg:order-7 col-span-1 row-span-1",
             badges: [
@@ -141,6 +148,7 @@ export default function Works() {
                 src={scrabble}
                 alt="Scrabble"
                 style={{ objectFit: 'cover' }}
+                sizes="50vw"
             />,
             className: "order-7 row-span-2 col-span-1 lg:row-span-1 lg:col-span-2",
             badges: [
@@ -156,6 +164,7 @@ export default function Works() {
                 src={multipleChoiceMarker}
                 alt="Multiple Choice Marker"
                 style={{ objectFit: 'cover' }}
+                sizes="50vw"
             />,
             className: "order-8 lg:order-8 col-span-1 lg:col-span-2 row-span-1",
             badges: [
@@ -194,7 +203,7 @@ export default function Works() {
         );
     }
     return (
-        <div className="w-screen h-screen grid gap-3 lg:gap-5 grid-cols-3 grid-rows-5 lg:grid-cols-6 lg:grid-rows-3 p-3 lg:p-5">
+        <div className="w-full h-full grid gap-3 lg:gap-5 grid-cols-3 grid-rows-5 lg:grid-cols-6 lg:grid-rows-3 p-3 lg:p-5">
             {works.map((work, index) => {
                 return (
                     <React.Fragment key={index}>

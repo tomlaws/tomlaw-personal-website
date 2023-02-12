@@ -9,14 +9,17 @@ import About from "./sections/about/about";
 import { FullPageProvider } from "../hooks/full-page";
 import Works from "./sections/works/works";
 import Contact from "./sections/contact/contact";
+import clsx from "clsx";
 
 export default function Fullpage() {
     const decoRef = useRef<any>(null);
+
     return (
         <>
             <Deco ref={decoRef} />
             <ReactFullpage
                 licenseKey="gplv3-license"
+                scrollBar={true}
                 onLeave={(origin, destination, direction) => {
                     if (destination.isFirst) {
                         decoRef.current?.focus();
@@ -39,12 +42,12 @@ export default function Fullpage() {
                                     </div>
                                 </div>
                                 <div className="section">
-                                    <div className={styles['section-content']}>
+                                    <div className={clsx([styles['section-content'], 'w-screen', 'h-screen'])}>
                                         <Works />
                                     </div>
                                 </div>
                                 <div className="section">
-                                    <div className={styles['section-content']}>
+                                    <div className={clsx([styles['section-content'], 'w-screen'])}>
                                         <Contact />
                                     </div>
                                 </div>
