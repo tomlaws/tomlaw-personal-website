@@ -780,7 +780,7 @@ export default function Contact() {
             </div>
             <div className="flex-auto flex items-center justify-center absolute bottom-8 left-0 right-0">
                 <div className="inline-block bg-[#2c2c3f] rounded-[16px] py-1 px-3 text-xs opacity-75 mx-8 text-center">
-                    Powered by <a href="https://nextjs.org/" target="_blank" className="hover:underline">Next.js</a>, <a href="https://tailwindcss.com/" target="_blank" className="hover:underline">Tailwind CSS</a>, <a href="https://alvarotrigo.com/fullPage/" target="_blank" className="hover:underline">fullPage.js</a>, and <a href="https://greensock.com/gsap/" target="_blank" className="hover:underline">GSAP</a>
+                    Powered by <a href="https://vercel.com/" target="_blank" className="hover:underline">Vercel</a>, <a href="https://nextjs.org/" target="_blank" className="hover:underline">Next.js</a>, <a href="https://tailwindcss.com/" target="_blank" className="hover:underline">Tailwind CSS</a>, <a href="https://alvarotrigo.com/fullPage/" target="_blank" className="hover:underline">fullPage.js</a>, and <a href="https://greensock.com/gsap/" target="_blank" className="hover:underline">GSAP</a>
                 </div>
             </div>
         </div>
