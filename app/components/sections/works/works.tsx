@@ -95,7 +95,7 @@ export default function Works() {
             />,
             className: "order-5 lg:order-5 col-span-1 lg:col-span-2 row-span-2",
             badges: [
-                { name: 'windows', color: '0078D6', logo: 'windows' },
+                { name: 'Windows', color: '0078D6', logo: 'windows' },
                 { name: 'C++', color: '00599C', logo: 'c%2B%2B' },
                 { name: 'Qt', color: '41CD52', logo: 'qt' }
             ],
@@ -144,7 +144,7 @@ export default function Works() {
             />,
             className: "order-7 row-span-2 col-span-1 lg:row-span-1 lg:col-span-2",
             badges: [
-                { name: 'windows', color: '0078D6', logo: 'windows' },
+                { name: 'Windows', color: '0078D6', logo: 'windows' },
                 { name: 'C++', color: '00599C', logo: 'c%2B%2B' },
             ],
         },
@@ -159,7 +159,7 @@ export default function Works() {
             />,
             className: "order-8 lg:order-8 col-span-1 lg:col-span-2 row-span-1",
             badges: [
-                { name: 'windows', color: '0078D6', logo: 'windows' },
+                { name: 'Windows', color: '0078D6', logo: 'windows' },
                 { name: 'C#', color: '239120', logo: 'c-sharp' }
             ],
         },

@@ -9,26 +9,6 @@ export default function About() {
                 <div className={styles.syntax}>
                     &lt;Me/&gt;
                 </div>
-                {/* <div className={styles.dot}></div> */}
-                {/* <div className={styles.ellipses}>
-                    <div className={styles.ellipse}>
-                    </div>
-                    <div className={styles.ellipse}>
-                    </div>
-                    <div className={styles.ellipse}>
-                    </div>
-                    <div className={styles.dots}>
-                        <div>
-                            <div className={styles.dot}></div>
-                        </div>
-                        <div>
-                            <div className={styles.dot}></div>
-                        </div>
-                        <div>
-                            <div className={styles.dot}></div>
-                        </div>
-                    </div>
-                </div> */}
             </div>
             <div className="flex-1 flex flex-col gap-3">
                 <p>
