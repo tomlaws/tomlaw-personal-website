@@ -1,7 +1,7 @@
 'use client';
 
 import ReactFullpage from "@fullpage/react-fullpage";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import styles from './fullpage.module.scss';
 import Deco from "./decos/deco";
 import Home from "./sections/home/home";
@@ -13,10 +13,10 @@ import clsx from "clsx";
 
 export default function Fullpage() {
     const decoRef = useRef<any>(null);
-
     return (
         <>
             <Deco ref={decoRef} />
+            <div className={clsx([styles['spinner'], 'spinner'])}></div>
             <ReactFullpage
                 licenseKey="gplv3-license"
                 scrollBar={true}
@@ -26,6 +26,9 @@ export default function Fullpage() {
                     } else {
                         decoRef.current?.unfocus(destination.index);
                     }
+                }}
+                afterRender={() => {
+                    document.getElementsByTagName('body')[0].classList.add('loaded');
                 }}
                 render={({ state, fullpageApi }) => {
                     return (

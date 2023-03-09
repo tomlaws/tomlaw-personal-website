@@ -108,6 +108,18 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+}
+
+.loaded {
+  .section {
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+  }
+  .spinner {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+  }
 }
 
 button {
