@@ -7,7 +7,7 @@ export default function Timeline() {
             year: "Aug 2025 - Dec 2025",
             title: "Backend Developer",
             company: "AS Watson · Full-time",
-            description: "Focusing on bug fixing, performance optimization, and system maintenance for AS Watson Group's backend infrastructure, utilizing modern Java frameworks and monitoring tools to ensure system reliability and efficiency.",
+            description: "Focusing on bug fixing, performance optimization, and system maintenance for AS Watson Group's authentication infrastructure, utilizing modern Java frameworks and monitoring tools to ensure system reliability and efficiency.",
             technologies: ["Java", "Grafana", "Keycloak", "Quarkus", "GitHub"],
             icon: "🚀"
         },
