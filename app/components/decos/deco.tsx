@@ -44,19 +44,24 @@ const Deco = forwardRef(function Deco(props, ref) {
                 rgb(21, 21, 24)`
         });
         for (const [i, el] of Array.from(layer.current.children).entries()) {
-            gsap.to(el, {
+            // Set initial position without animation
+            gsap.set(el, {
                 x: pos[i][1],
                 y: pos[i][2],
                 rotation: pos[i][3],
+                opacity: 0,
+            });
+            // Fade in the symbol
+            gsap.to(el, {
+                opacity: focus.current ? .25 : 0,
+                duration: 2,
+                delay: i * 0.1, // Stagger the fade-in
                 ease: Sine.easeInOut,
                 onComplete: () => {
-                    gsap.to(el, {
-                        opacity: focus.current ? .25 : 0,
-                        duration: 2,
-                    })
+                    // Start the floating animations
                     animateNext(el, true, gsap.utils.random(-2, 2), gsap.utils.random(3, 5));
                     animateNext(el, false, gsap.utils.random(-2, 2), gsap.utils.random(3, 5));
-                },
+                }
             });
         }
     }, [pos]);
