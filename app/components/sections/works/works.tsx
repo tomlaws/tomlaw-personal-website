@@ -9,12 +9,39 @@ import elegantMaterial from '../../../../public/images/elegant-material.png';
 import touroll from '../../../../public/images/touroll.png';
 import eDonor from '../../../../public/images/e-donor.png';
 import movie from '../../../../public/images/movie.png';
+import wordle from '../../../../public/images/wordle.jpeg';
+import appointmentSystem from '../../../../public/images/booking.jpeg';
 import React from 'react';
 
 export default function Works() {
     const projects = [
         {
             id: 1,
+            title: "Wordle Game",
+            description: "A real-time, multiplayer Wordle game built with Go, featuring queue-based matchmaking and a WebSocket protocol.",
+            longDescription: "A real-time, multiplayer Wordle game built with Go, featuring queue-based matchmaking and a WebSocket protocol for seamless gameplay. Players can compete against each other in live matches with instant feedback and scoring.",
+            image: wordle,
+            link: "https://github.com/tomlaws/wordle",
+            github: "https://github.com/tomlaws/wordle",
+            technologies: ["Go", "WebSocket", "JavaScript", "HTML", "CSS"],
+            category: "Web Game",
+            featured: true
+        },
+        {
+            id: 2,
+            title: "Appointment System",
+            description: "Full-stack appointment booking and management system with modern web technologies",
+            longDescription: "A comprehensive appointment booking and management system built with modern web technologies, featuring user authentication, calendar integration, automated reminders, and administrative dashboard for managing appointments and schedules.",
+            image: appointmentSystem,
+            link: "https://github.com/tomlaws/appointment-system",
+            github: "https://github.com/tomlaws/appointment-system",
+            demo: "https://booking.tomlaw.dev/", // Add demo URL
+            technologies: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Redis"],
+            category: "Full-Stack",
+            featured: true
+        },
+        {
+            id: 3,
             title: "Pegasus E-Commerce",
             description: "Full-stack e-commerce platform with modern PWA features",
             longDescription: "A comprehensive e-commerce solution built with Nuxt.js, featuring GraphQL API, real-time inventory management, and automated deployment pipelines.",
@@ -26,7 +53,7 @@ export default function Works() {
             featured: true
         },
         {
-            id: 2,
+            id: 4,
             title: "Hikee",
             description: "Social hiking platform connecting outdoor enthusiasts",
             longDescription: "A mobile-first social platform for hikers, featuring trail discovery, community features, and real-time location sharing with serverless architecture.",
@@ -38,7 +65,7 @@ export default function Works() {
             featured: true
         },
         {
-            id: 3,
+            id: 5,
             title: "Bubble Shooter Game",
             description: "Classic bubble shooter game with modern C++ implementation",
             longDescription: "A faithful recreation of the classic bubble shooter game, built with C++ and Qt framework, featuring smooth animations and engaging gameplay mechanics.",
@@ -50,7 +77,7 @@ export default function Works() {
             featured: false
         },
         {
-            id: 4,
+            id: 6,
             title: "Mov!e",
             description: "Android movie database and recommendation app",
             longDescription: "A comprehensive movie database application for Android, featuring user reviews, ratings, and personalized recommendations with local database storage.",
@@ -62,7 +89,7 @@ export default function Works() {
             featured: false
         },
         {
-            id: 5,
+            id: 7,
             title: "E-Donor",
             description: "Blood donation management system",
             longDescription: "A web-based platform for managing blood donation campaigns, donor registration, and inventory tracking built with PHP and CodeIgniter framework.",
@@ -74,7 +101,7 @@ export default function Works() {
             featured: false
         },
         {
-            id: 6,
+            id: 8,
             title: "Touroll",
             description: "Travel planning and social discovery app",
             longDescription: "A travel companion app that helps users discover destinations, create itineraries, and connect with fellow travelers using modern serverless architecture.",
@@ -86,7 +113,7 @@ export default function Works() {
             featured: false
         },
         {
-            id: 7,
+            id: 9,
             title: "Scrabble Game",
             description: "Classic word game implementation",
             longDescription: "A digital version of the classic Scrabble board game, featuring AI opponents, score tracking, and an intuitive user interface built with C++.",
@@ -98,7 +125,7 @@ export default function Works() {
             featured: false
         },
         {
-            id: 8,
+            id: 10,
             title: "Multiple Choice Marker",
             description: "Automated grading system for multiple choice exams",
             longDescription: "A desktop application for automatically grading multiple choice examinations, featuring optical character recognition and detailed reporting capabilities.",
@@ -165,6 +192,14 @@ export default function Works() {
                                 </div>
 
                                 <div className={styles.cardActions}>
+                                    {project.demo && (
+                                        <a href={project.demo} target="_blank" rel="noopener noreferrer" className={styles.demoButton}>
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                            Live Demo
+                                        </a>
+                                    )}
                                     {project.github && (
                                         <a href={project.github} target="_blank" rel="noopener noreferrer" className={styles.githubButton}>
                                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
