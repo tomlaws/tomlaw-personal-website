@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { gsap } from "gsap";
 import IconGithub from '../../icons/github';
 import IconLinkedin from '../../icons/linkedin';
+import HongKong from '../../../../public/images/hk.svg'
 
 export default function Contact() {
     const paths = [
@@ -741,11 +742,11 @@ export default function Contact() {
                     </a>
                 </div>
                 <div className="flex-auto lg:flex-1 flex items-center justify-center flex-col">
-                    <div className="h-[300px] md:h-[400px] lg:h-[500px] relative">
-                        <img
-                            src="/images/hk.svg"
+                    <div className="h-[300px] md:w-[400px] md:w-[400px] lg:w-[500px] lg:h-[500px] relative">
+                        <Image
+                            src={HongKong}
                             alt="Hong Kong"
-                            className="w-full h-full object-contain"
+                            className="w-full h-full"
                         />
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -775,10 +776,10 @@ export default function Contact() {
                                         fill: "#8d63ff",
                                         fillOpacity: 1,
                                         fillRule: "nonzero",
-                                        stroke: 'none',
-                                        strokeWidth: '0',
+                                        strokeWidth: '24px',
+                                        stroke: '#211939'
                                     }}
-                                    transform="matrix(.13333 0 0 -.13333 0 457.333) scale(1)"
+                                    transform="matrix(.13333 0 0 -.13333 0 457.333)"
                                 /></g>
                         </svg>
                     </div>
