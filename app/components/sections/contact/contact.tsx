@@ -722,6 +722,15 @@ export default function Contact() {
 
     return (
         <div className="flex-1 flex flex-col w-full h-full">
+            {/* Header */}
+            <div className="text-center mb-12">
+                <h1 className="text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    Contact
+                </h1>
+                <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                    Let's connect and build something amazing together.
+                </p>
+            </div>
             <div className="flex-1 flex flex-col lg:flex-row gap-8 w-full">
                 <div className="flex-1 flex flex-col gap-6 items-center justify-center text-right relative">
                     <a className="inline-flex gap-3 justify-center opacity-50 hover:opacity-100 transition" href="https://github.com/tomlaws/" target="_blank">

@@ -31,7 +31,7 @@ export default function Timeline() {
             year: "Jul 2019 - May 2020",
             title: "Freelance Web Developer",
             company: "Pegasus Computer Limited · Freelance",
-            description: "Transformed a WordPress site with WooCommerce into a tailor-made progressive web app powered by Nuxt.js. Developed the backend with features including user system, basic stock management, and order reporting. Designed and built frontend pages using Vue and Bootstrap 5. Built a CI/CD pipeline on GitLab to automate deployment to the private cloud.",
+            description: "Transformed a WordPress site with WooCommerce into a custom progressive web app using Nuxt.js. The project involved developing a comprehensive backend with user management, stock tracking, and order reporting capabilities. I designed and implemented the frontend using Vue.js and Bootstrap 5, creating an intuitive and responsive user experience. Additionally, I established a CI/CD pipeline on GitLab to streamline automated deployments to the client's private cloud infrastructure.",
             technologies: ["Nuxt.js", "Vue", "Node.js", "Bootstrap 5", "GitLab CI/CD"],
             icon: "⚡"
         },

@@ -9,206 +9,176 @@ import elegantMaterial from '../../../../public/images/elegant-material.png';
 import touroll from '../../../../public/images/touroll.png';
 import eDonor from '../../../../public/images/e-donor.png';
 import movie from '../../../../public/images/movie.png';
-import clsx from 'clsx';
 import React from 'react';
 
 export default function Works() {
-    const works = [
+    const projects = [
         {
-            desc: "Mov!e",
-            link: "https://github.com/tomlaws/Mov-e",
-            image: <Image
-                fill
-                src={movie}
-                alt="Mov!e"
-                style={{ objectFit: 'cover' }}
-                sizes="33vw"
-            />,
-            className: "lg:order-1 col-span-1",
-            badges: [
-                { name: 'Android', color: '3DDC84', logo: 'android' },
-                { name: 'Java', color: 'F89820', logo: 'java' },
-                { name: 'MySQL', color: '4479A1', logo: 'mysql' },
-            ]
-        },
-        {
-            desc: "Pegasus",
+            id: 1,
+            title: "Pegasus E-Commerce",
+            description: "Full-stack e-commerce platform with modern PWA features",
+            longDescription: "A comprehensive e-commerce solution built with Nuxt.js, featuring GraphQL API, real-time inventory management, and automated deployment pipelines.",
+            image: pegasushk,
             link: "https://shop.pegasus.hk/",
-            image: <Image
-                fill
-                src={pegasushk}
-                alt="Pegasushk"
-                style={{ objectFit: 'cover' }}
-                sizes="50vw"
-            />,
-            className: "lg:order-2 col-span-2 lg:col-span-2",
-            badges: [
-                { name: 'GraphQL', color: 'E10098', logo: 'graphql' },
-                { name: 'Nuxt.js', color: '00C58E', logo: 'nuxt.js' },
-                { name: 'Node.js', color: '339933', logo: 'node.js' },
-                { name: 'Express', color: '000000', logo: 'express' },
-                { name: 'Apollo', color: '311C87', logo: 'apollographql' },
-            ],
+            github: null,
+            technologies: ["Nuxt.js", "GraphQL", "Node.js", "Express", "Apollo"],
+            category: "Full-Stack",
+            featured: true
         },
         {
-            desc: 'Hikee',
+            id: 2,
+            title: "Hikee",
+            description: "Social hiking platform connecting outdoor enthusiasts",
+            longDescription: "A mobile-first social platform for hikers, featuring trail discovery, community features, and real-time location sharing with serverless architecture.",
+            image: hikee,
             link: "https://github.com/tomlaws/hikee",
-            image: <Image
-                fill
-                src={hikee}
-                alt="FYP"
-                style={{ objectFit: 'cover' }}
-                sizes="50vw"
-            />,
-            className: "order-3 lg:order-3 col-span-2 row-span-2",
-            badges: [
-                { name: 'Flutter', color: '02569B', logo: 'flutter' },
-                { name: 'NestJS', color: 'E0234E', logo: 'nestjs' },
-                { name: 'PostgreSQL', color: '4169E1', logo: 'postgresql' },
-                { name: 'Serverless', color: 'FD5750', logo: 'serverless' },
-                { name: 'AWS Lamda', color: 'FF9900', logo: 'awslambda' },
-            ],
+            github: "https://github.com/tomlaws/hikee",
+            technologies: ["Flutter", "NestJS", "PostgreSQL", "Serverless", "AWS Lambda"],
+            category: "Mobile App",
+            featured: true
         },
         {
-            desc: "Elegant Material",
-            link: "https://elegantmaterial.com/",
-            image: <Image
-                fill
-                src={elegantMaterial}
-                alt="Elegant Material"
-                style={{ objectFit: 'cover' }}
-                sizes="33vw"
-            />,
-            className: "order-4 lg:order-4 col-span-1 row-span-1",
-            badges: [
-                { name: 'React', color: '61DAFB', logo: 'react' },
-                { name: 'Firebase', color: 'FFCA28', logo: 'firebase' },
-                { name: 'NestJS', color: 'E0234E', logo: 'nestjs' },
-                { name: 'MySQL', color: '4479A1', logo: 'mysql' },
-                { name: 'Docker', color: '2496ED', logo: 'docker' },
-            ],
-        },
-        {
-            desc: "Bubble Shooter",
+            id: 3,
+            title: "Bubble Shooter Game",
+            description: "Classic bubble shooter game with modern C++ implementation",
+            longDescription: "A faithful recreation of the classic bubble shooter game, built with C++ and Qt framework, featuring smooth animations and engaging gameplay mechanics.",
+            image: bubbleShooter,
             link: "https://github.com/tomlaws/BubbleShooter",
-            image: <Image
-                fill
-                src={bubbleShooter}
-                alt="Bubble Shooter"
-                style={{ objectFit: 'cover' }}
-                sizes="50vw"
-            />,
-            className: "order-5 lg:order-5 col-span-1 lg:col-span-2 row-span-2",
-            badges: [
-                { name: 'Windows', color: '0078D6', logo: 'windows' },
-                { name: 'C++', color: '00599C', logo: 'c%2B%2B' },
-                { name: 'Qt', color: '41CD52', logo: 'qt' }
-            ],
+            github: "https://github.com/tomlaws/BubbleShooter",
+            technologies: ["C++", "Qt", "Windows"],
+            category: "Desktop Game",
+            featured: false
         },
         {
-            desc: "E-Donor",
+            id: 4,
+            title: "Mov!e",
+            description: "Android movie database and recommendation app",
+            longDescription: "A comprehensive movie database application for Android, featuring user reviews, ratings, and personalized recommendations with local database storage.",
+            image: movie,
+            link: "https://github.com/tomlaws/Mov-e",
+            github: "https://github.com/tomlaws/Mov-e",
+            technologies: ["Android", "Java", "MySQL"],
+            category: "Mobile App",
+            featured: false
+        },
+        {
+            id: 5,
+            title: "E-Donor",
+            description: "Blood donation management system",
+            longDescription: "A web-based platform for managing blood donation campaigns, donor registration, and inventory tracking built with PHP and CodeIgniter framework.",
+            image: eDonor,
             link: "https://github.com/tomlaws/EDonor",
-            image: <Image
-                fill
-                src={eDonor}
-                alt="E-Donor"
-                style={{ objectFit: 'cover' }}
-                sizes="33vw"
-            />,
-            className: "order-6 lg:order-6 col-span-1 row-span-1",
-            badges: [
-                { name: 'PHP', color: '777BB4', logo: 'php' },
-                { name: 'CodeIgniter', color: 'EF4223', logo: 'codeigniter' },
-                { name: 'JavaScript', color: 'F7DF1E', logo: 'javascript' },
-            ]
+            github: "https://github.com/tomlaws/EDonor",
+            technologies: ["PHP", "CodeIgniter", "JavaScript"],
+            category: "Web App",
+            featured: false
         },
         {
-            desc: "Touroll",
+            id: 6,
+            title: "Touroll",
+            description: "Travel planning and social discovery app",
+            longDescription: "A travel companion app that helps users discover destinations, create itineraries, and connect with fellow travelers using modern serverless architecture.",
+            image: touroll,
             link: "https://github.com/tomlaws/touroll",
-            image: <Image
-                fill
-                src={touroll}
-                alt="Touroll"
-                style={{ objectFit: 'cover' }}
-                sizes="33vw"
-            />,
-            className: "order-last lg:order-7 col-span-1 row-span-1",
-            badges: [
-                { name: 'Flutter', color: '02569B', logo: 'flutter' },
-                { name: 'Firebase', color: 'FFCA28', logo: 'firebase' },
-                { name: 'Serverless', color: 'FD5750', logo: 'serverless' },
-                { name: 'AWS Lamda', color: 'FF9900', logo: 'awslambda' },
-            ],
+            github: "https://github.com/tomlaws/touroll",
+            technologies: ["Flutter", "Firebase", "Serverless", "AWS Lambda"],
+            category: "Mobile App",
+            featured: false
         },
         {
-            desc: "Scrabble",
+            id: 7,
+            title: "Scrabble Game",
+            description: "Classic word game implementation",
+            longDescription: "A digital version of the classic Scrabble board game, featuring AI opponents, score tracking, and an intuitive user interface built with C++.",
+            image: scrabble,
             link: "https://github.com/tomlaws/ScrabbleGame",
-            image: <Image
-                fill
-                src={scrabble}
-                alt="Scrabble"
-                style={{ objectFit: 'cover' }}
-                sizes="50vw"
-            />,
-            className: "order-7 row-span-2 col-span-1 lg:row-span-1 lg:col-span-2",
-            badges: [
-                { name: 'Windows', color: '0078D6', logo: 'windows' },
-                { name: 'C++', color: '00599C', logo: 'c%2B%2B' },
-            ],
+            github: "https://github.com/tomlaws/ScrabbleGame",
+            technologies: ["C++", "Windows"],
+            category: "Desktop Game",
+            featured: false
         },
         {
-            desc: "Multiple Choice Marker",
+            id: 8,
+            title: "Multiple Choice Marker",
+            description: "Automated grading system for multiple choice exams",
+            longDescription: "A desktop application for automatically grading multiple choice examinations, featuring optical character recognition and detailed reporting capabilities.",
+            image: multipleChoiceMarker,
             link: "https://github.com/tomlaws/MultipleChoiceMarker",
-            image: <Image
-                fill
-                src={multipleChoiceMarker}
-                alt="Multiple Choice Marker"
-                style={{ objectFit: 'cover' }}
-                sizes="50vw"
-            />,
-            className: "order-8 lg:order-8 col-span-1 lg:col-span-2 row-span-1",
-            badges: [
-                { name: 'Windows', color: '0078D6', logo: 'windows' },
-                { name: 'C#', color: '239120', logo: 'c-sharp' }
-            ],
-        },
+            github: "https://github.com/tomlaws/MultipleChoiceMarker",
+            technologies: ["C#", "Windows"],
+            category: "Desktop Tool",
+            featured: false
+        }
     ];
-    const item = ({ image, className, desc, badges, link }: { image: any, className?: string, desc?: string, link?: string, badges?: { name: string, color: string, logo: string }[] }) => {
-        return (
-            <div className={clsx(['relative', className, styles.card])}>
-                <a href={link} target="_blank" className={styles.content}>
-                    <div className={styles.imageContainer}>
-                        {image}
-                    </div>
-                    <div className={styles.overlay}>
-                        <div className={styles.projectInfo}>
-                            <h1>{desc}</h1>
-                            <div className={styles.badges}>
-                                {
-                                    badges?.map((badge, index) =>
-                                        <img
-                                            className={styles.badge}
-                                            key={index}
-                                            alt={badge.name}
-                                            src={`https://img.shields.io/badge/${encodeURIComponent(badge.name)}-${badge.color}?style=flat-square&logo=${badge.logo}&logoColor=fff`}
-                                        />)
-                                }
+
+    const featuredProjects = projects.filter(p => p.featured);
+    const otherProjects = projects.filter(p => !p.featured);
+
+    return (
+        <div className={styles.worksContainer}>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                {/* Header */}
+                <div className="text-center mb-16">
+                    <h1 className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                        My Work
+                    </h1>
+                    <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                        A showcase of my journey through code, from mobile apps to web platforms,
+                        each project representing a unique challenge and learning experience.
+                    </p>
+                </div>
+
+                {/* All Projects - Unified Grid */}
+                <div className={styles.unifiedProjectsGrid}>
+                    {projects.map((project) => (
+                        <div
+                            key={project.id}
+                            className={`${styles.unifiedCard} ${project.featured ? styles.featuredProject : styles.regularProject}`}
+                        >
+                            <div className={styles.cardImage}>
+                                <Image
+                                    src={project.image}
+                                    alt={project.title}
+                                    fill
+                                    style={{ objectFit: 'cover' }}
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                />
+                            </div>
+
+                            <div className={styles.cardContent}>
+                                <div className={styles.categoryBadge}>
+                                    {project.category}
+                                </div>
+
+                                <h3 className={styles.projectTitle}>{project.title}</h3>
+                                <p className={styles.projectDescription}>{project.description}</p>
+
+                                <div className={styles.techStack}>
+                                    {project.technologies.slice(0, 4).map((tech, techIndex) => (
+                                        <span key={techIndex} className={styles.techBadge}>
+                                            {tech}
+                                        </span>
+                                    ))}
+                                    {project.technologies.length > 4 && (
+                                        <span className={styles.techBadge}>+{project.technologies.length - 4}</span>
+                                    )}
+                                </div>
+
+                                <div className={styles.cardActions}>
+                                    {project.github && (
+                                        <a href={project.github} target="_blank" rel="noopener noreferrer" className={styles.githubButton}>
+                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                            </svg>
+                                            View on GitHub
+                                        </a>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </a>
+                    ))}
+                </div>
             </div>
-        );
-    }
-    return (
-        <div className="w-full h-full grid gap-3 lg:gap-5 grid-cols-3 grid-rows-5 lg:grid-cols-6 lg:grid-rows-3 p-3 lg:p-5">
-            {works.map((work, index) => {
-                return (
-                    <React.Fragment key={index}>
-                        {item(work)}
-                    </React.Fragment>
-                );
-            })}
         </div>
     );
 }
