@@ -19,6 +19,7 @@ export default function Fullpage() {
             <div className={clsx([styles['spinner'], 'spinner'])}></div>
             <ReactFullpage
                 licenseKey="gplv3-license"
+                credits={{ enabled: false }}
                 scrollBar={true}
                 onLeave={(origin, destination, direction) => {
                     if (destination.isFirst) {

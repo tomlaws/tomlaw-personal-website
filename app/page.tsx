@@ -1,4 +1,4 @@
-import { Lato } from '@next/font/google'
+import { Lato } from "next/font/google"
 import styles from './page.module.css'
 import clsx from 'clsx'
 import Fullpage from './components/fullpage'
