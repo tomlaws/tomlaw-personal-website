@@ -103,22 +103,20 @@ a {
 }
 
 .section {
-  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
+  z-index: 10;
+  position: relative;
 }
 
-.loaded {
-  .section {
-    opacity: 1;
-    transition: opacity 0.5s ease-in-out;
-  }
-  .spinner {
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
-  }
+body.loaded .section {
+  opacity: 1;
+}
+.loaded .spinner {
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
 }
 
 button {

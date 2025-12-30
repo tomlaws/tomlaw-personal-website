@@ -1,7 +1,6 @@
 import Image from 'next/image'
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { gsap } from "gsap";
-import HongKong from '../../../../public/images/hk.svg'
 import IconGithub from '../../icons/github';
 import IconLinkedin from '../../icons/linkedin';
 
@@ -733,14 +732,12 @@ export default function Contact() {
                     </a>
                 </div>
                 <div className="flex-auto lg:flex-1 flex items-center justify-center flex-col">
-                    <div className="w-[300px] h-[300px] md:w-[400px] md:w-[400px] lg:w-[500px] lg:h-[500px] relative">
-                        <div>
-                            <Image
-                                src={HongKong}
-                                alt="Hong Kong"
-                                fill
-                            />
-                        </div>
+                    <div className="h-[300px] md:h-[400px] lg:h-[500px] relative">
+                        <img
+                            src="/images/hk.svg"
+                            alt="Hong Kong"
+                            className="w-full h-full object-contain"
+                        />
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             width="637.33331"
@@ -769,18 +766,18 @@ export default function Contact() {
                                         fill: "#8d63ff",
                                         fillOpacity: 1,
                                         fillRule: "nonzero",
-                                        strokeWidth: '24px',
-                                        stroke: '#211939'
+                                        stroke: 'none',
+                                        strokeWidth: '0',
                                     }}
-                                    transform="matrix(.13333 0 0 -.13333 0 457.333)"
+                                    transform="matrix(.13333 0 0 -.13333 0 457.333) scale(1)"
                                 /></g>
                         </svg>
                     </div>
                 </div>
             </div>
             <div className="flex-auto flex items-center justify-center absolute bottom-8 left-0 right-0">
-                <div className="inline-block bg-[#2c2c3f] rounded-[16px] py-1 px-3 text-xs opacity-75 mx-8 text-center">
-                    Powered by <a href="https://vercel.com/" target="_blank" className="hover:underline">Vercel</a>, <a href="https://nextjs.org/" target="_blank" className="hover:underline">Next.js</a>, <a href="https://tailwindcss.com/" target="_blank" className="hover:underline">Tailwind CSS</a>, <a href="https://alvarotrigo.com/fullPage/" target="_blank" className="hover:underline">fullPage.js</a>, and <a href="https://greensock.com/gsap/" target="_blank" className="hover:underline">GSAP</a>
+                <div className="inline-block py-1 px-3 text-xs mx-8 text-center text-gray-500">
+                    Powered by <a href="https://vercel.com/" target="_blank" className="hover:underline">Vercel</a>, <a href="https://nextjs.org/" target="_blank" className="hover:underline">Next.js</a>, <a href="https://tailwindcss.com/" target="_blank" className="hover:underline">Tailwind CSS</a>, and <a href="https://gsap.com/" target="_blank" className="hover:underline">GSAP</a>
                 </div>
             </div>
         </div>

@@ -12,6 +12,18 @@
     }
 }
 
+.deco {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+
+    background: radial-gradient(circle at 50% -50%,
+            rgb(var(--background-start-rgb)),
+            rgb(var(--background-end-rgb)));
+}
+
 .spinner {
   color: white;
   display: flex;

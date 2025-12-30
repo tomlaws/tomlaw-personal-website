@@ -1,40 +1,109 @@
 .card {
-    //perspective: 500px;
-    color: white;
-    & .content {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .content {
+        position: relative;
+        width: 100%;
+        height: 100%;
         display: block;
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      
-        transition: transform 1s;
-        transform-style: preserve-3d;
-    }
-    &:hover .content {
-        transform: rotateY(180deg);
-        transition: transform .5s linear;
+        text-decoration: none;
+        color: inherit;
     }
 
-    & .content >* {
-        position: absolute;
-        height: 100%;
+    .imageContainer {
+        position: relative;
         width: 100%;
-        background: white;
+        height: 100%;
+        border-radius: 1rem;
+        overflow: hidden;
+
+        &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(21, 21, 24, 0.7) 0%, rgba(113, 108, 255, 0.3) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+    }
+
+    &:hover .imageContainer::after {
+        opacity: 1;
+    }
+
+    .overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(transparent, rgba(21, 21, 24, 0.9));
+        padding: 1.5rem;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+        border-radius: 0 0 1rem 1rem;
+    }
+
+    &:hover .overlay {
+        transform: translateY(0);
+    }
+
+    .projectInfo {
         text-align: center;
-        backface-visibility: hidden;
+        color: white;
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
     }
 
-    & .content >*:nth-child(2) {
-        background: #151518;
-        color: white;
-        box-shadow: 0 0 11px 0px #716cff78;
-        border: 1px solid #9a9ac0;
-        transform: rotateY(180deg);
+    .badges {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
     }
 }
 
 .badge {
-    border-radius: 8px;
+    border-radius: 6px;
     overflow: hidden;
+    transition: transform 0.2s ease;
+
+    &:hover {
+        transform: scale(1.05);
+    }
+}
+
+// Mobile-specific adjustments
+@media (max-width: 1024px) {
+    .card {
+        &:hover {
+            transform: none;
+        }
+
+        .overlay {
+            transform: translateY(0);
+            background: linear-gradient(transparent, rgba(21, 21, 24, 0.8));
+        }
+
+        .imageContainer::after {
+            opacity: 0.3;
+        }
+    }
 }

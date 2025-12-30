@@ -176,16 +176,14 @@ export default function Works() {
     const item = ({ image, className, desc, badges, link }: { image: any, className?: string, desc?: string, link?: string, badges?: { name: string, color: string, logo: string }[] }) => {
         return (
             <div className={clsx(['relative', className, styles.card])}>
-                <a href={link} target="_blank" className={clsx([styles.content])}>
-                    <div className="rounded-2xl overflow-hidden">
+                <a href={link} target="_blank" className={styles.content}>
+                    <div className={styles.imageContainer}>
                         {image}
                     </div>
-                    <div className="rounded-2xl overflow-hidden">
-                        <div className="h-full flex flex-col items-center justify-center gap-6">
-                            <div>
-                                <h1 className="text-xl">{desc}</h1>
-                            </div>
-                            <div className="flex gap-2 flex-wrap items-center justify-center px-2">
+                    <div className={styles.overlay}>
+                        <div className={styles.projectInfo}>
+                            <h1>{desc}</h1>
+                            <div className={styles.badges}>
                                 {
                                     badges?.map((badge, index) =>
                                         <img
