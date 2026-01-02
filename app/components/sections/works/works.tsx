@@ -76,42 +76,42 @@ export default function Works() {
             category: "Desktop Game",
             featured: false
         },
-        {
-            id: 6,
-            title: "Mov!e",
-            description: "Android movie database and recommendation app",
-            longDescription: "A comprehensive movie database application for Android, featuring user reviews, ratings, and personalized recommendations with local database storage.",
-            image: movie,
-            link: "https://github.com/tomlaws/Mov-e",
-            github: "https://github.com/tomlaws/Mov-e",
-            technologies: ["Android", "Java", "MySQL"],
-            category: "Mobile App",
-            featured: false
-        },
-        {
-            id: 7,
-            title: "E-Donor",
-            description: "Blood donation management system",
-            longDescription: "A web-based platform for managing blood donation campaigns, donor registration, and inventory tracking built with PHP and CodeIgniter framework.",
-            image: eDonor,
-            link: "https://github.com/tomlaws/EDonor",
-            github: "https://github.com/tomlaws/EDonor",
-            technologies: ["PHP", "CodeIgniter", "JavaScript"],
-            category: "Web App",
-            featured: false
-        },
-        {
-            id: 8,
-            title: "Touroll",
-            description: "Travel planning and social discovery app",
-            longDescription: "A travel companion app that helps users discover destinations, create itineraries, and connect with fellow travelers using modern serverless architecture.",
-            image: touroll,
-            link: "https://github.com/tomlaws/touroll",
-            github: "https://github.com/tomlaws/touroll",
-            technologies: ["Flutter", "Firebase", "Serverless", "AWS Lambda"],
-            category: "Mobile App",
-            featured: false
-        },
+        // {
+        //     id: 6,
+        //     title: "Mov!e",
+        //     description: "Android movie database and recommendation app",
+        //     longDescription: "A comprehensive movie database application for Android, featuring user reviews, ratings, and personalized recommendations with local database storage.",
+        //     image: movie,
+        //     link: "https://github.com/tomlaws/Mov-e",
+        //     github: "https://github.com/tomlaws/Mov-e",
+        //     technologies: ["Android", "Java", "MySQL"],
+        //     category: "Mobile App",
+        //     featured: false
+        // },
+        // {
+        //     id: 7,
+        //     title: "E-Donor",
+        //     description: "Blood donation management system",
+        //     longDescription: "A web-based platform for managing blood donation campaigns, donor registration, and inventory tracking built with PHP and CodeIgniter framework.",
+        //     image: eDonor,
+        //     link: "https://github.com/tomlaws/EDonor",
+        //     github: "https://github.com/tomlaws/EDonor",
+        //     technologies: ["PHP", "CodeIgniter", "JavaScript"],
+        //     category: "Web App",
+        //     featured: false
+        // },
+        // {
+        //     id: 8,
+        //     title: "Touroll",
+        //     description: "Travel planning and social discovery app",
+        //     longDescription: "A travel companion app that helps users discover destinations, create itineraries, and connect with fellow travelers using modern serverless architecture.",
+        //     image: touroll,
+        //     link: "https://github.com/tomlaws/touroll",
+        //     github: "https://github.com/tomlaws/touroll",
+        //     technologies: ["Flutter", "Firebase", "Serverless", "AWS Lambda"],
+        //     category: "Mobile App",
+        //     featured: false
+        // },
         {
             id: 9,
             title: "Scrabble Game",
