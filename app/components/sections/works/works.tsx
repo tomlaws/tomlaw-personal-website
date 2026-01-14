@@ -11,6 +11,7 @@ import eDonor from '../../../../public/images/e-donor.png';
 import movie from '../../../../public/images/movie.png';
 import wordle from '../../../../public/images/wordle.jpeg';
 import appointmentSystem from '../../../../public/images/booking.jpeg';
+import firebaseChat from '../../../../public/images/firebase-chat.jpeg';
 import React from 'react';
 
 export default function Works() {
@@ -42,6 +43,18 @@ export default function Works() {
         },
         {
             id: 3,
+            title: "Firebase Chat",
+            description: "Real-time chat application with Firebase backend",
+            longDescription: "A simple real-time chat app built with SvelteKit and Firebase, featuring phone authentication, user search, presence tracking, and with message chunking for efficient handling of large chat histories.",
+            image: firebaseChat,
+            link: "https://fir-chat-4ba55.web.app/",
+            github: "https://github.com/tomlaws/firebase-chat",
+            technologies: ["SvelteKit", "TypeScript", "Firebase", "Tailwind CSS"],
+            category: "Full-Stack",
+            featured: true
+        },
+        {
+            id: 4,
             title: "Pegasus E-Commerce",
             description: "Full-stack e-commerce platform with modern PWA features",
             longDescription: "A comprehensive e-commerce solution built with Nuxt.js, featuring GraphQL API, real-time inventory management, and automated deployment pipelines.",
@@ -53,7 +66,7 @@ export default function Works() {
             featured: true
         },
         {
-            id: 4,
+            id: 5,
             title: "Hikee",
             description: "Social hiking platform connecting outdoor enthusiasts",
             longDescription: "A mobile-first social platform for hikers, featuring trail discovery, community features, and real-time location sharing with serverless architecture.",
@@ -65,7 +78,7 @@ export default function Works() {
             featured: true
         },
         {
-            id: 5,
+            id: 6,
             title: "Bubble Shooter Game",
             description: "Classic bubble shooter game with modern C++ implementation",
             longDescription: "A faithful recreation of the classic bubble shooter game, built with C++ and Qt framework, featuring smooth animations and engaging gameplay mechanics.",
@@ -113,7 +126,7 @@ export default function Works() {
         //     featured: false
         // },
         {
-            id: 9,
+            id: 7,
             title: "Scrabble Game",
             description: "Classic word game implementation",
             longDescription: "A digital version of the classic Scrabble board game, featuring AI opponents, score tracking, and an intuitive user interface built with C++.",
@@ -125,7 +138,7 @@ export default function Works() {
             featured: false
         },
         {
-            id: 10,
+            id: 8,
             title: "Multiple Choice Marker",
             description: "Automated grading system for multiple choice exams",
             longDescription: "A desktop application for automatically grading multiple choice examinations, featuring optical character recognition and detailed reporting capabilities.",
@@ -137,9 +150,6 @@ export default function Works() {
             featured: false
         }
     ];
-
-    const featuredProjects = projects.filter(p => p.featured);
-    const otherProjects = projects.filter(p => !p.featured);
 
     return (
         <div className={styles.worksContainer}>
@@ -160,7 +170,7 @@ export default function Works() {
                     {projects.map((project) => (
                         <div
                             key={project.id}
-                            className={`${styles.unifiedCard} ${project.featured ? styles.featuredProject : styles.regularProject}`}
+                            className={styles.unifiedCard}
                         >
                             <div className={styles.cardImage}>
                                 <Image

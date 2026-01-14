@@ -26,14 +26,6 @@
     display: flex;
     flex-direction: column;
     transition: transform 0.3s ease;
-
-    &.featuredProject {
-        /* Remove fixed height - let content determine height */
-    }
-
-    &.regularProject {
-        /* Remove fixed height - let content determine height */
-    }
 }
 
 .cardImage {
