@@ -20,6 +20,14 @@ export default function Timeline() {
             icon: "🏛️"
         },
         {
+            year: "Jul 2022 - Dec 2022, May 2023 - Jul 2023",
+            title: "Freelance Software Consultant (Remote)",
+            company: "Sharp Point System · Freelance",
+            description: "Focused on MVP Flutter app development, including bug fixing, rebuilding state management, and ensuring cross-platform compatibility across Windows, MacOS, iOS, iPadOS, Android, and Web. Implemented real-time chart rendering with various technical indicators using TA-Lib (Technical Analysis Library).",
+            technologies: ["Flutter", "Dart", "TCP Socket", "WebSocket", "Cross-platform"],
+            icon: "🧑‍💻"
+        },
+        {
             year: "Jul 2021 - Aug 2021",
             title: "Analyst Programmer",
             company: "Sharp Point System · Internship",
