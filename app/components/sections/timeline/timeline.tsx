@@ -9,7 +9,7 @@ export default function Timeline() {
             company: "AS Watson · Full-time",
             description: "Focusing on bug fixing, performance optimization, and system maintenance for AS Watson Group's authentication infrastructure, utilizing modern Java frameworks and monitoring tools to ensure system reliability and efficiency.",
             technologies: ["Java", "Grafana", "Keycloak", "Quarkus", "GitHub"],
-            icon: "🚀"
+            icon: "🛠️"
         },
         {
             year: "Jul 2023 - Aug 2025",
