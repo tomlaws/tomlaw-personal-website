@@ -26,7 +26,8 @@ export default function Works() {
             github: "https://github.com/tomlaws/wordle",
             technologies: ["Go", "WebSocket", "JavaScript", "HTML", "CSS"],
             category: "Web Game",
-            featured: true
+            featured: true,
+            year: "2025"
         },
         {
             id: 2,
@@ -39,7 +40,8 @@ export default function Works() {
             demo: "https://booking.tomlaw.dev/", // Add demo URL
             technologies: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Redis"],
             category: "Full-Stack",
-            featured: true
+            featured: true,
+            year: "2025"
         },
         {
             id: 3,
@@ -51,7 +53,8 @@ export default function Works() {
             github: "https://github.com/tomlaws/firebase-chat",
             technologies: ["SvelteKit", "TypeScript", "Firebase", "Tailwind CSS"],
             category: "Full-Stack",
-            featured: true
+            featured: true,
+            year: "2025"
         },
         {
             id: 4,
@@ -63,7 +66,8 @@ export default function Works() {
             github: null,
             technologies: ["Nuxt.js", "GraphQL", "Node.js", "Express", "Apollo"],
             category: "Full-Stack",
-            featured: true
+            featured: true,
+            year: "2019-2020"
         },
         {
             id: 5,
@@ -75,7 +79,8 @@ export default function Works() {
             github: "https://github.com/tomlaws/hikee",
             technologies: ["Flutter", "NestJS", "PostgreSQL", "Serverless", "AWS Lambda"],
             category: "Mobile App",
-            featured: true
+            featured: true,
+            year: "2021-2022"
         },
         {
             id: 6,
@@ -87,7 +92,8 @@ export default function Works() {
             github: "https://github.com/tomlaws/BubbleShooter",
             technologies: ["C++", "Qt", "Windows"],
             category: "Desktop Game",
-            featured: false
+            featured: false,
+            year: "2019"
         },
         // {
         //     id: 6,
@@ -135,7 +141,8 @@ export default function Works() {
             github: "https://github.com/tomlaws/ScrabbleGame",
             technologies: ["C++", "Windows"],
             category: "Desktop Game",
-            featured: false
+            featured: false,
+            year: "2017-18"
         },
         {
             id: 8,
@@ -147,7 +154,8 @@ export default function Works() {
             github: "https://github.com/tomlaws/MultipleChoiceMarker",
             technologies: ["C#", "Windows"],
             category: "Desktop Tool",
-            featured: false
+            featured: false,
+            year: "2015"
         }
     ];
 
@@ -183,8 +191,16 @@ export default function Works() {
                             </div>
 
                             <div className={styles.cardContent}>
-                                <div className={styles.categoryBadge}>
-                                    {project.category}
+                                <div className="flex justify-between items-center w-full">
+                                    <div className={styles.categoryBadge}>
+                                        {project.category}
+                                    </div>
+                                    <div className={styles.projectYear}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        {project.year}
+                                    </div>
                                 </div>
 
                                 <h3 className={styles.projectTitle}>{project.title}</h3>

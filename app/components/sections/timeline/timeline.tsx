@@ -15,7 +15,7 @@ export default function Timeline() {
             year: "Jul 2023 - Aug 2025",
             title: "Programmer",
             company: "Mandatory Provident Fund Schemes Authority · Full-time",
-            description: "Developed and maintained applications for the Mandatory Provident Fund Schemes Authority, implementing secure financial systems with comprehensive testing and security measures.",
+            description: "Maintained applications for the Mandatory Provident Fund Schemes Authority, implementing secure financial systems with comprehensive testing and security measures.",
             technologies: ["Java", "Flutter", "PL/SQL", "Spring", "React Native", "LoadRunner", "OWASP ZAP", "Git", "GitHub", "Node.js"],
             icon: "🏛️"
         },
