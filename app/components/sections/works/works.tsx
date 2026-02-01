@@ -12,10 +12,25 @@ import movie from '../../../../public/images/movie.png';
 import wordle from '../../../../public/images/wordle.jpeg';
 import appointmentSystem from '../../../../public/images/booking.jpeg';
 import firebaseChat from '../../../../public/images/firebase-chat.jpeg';
+import osp from '../../../../public/images/osp.jpg';
 import React from 'react';
 
 export default function Works() {
     const projects = [
+        {
+            id: 0,
+            title: "Online Survey Platform",
+            description: "AI-powered survey generation and management platform",
+            longDescription: "A cutting-edge Online Survey Platform that integrates LLMs via GitHub Models API to intelligently generate surveys. Built with a high-performance Go backend and Next.js frontend, utilizing MongoDB for flexible data storage and Redis for caching.",
+            image: osp,
+            link: "https://osp.tomlaw.dev/",
+            github: "https://github.com/tomlaws/OSP_backend",
+            demo: "https://osp.tomlaw.dev/",
+            technologies: ["Go", "Next.js", "MongoDB", "Redis", "GitHub Models API"],
+            category: "Full-Stack",
+            featured: true,
+            year: "2026"
+        },
         {
             id: 1,
             title: "Wordle Game",
