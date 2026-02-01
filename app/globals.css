@@ -71,6 +71,7 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--background);
   color: rgb(var(--foreground-rgb));
   font-size: 16px;
