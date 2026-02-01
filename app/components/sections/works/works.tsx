@@ -66,6 +66,7 @@ export default function Works() {
             image: firebaseChat,
             link: "https://fir-chat-4ba55.web.app/",
             github: "https://github.com/tomlaws/firebase-chat",
+            demo: "https://fir-chat-4ba55.web.app/",
             technologies: ["SvelteKit", "TypeScript", "Firebase", "Tailwind CSS"],
             category: "Full-Stack",
             featured: true,
