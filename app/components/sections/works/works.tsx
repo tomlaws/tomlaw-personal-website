@@ -26,7 +26,7 @@ export default function Works() {
             link: "https://osp.tomlaw.dev/",
             github: "https://github.com/tomlaws/OSP_backend",
             demo: "https://osp.tomlaw.dev/",
-            technologies: ["Go", "Next.js", "MongoDB", "Redis", "GitHub Models API"],
+            technologies: ["Go", "MongoDB", "Redis", "GitHub Models API"],
             category: "Full-Stack",
             featured: true,
             year: "2026"
@@ -39,7 +39,7 @@ export default function Works() {
             image: wordle,
             link: "https://github.com/tomlaws/wordle",
             github: "https://github.com/tomlaws/wordle",
-            technologies: ["Go", "WebSocket", "JavaScript", "HTML", "CSS"],
+            technologies: ["Go", "WebSocket", "JavaScript", "Svelte"],
             category: "Web Game",
             featured: true,
             year: "2025"
