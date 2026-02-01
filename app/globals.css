@@ -9,8 +9,6 @@
 
   --foreground-rgb: 255, 255, 255;
   --background-rgb: 35, 35, 35;
-  --background-start-rgb: 42, 42, 85;
-  --background-end-rgb: 21, 21, 24;
 
   --primary-glow: conic-gradient(from 180deg at 50% 50%,
       #16abff33 0deg,
@@ -40,8 +38,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --background-rgb: 35, 35, 35;
 
     --primary-glow: radial-gradient(rgba(1, 65, 255, 0.4), rgba(1, 65, 255, 0));
     --secondary-glow: linear-gradient(to bottom right,
@@ -66,13 +63,15 @@
   }
 }
 
+html {
+  background: #12111f;
+}
+
 html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background: var(--background);
+  min-height: 100lvh;
   color: rgb(var(--foreground-rgb));
   font-size: 16px;
   letter-spacing: 1px;
@@ -109,6 +108,7 @@ a {
 body.loaded .section {
   opacity: 1;
 }
+
 .loaded .spinner {
   opacity: 0;
   transition: opacity 0.5s ease-in-out;

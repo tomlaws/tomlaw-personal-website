@@ -38,11 +38,15 @@ const Deco = forwardRef(function Deco(props, ref) {
 
     const startAnimate = useCallback(() => {
         if (layer.current == null) return;
-        gsap.set(layer.current, {
-            'background': `radial-gradient(circle at 50% -50%,
-                rgb(42, 42, 85),
-                rgb(21, 21, 24)`
-        });
+        // gsap.set('body', {
+        //     'background': `radial-gradient(circle at 50% -50%,
+        //         rgb(42, 42, 85),
+        //         rgb(21, 21, 24)`
+        // });
+
+        // gsap.set('body', {
+        //     'background': `#1c193a`
+        // });
         for (const [i, el] of Array.from(layer.current.children).entries()) {
             // Set initial position without animation
             gsap.set(el, {
@@ -80,12 +84,16 @@ const Deco = forwardRef(function Deco(props, ref) {
                     opacity: .25,
                     duration: 2,
                 });
-                gsap.to(layer.current, {
-                    duration: 2,
-                    'background': `radial-gradient(circle at 50% -50%,
-                        rgb(42, 42, 85),
-                        rgb(21, 21, 24)`
-                });
+                // gsap.to('body', {
+                //     duration: 2,
+                //     'background': `radial-gradient(circle at 50% -50%,
+                //         rgb(42, 42, 85),
+                //         rgb(21, 21, 24)`
+                // });
+                // gsap.to('body', {
+                //     duration: 2,
+                //     'background': `#1c193a`
+                // });
             },
             unfocus(idx: number) {
                 focus.current = false;
@@ -95,14 +103,21 @@ const Deco = forwardRef(function Deco(props, ref) {
                     opacity: 0,
                     duration: 2,
                 });
-                if (idx == 1) {
-                    gsap.to(layer.current, {
-                        duration: 2,
-                        'background': `radial-gradient(circle at 50% -50%,
-                            rgb(21, 21, 24),
-                            rgb(21, 21, 24)`
-                    });
-                }
+                
+                // if (idx == 1) {
+                //     gsap.to('body', {
+                //         duration: 2,
+                //         'background': `radial-gradient(circle at 50% -50%,
+                //             rgb(21, 21, 24),
+                //             rgb(21, 21, 24)`
+                //     });
+                // }
+                // if (idx == 1) {
+                //     gsap.to('body', {
+                //         duration: 2,
+                //         'background': `rgb(21, 21, 24)`
+                //     });
+                // }
             },
         };
     }, []);

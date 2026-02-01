@@ -66,6 +66,10 @@
   }
 }
 
+html {
+  background: #1c193a;
+}
+
 html,
 body {
   max-width: 100vw;
@@ -75,9 +79,6 @@ body {
   color: rgb(var(--foreground-rgb));
   font-size: 16px;
   letter-spacing: 1px;
-    background: radial-gradient(circle at 50% -50%,
-      rgb(var(--background-start-rgb)),
-      rgb(var(--background-end-rgb)));
 }
 
 body {
@@ -113,6 +114,7 @@ a {
     opacity: 1;
     transition: opacity 0.5s ease-in-out;
   }
+
   .spinner {
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
