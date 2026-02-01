@@ -33,12 +33,13 @@ export default function Works() {
         },
         {
             id: 1,
-            title: "Wordle Game",
+            title: "Multiplayer Wordle Game",
             description: "A real-time, multiplayer Wordle game built with Go, featuring queue-based matchmaking and a WebSocket protocol.",
             longDescription: "A real-time, multiplayer Wordle game built with Go, featuring queue-based matchmaking and a WebSocket protocol for seamless gameplay. Players can compete against each other in live matches with instant feedback and scoring.",
             image: wordle,
             link: "https://github.com/tomlaws/wordle",
             github: "https://github.com/tomlaws/wordle",
+            demo: "https://wordle.tomlaw.dev/",
             technologies: ["Go", "WebSocket", "JavaScript", "Svelte"],
             category: "Web Game",
             featured: true,
@@ -52,7 +53,7 @@ export default function Works() {
             image: appointmentSystem,
             link: "https://github.com/tomlaws/appointment-system",
             github: "https://github.com/tomlaws/appointment-system",
-            demo: "https://booking.tomlaw.dev/", // Add demo URL
+            demo: "https://booking.tomlaw.dev/",
             technologies: ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Redis"],
             category: "Full-Stack",
             featured: true,
