@@ -59,20 +59,20 @@ export default function Works() {
             featured: true,
             year: "2025"
         },
-        {
-            id: 3,
-            title: "Firebase Chat",
-            description: "Real-time chat application with Firebase backend",
-            longDescription: "A simple real-time chat app built with SvelteKit and Firebase, featuring phone authentication, user search, presence tracking, and with message chunking for efficient handling of large chat histories.",
-            image: firebaseChat,
-            link: "https://fir-chat-4ba55.web.app/",
-            github: "https://github.com/tomlaws/firebase-chat",
-            demo: "https://fir-chat-4ba55.web.app/",
-            technologies: ["SvelteKit", "TypeScript", "Firebase", "Tailwind CSS"],
-            category: "Full-Stack",
-            featured: true,
-            year: "2025"
-        },
+        // {
+        //     id: 3,
+        //     title: "Firebase Chat",
+        //     description: "Real-time chat application with Firebase backend",
+        //     longDescription: "A simple real-time chat app built with SvelteKit and Firebase, featuring phone authentication, user search, presence tracking, and with message chunking for efficient handling of large chat histories.",
+        //     image: firebaseChat,
+        //     link: "https://fir-chat-4ba55.web.app/",
+        //     github: "https://github.com/tomlaws/firebase-chat",
+        //     demo: "https://fir-chat-4ba55.web.app/",
+        //     technologies: ["SvelteKit", "TypeScript", "Firebase", "Tailwind CSS"],
+        //     category: "Full-Stack",
+        //     featured: true,
+        //     year: "2025"
+        // },
         {
             id: 4,
             title: "Pegasus E-Commerce",
