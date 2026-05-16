@@ -161,15 +161,13 @@
     line-height: 120px;
     height: 120px;
     font-family: monospace;
-    background: linear-gradient(to right,  #2359e8 0%, #611ea2 50%, #2359e8 100%);
-    background-size: 200% auto;
-
+    background: none;
     color: #000;
-    background-clip: text;
-    text-fill-color: transparent;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: shine 4s ease infinite;
+    -webkit-text-fill-color: initial;
+    text-fill-color: initial;
+    animation: none;
+    font-weight: 700;
+    letter-spacing: -5px;
 
     @keyframes shine {
         to {

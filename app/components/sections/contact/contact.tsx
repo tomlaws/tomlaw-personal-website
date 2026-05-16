@@ -725,20 +725,20 @@ export default function Contact() {
         <div className="flex-1 flex flex-col w-full h-full">
             {/* Header */}
             <div className="text-center mb-12">
-                <h1 className="text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                <h1 className="text-4xl lg:text-5xl font-bold mb-4 text-black">
                     Contact
                 </h1>
-                <p className="text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
                     Let's connect and build something amazing together.
                 </p>
             </div>
             <div className="flex-1 flex flex-col lg:flex-row gap-8 w-full">
                 <div className="flex-1 flex flex-col gap-6 items-center justify-center text-right relative">
-                    <a className="inline-flex gap-3 justify-center opacity-50 hover:opacity-100 transition" href="https://github.com/tomlaws/" target="_blank">
-                        <IconGithub width={20} fill="#d6d9f5" />GitHub
+                    <a className="inline-flex gap-3 justify-center opacity-70 hover:opacity-100 transition text-black" href="https://github.com/tomlaws/" target="_blank">
+                        <IconGithub width={20} fill="#000000" />GitHub
                     </a>
-                    <a className="inline-flex gap-3 justify-center opacity-50 hover:opacity-100 transition" href="https://www.linkedin.com/in/tomlaws/" target="_blank">
-                        <IconLinkedin width={20} fill="#d6d9f5" />LinkedIn
+                    <a className="inline-flex gap-3 justify-center opacity-70 hover:opacity-100 transition text-black" href="https://www.linkedin.com/in/tomlaws/" target="_blank">
+                        <IconLinkedin width={20} fill="#000000" />LinkedIn
                     </a>
                 </div>
                 <div className="flex-auto lg:flex-1 flex items-center justify-center flex-col">
@@ -758,8 +758,8 @@ export default function Contact() {
                             <defs>
                                 <filter id="glow" height="300%" width="300%" x="-75%" y="-75%">
                                     <feMorphology operator="dilate" radius="4" in="SourceAlpha" result="thicken" />
-                                    <feGaussianBlur in="thicken" stdDeviation="24" result="blurred" />
-                                    <feFlood floodColor="#515379" result="glowColor" />
+                                    {/* <feGaussianBlur in="thicken" stdDeviation="24" result="blurred" /> */}
+                                    {/* <feFlood floodColor="#FFFFFF" result="glowColor" /> */}
                                     <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
                                     <feMerge>
                                         <feMergeNode in="softGlow_colored" />
@@ -773,11 +773,11 @@ export default function Contact() {
                                     d={""}
                                     filter="url(#glow)"
                                     style={{
-                                        fill: "#8d63ff",
+                                        fill: "#000000",
                                         fillOpacity: 1,
                                         fillRule: "nonzero",
-                                        strokeWidth: '24px',
-                                        stroke: '#211939'
+                                        strokeWidth: '16px',
+                                        stroke: '#eeeeee'
                                     }}
                                     transform="matrix(.13333 0 0 -.13333 0 457.333)"
                                 /></g>
@@ -785,11 +785,11 @@ export default function Contact() {
                     </div>
                 </div>
             </div>
-            <div className="flex-auto flex items-center justify-center absolute bottom-8 left-0 right-0">
+            {/* <div className="flex-auto flex items-center justify-center absolute bottom-8 left-0 right-0">
                 <div className="inline-block py-1 px-3 text-xs mx-8 text-center text-gray-500">
                     Powered by <a href="https://vercel.com/" target="_blank" className="hover:underline">Vercel</a>, <a href="https://nextjs.org/" target="_blank" className="hover:underline">Next.js</a>, <a href="https://tailwindcss.com/" target="_blank" className="hover:underline">Tailwind CSS</a>, and <a href="https://gsap.com/" target="_blank" className="hover:underline">GSAP</a>
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 }

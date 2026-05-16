@@ -13,13 +13,10 @@
         left: 2rem;
         top: 0;
         bottom: 0;
-        width: 3px;
-        background: linear-gradient(180deg,
-            rgba(59, 130, 246, 0.1) 0%,
-            rgba(147, 51, 234, 0.6) 50%,
-            rgba(59, 130, 246, 0.1) 100%);
+        width: 1px;
+        background: #e5e5e5;
         transform: translateX(-50%);
-        border-radius: 2px;
+        border-radius: 0;
     }
 
     @media (max-width: 768px) {
@@ -63,56 +60,35 @@
 }
 
 .year {
-    background: linear-gradient(135deg, rgba(60, 55, 110, 0.8), rgba(40, 35, 90, 0.9));
-    color: white;
-    padding: 0.5rem 1.25rem;
-    border-radius: 25px;
+    background: #f3f4f6;
+    color: #4b5563;
+    padding: 0.35rem 1rem;
+    border-radius: 0;
     font-weight: 700;
-    font-size: 0.9rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    backdrop-filter: blur(10px);
+    font-size: 0.8rem;
+    box-shadow: none;
+    border: 1px solid #e5e5e5;
+    backdrop-filter: none;
 }
 
 .icon {
-    font-size: 1.5rem;
-    animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-5px); }
+    font-size: 1.2rem;
+    animation: none;
 }
 
 .card {
-    background: linear-gradient(135deg,
-        rgba(50, 45, 100, 0.3) 0%,
-        rgba(28, 25, 58, 0.4) 100%);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(139, 92, 246, 0.2);
-    border-radius: 20px;
-    padding: 2rem;
+    background: #ffffff;
+    backdrop-filter: none;
+    border: 1px solid #e5e5e5;
+    border-radius: 0;
+    padding: 1.5rem;
     position: relative;
     overflow: hidden;
-    box-shadow:
-        0 20px 40px rgba(0, 0, 0, 0.3),
-        0 0 0 1px rgba(139, 92, 246, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    width: 100%;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
 
     &:hover {
-        transform: scale(1.01);
-        box-shadow:
-            0 30px 60px rgba(0, 0, 0, 0.4),
-            0 0 0 1px rgba(59, 130, 246, 0.4),
-            0 0 30px rgba(59, 130, 246, 0.2);
-        border-color: rgba(59, 130, 246, 0.6);
-    }
-
-    @media (max-width: 768px) {
-        padding: 1.5rem;
+        border-color: #000;
     }
 }
 
@@ -121,21 +97,20 @@
 }
 
 .title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #60a5fa, #a78bfa, #ec4899);
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000;
+    background: none;
+    -webkit-text-fill-color: initial;
     margin-bottom: 0.5rem;
     line-height: 1.2;
 }
 
 .company {
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #94a3b8;
-    opacity: 0.9;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #4b5563;
+    opacity: 1;
 }
 
 .cardBody {
@@ -144,10 +119,10 @@
 }
 
 .description {
-    color: #cbd5e1;
-    line-height: 1.7;
+    color: #4b5563;
+    line-height: 1.6;
     margin-bottom: 1.5rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
 
 .technologies {
@@ -157,50 +132,25 @@
 }
 
 .tech {
-    background: rgba(255, 255, 255, 0.1);
-    color: #e2e8f0;
-    padding: 0.4rem 0.8rem;
-    border-radius: 25px;
+    background: transparent;
+    color: #6b7280;
+    padding: 0.2rem 0.6rem;
+    border-radius: 0;
     font-size: 0.75rem;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: all 0.3s ease;
+    font-weight: 500;
+    border: 1px solid #e5e5e5;
+    transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
 
-    &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s;
-    }
-
     &:hover {
-        border-color: rgba(255, 255, 255, 0.6);
-
-        &::before {
-            left: 100%;
-        }
+        border-color: #000;
+        color: #000;
     }
 }
 
 .cardGlow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg,
-        rgba(59, 130, 246, 0.1) 0%,
-        rgba(147, 51, 234, 0.1) 50%,
-        rgba(236, 72, 153, 0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
+    display: none;
 }
 
 .card:hover .cardGlow {
@@ -222,27 +172,20 @@
 }
 
 .dot {
-    width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    border: 3px solid rgba(30, 41, 59, 0.8);
+    width: 14px;
+    height: 14px;
+    background: #000;
+    border: 2px solid #fff;
     border-radius: 50%;
-    box-shadow:
-        0 0 0 4px rgba(59, 130, 246, 0.2),
-        0 0 20px rgba(59, 130, 246, 0.5);
     position: relative;
     z-index: 3;
     transition: all 0.3s ease;
-
 }
 
 .line {
-    width: 2px;
+    width: 1px;
     height: 100%;
-    background: linear-gradient(to bottom,
-        rgba(59, 130, 246, 0.6) 0%,
-        rgba(147, 51, 234, 0.4) 100%);
+    background: #eee;
     margin-top: 1rem;
     border-radius: 1px;
 }
-

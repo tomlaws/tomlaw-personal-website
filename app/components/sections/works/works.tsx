@@ -196,10 +196,10 @@ export default function Works() {
             <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 py-16">
                 {/* Header */}
                 <div className="text-center mb-16">
-                    <h1 className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                    <h1 className="text-5xl lg:text-7xl font-bold mb-6 text-black">
                         My Work
                     </h1>
-                    <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                         A showcase of my journey through code, from mobile apps to web platforms,
                         each project representing a unique challenge and learning experience.
                     </p>
@@ -212,25 +212,12 @@ export default function Works() {
                             key={project.id}
                             className={styles.unifiedCard}
                         >
-                            <div className={styles.cardImage}>
-                                <Image
-                                    src={project.image}
-                                    alt={project.title}
-                                    fill
-                                    style={{ objectFit: 'cover' }}
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                />
-                            </div>
-
                             <div className={styles.cardContent}>
                                 <div className="flex justify-between items-center w-full">
                                     <div className={styles.categoryBadge}>
                                         {project.category}
                                     </div>
                                     <div className={styles.projectYear}>
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
                                         {project.year}
                                     </div>
                                 </div>
@@ -239,14 +226,11 @@ export default function Works() {
                                 <p className={styles.projectDescription}>{project.description}</p>
 
                                 <div className={styles.techStack}>
-                                    {project.technologies.slice(0, 4).map((tech, techIndex) => (
+                                    {project.technologies.map((tech, techIndex) => (
                                         <span key={techIndex} className={styles.techBadge}>
                                             {tech}
                                         </span>
                                     ))}
-                                    {project.technologies.length > 4 && (
-                                        <span className={styles.techBadge}>+{project.technologies.length - 4}</span>
-                                    )}
                                 </div>
 
                                 <div className={styles.cardActions}>

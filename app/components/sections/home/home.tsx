@@ -18,6 +18,7 @@ export default function Home() {
                 I'm a backend developer based in HK 😀.
             </p>
             <button
+                className="mt-4 px-10 py-3 border border-black text-black bg-white hover:bg-black hover:text-white transition-colors duration-200 text-xs font-bold tracking-[4px] uppercase"
                 onClick={() => {
                     document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
                 }}

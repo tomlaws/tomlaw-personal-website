@@ -23,7 +23,7 @@ export default function Fullpage() {
             if (contactSection && decoRef.current) {
                 const rect = contactSection.getBoundingClientRect();
                 const isInContactSection = rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2;
-                
+
                 if (isInContactSection) {
                     decoRef.current.unfocus(1);
                 } else {
@@ -42,7 +42,6 @@ export default function Fullpage() {
         <>
             <div className={clsx([styles['spinner'], 'spinner'])}></div>
             <div className={styles.deco}></div>
-            <Deco ref={decoRef} />
             <div>
                 <div id="home" className="section">
                     <div className={styles['section-content']}>
