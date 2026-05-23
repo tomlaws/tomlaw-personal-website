@@ -8,48 +8,42 @@ export default function Timeline() {
             title: "Backend Developer",
             company: "AS Watson · Full-time",
             description: "Focusing on bug fixing, performance optimization, and system maintenance for AS Watson Group's authentication infrastructure, utilizing modern Java frameworks and monitoring tools to ensure system reliability and efficiency.",
-            technologies: ["Java", "Grafana", "Keycloak", "Quarkus", "GitHub"],
-            icon: "🛠️"
+            technologies: ["Java", "Grafana", "Keycloak", "Quarkus", "GitHub"]
         },
         {
             year: "Jul 2023 - Aug 2025",
             title: "Programmer",
             company: "Mandatory Provident Fund Schemes Authority · Full-time",
             description: "Maintained applications for the Mandatory Provident Fund Schemes Authority, implementing secure financial systems with comprehensive testing and security measures.",
-            technologies: ["Java", "Flutter", "PL/SQL", "Spring", "React Native", "LoadRunner", "OWASP ZAP", "Git", "GitHub", "Node.js"],
-            icon: "🏛️"
+            technologies: ["Java", "Flutter", "PL/SQL", "Spring", "React Native", "LoadRunner", "OWASP ZAP", "Git", "GitHub", "Node.js"]
         },
         {
             year: "Jul 2022 - Dec 2022, May 2023 - Jul 2023",
             title: "Freelance Software Consultant (Remote)",
             company: "Sharp Point System · Freelance",
             description: "Focused on MVP Flutter app development, including bug fixing, rebuilding state management, and ensuring cross-platform compatibility across Windows, MacOS, iOS, iPadOS, Android, and Web. Implemented real-time chart rendering with various technical indicators using TA-Lib (Technical Analysis Library).",
-            technologies: ["Flutter", "Dart", "TCP Socket", "WebSocket", "Cross-platform"],
-            icon: "🧑‍💻"
+            technologies: ["Flutter", "Dart", "TCP Socket", "WebSocket", "Cross-platform"]
         },
         {
             year: "Jul 2021 - Aug 2021",
             title: "Analyst Programmer",
             company: "Sharp Point System · Internship",
             description: "Developed an MVP trading app that provides real-time product price updates and account notifications by communicating with the server using TCP sockets and WebSockets.",
-            technologies: ["Java", "React.js", "Flutter", "WebSocket", "JavaScript", "Git"],
-            icon: "💻"
+            technologies: ["Java", "React.js", "Flutter", "WebSocket", "JavaScript", "Git"]
         },
         {
             year: "Jul 2019 - May 2020",
             title: "Freelance Web Developer",
             company: "Pegasus Computer Limited · Freelance",
             description: "Transformed a WordPress site with WooCommerce into a custom progressive web app using Nuxt.js. The project involved developing a comprehensive backend with user management, stock tracking, and order reporting capabilities. I designed and implemented the frontend using Vue.js and Bootstrap 5, creating an intuitive and responsive user experience. Additionally, I established a CI/CD pipeline on GitLab to streamline automated deployments to the client's private cloud infrastructure.",
-            technologies: ["Nuxt.js", "Vue", "Node.js", "Bootstrap 5", "GitLab CI/CD"],
-            icon: "⚡"
+            technologies: ["Nuxt.js", "Vue", "Node.js", "Bootstrap 5", "GitLab CI/CD"]
         },
         {
             year: "Jun 2018 - Jul 2018",
             title: "Web Developer",
             company: "DOOD LIMITED · Internship",
             description: "Developed WordPress websites with responsive web design, implemented fancy user interfaces and animations using CSS3 and HTML5, and created a request quote plugin with PHP for e-commerce websites.",
-            technologies: ["HTML/CSS", "JavaScript", "PHP", "WordPress"],
-            icon: "🌱"
+            technologies: ["HTML/CSS", "JavaScript", "PHP", "WordPress"]
         }
     ];
 
@@ -75,7 +69,6 @@ export default function Timeline() {
                                 <div className={styles.timelineContent}>
                                     <div className={styles.yearBadge}>
                                         <span className={styles.year}>{exp.year}</span>
-                                        <div className={styles.icon}>{exp.icon}</div>
                                     </div>
 
                                     <div className={styles.card}>
