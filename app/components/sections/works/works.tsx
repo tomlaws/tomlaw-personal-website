@@ -21,13 +21,13 @@ export default function Works() {
         {
             id: 10,
             title: "FLIXHK",
-            description: "Hong Kong movie showtimes information platform",
-            longDescription: "A go-to platform for Hong Kong movie showtimes information, providing up-to-date schedules, cinema details, and movie insights. Built with a modern tech stack for speed and reliability.",
+            description: "Hong Kong movie showtimes platform using Gemini LLM to group schedules from local cinemas",
+            longDescription: "An experimental platform for Hong Kong movie showtimes information, providing up-to-date schedules, cinema details, and movie insights. Leveraging Gemini LLM to intelligently group and process showtimes from various cinema chains.",
             image: flixhk,
             link: "https://flixhk.com",
             github: null,
             demo: "https://flixhk.com",
-            technologies: ["Next.js", "Supabase", "Cloudflare Worker", "GitHub Actions"],
+            technologies: ["Next.js", "Supabase", "LLM", "Cloudflare Worker", "GitHub Actions"],
             category: "Full-stack",
             featured: true,
             year: "2026"
