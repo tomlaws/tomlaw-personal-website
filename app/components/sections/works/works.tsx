@@ -20,7 +20,7 @@ export default function Works() {
     const projects = [
         {
             id: 10,
-            title: "FLIXHK",
+            title: "Movie Showtimes Platform",
             description: "Experimental Hong Kong movie showtimes platform using Gemini LLM to group schedules from local cinemas",
             image: flixhk,
             link: "https://flixhk.com",
