@@ -21,8 +21,8 @@ export default function Works() {
         {
             id: 10,
             title: "FLIXHK",
-            description: "Hong Kong movie showtimes platform using Gemini LLM to group schedules from local cinemas",
-            longDescription: "An experimental platform for Hong Kong movie showtimes information, providing up-to-date schedules, cinema details, and movie insights. Leveraging Gemini LLM to intelligently group and process showtimes from various cinema chains.",
+            description: "Experimental Hong Kong movie showtimes platform using Gemini LLM to group schedules from local cinemas",
+            longDescription: "An experimental platform for Hong Kong movie showtimes, leveraging Gemini LLM to intelligently group and process showtimes from various cinema chains for a unified viewing experience.",
             image: flixhk,
             link: "https://flixhk.com",
             github: null,
