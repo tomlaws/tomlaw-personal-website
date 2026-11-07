@@ -256,20 +256,27 @@ const output = new OutputPass();
 output.material.depthTest = false;
 output.material.depthWrite = false;
 composer.addPass(output);
-// Composer swaps reuse the beauty target later in the chain. Keep an isolated
-// copy of its live depth so fullscreen passes cannot erase the map silhouette.
-const silhouetteTarget=new T.WebGLRenderTarget(1,1,{depthBuffer:true});
-silhouetteTarget.depthTexture=new T.DepthTexture();
-const atmosphere = createPortfolioAtmosphere({depthTexture: silhouetteTarget.depthTexture});
+// Preserve the multisampled beauty alpha before later passes reuse the target.
+// It records partial silhouette coverage for composition against the page.
+const silhouetteTarget = new T.WebGLRenderTarget(1, 1, { depthBuffer: false, type: T.HalfFloatType });
+const atmosphere = createPortfolioAtmosphere();
 const renderBeauty = beauty.render.bind(beauty);
 beauty.render = (renderer, writeBuffer, readBuffer, ...args) => {
-  renderBeauty(renderer, writeBuffer, readBuffer, ...args);
-  // Use the beauty pass's current depth, rather than the cached AO depth, so
-  // moving ships and vehicles keep a correct silhouette on every frame.
-  silhouetteTarget.setSize(readBuffer.width,readBuffer.height);
+  const background = scene.background;
+  const clearColour = renderer.getClearColor(new T.Color());
+  const clearAlpha = renderer.getClearAlpha();
+  scene.background = null;
+  renderer.setClearColor(0x000000, 0);
+  try {
+    renderBeauty(renderer, writeBuffer, readBuffer, ...args);
+  } finally {
+    scene.background = background;
+    renderer.setClearColor(clearColour, clearAlpha);
+  }
+  silhouetteTarget.setSize(readBuffer.width, readBuffer.height);
   renderer.initRenderTarget(silhouetteTarget);
-  renderer.copyTextureToTexture(readBuffer.depthTexture,silhouetteTarget.depthTexture);
-  atmosphere.pass.uniforms.tDepth.value = silhouetteTarget.depthTexture;
+  renderer.copyTextureToTexture(readBuffer.texture, silhouetteTarget.texture);
+  atmosphere.pass.uniforms.tCoverage.value = silhouetteTarget.texture;
 };
 composer.addPass(atmosphere.pass);
 let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false;

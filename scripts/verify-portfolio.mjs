@@ -123,7 +123,8 @@ viewport={width:450,height:1095};queuedResize.request();queuedResize.flush();
 assert.deepEqual(appliedSizes[1],viewport,'The final native-resolution viewport is applied');
 const depth=new DepthTexture();
 const atmosphere=createPortfolioAtmosphere({depthTexture:depth});
-assert.equal(atmosphere.pass.uniforms.tDepth.value,depth,'Backdrop composition samples the existing live depth attachment');
+assert.ok('tCoverage' in atmosphere.pass.uniforms, 'Backdrop composition accepts antialiased silhouette coverage');
+assert.match(atmosphere.pass.material.fragmentShader, /1\. - coverage/, 'Partial coverage blends with the page background');
 for(const time of [0,.5,1]) {
   const background=harbourTheme(time)['--background'];
   atmosphere.setBackground(background);
