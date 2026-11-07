@@ -1,0 +1,32 @@
+[
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":1,\"cpuMs\":12.4,\"completeMs\":1005.4,\"gpuMs\":53.6,\"p95\":{\"frameMs\":1016.7,\"cpuMs\":18,\"gpuMs\":109.7,\"completeMs\":1016.6},\"programs\":91,\"calls\":976,\"triangles\":4251622,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.4,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":2.7,\"calls\":148,\"triangles\":633295},\"mainAndEffects\":{\"cpuMs\":9.3,\"calls\":828,\"triangles\":3618327}}}",
+    "timestamp": "2026-11-02T18:51:15.817Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793645313526"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":1,\"cpuMs\":13.1,\"completeMs\":999.9,\"gpuMs\":56.4,\"p95\":{\"frameMs\":1000.2,\"cpuMs\":21.6,\"gpuMs\":84.2,\"completeMs\":1000.1},\"programs\":91,\"calls\":976,\"triangles\":4251622,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.4,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":3.3,\"calls\":148,\"triangles\":633295},\"mainAndEffects\":{\"cpuMs\":9.4,\"calls\":828,\"triangles\":3618327}}}",
+    "timestamp": "2026-11-02T18:51:18.818Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793645313526"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":1,\"cpuMs\":9.3,\"completeMs\":1000,\"gpuMs\":42.8,\"p95\":{\"frameMs\":1000.1,\"cpuMs\":9.6,\"gpuMs\":77.4,\"completeMs\":1000.1},\"programs\":91,\"calls\":828,\"triangles\":3618327,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.4,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":0,\"calls\":0,\"triangles\":0},\"mainAndEffects\":{\"cpuMs\":8.8,\"calls\":828,\"triangles\":3618327}}}",
+    "timestamp": "2026-11-02T18:51:21.818Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793645313526"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":1,\"cpuMs\":12.5,\"completeMs\":1000,\"gpuMs\":51.6,\"p95\":{\"frameMs\":1000.1,\"cpuMs\":19.1,\"gpuMs\":108.5,\"completeMs\":1000.2},\"programs\":91,\"calls\":976,\"triangles\":4251622,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.4,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":2.8,\"calls\":148,\"triangles\":633295},\"mainAndEffects\":{\"cpuMs\":9.2,\"calls\":828,\"triangles\":3618327}}}",
+    "timestamp": "2026-11-02T18:51:24.818Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793645313526"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":1,\"cpuMs\":9.7,\"completeMs\":1000,\"gpuMs\":35.4,\"p95\":{\"frameMs\":1000.2,\"cpuMs\":11.4,\"gpuMs\":87,\"completeMs\":1000.2},\"programs\":91,\"calls\":828,\"triangles\":3618327,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.5,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":0,\"calls\":0,\"triangles\":0},\"mainAndEffects\":{\"cpuMs\":9.2,\"calls\":828,\"triangles\":3618327}}}",
+    "timestamp": "2026-11-02T18:51:27.819Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793645313526"
+  }
+]

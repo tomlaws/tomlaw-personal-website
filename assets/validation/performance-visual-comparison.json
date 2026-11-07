@@ -1,0 +1,21 @@
+{
+  "crop": [
+    0,
+    150,
+    1225,
+    1100
+  ],
+  "method": "Paused initial view, identical models, time and pixel budget; RGB absolute pixel difference excluding controls. Small shadow-cache settling and float rounding differences remain.",
+  "results": {
+    "day": {
+      "meanChannelError255": 0.1376,
+      "p99ChannelError255": 3.0,
+      "pixelsWithin2LevelsPercent": 98.312
+    },
+    "night": {
+      "meanChannelError255": 0.2244,
+      "p99ChannelError255": 3.0,
+      "pixelsWithin2LevelsPercent": 97.317
+    }
+  }
+}

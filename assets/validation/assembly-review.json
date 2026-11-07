@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-10",
+  "request": "Remove Chinese city lettering and repair intersecting or disconnected model parts",
+  "geometryReport": "geometry-report.json",
+  "gltfValidation": { "assets": 12, "errors": 0, "warnings": 0 },
+  "productionBuild": "passed; existing graphics chunk size warning",
+  "browser": {
+    "url": "http://127.0.0.1:5173/",
+    "viewport": [1225, 1244],
+    "consoleWarningsOrErrors": [],
+    "views": ["night front/east", "day front/west", "day rear/west"],
+    "screenshots": [
+      "screenshots/assemblies-night.png",
+      "screenshots/assemblies-day-west.png",
+      "screenshots/assemblies-day-rear.png"
+    ]
+  },
+  "repairs": [
+    "English signs; no Chinese text in editable font objects",
+    "Separate switchback stair flights with headroom and connected landings",
+    "Loading rails clear of workshop wall",
+    "Roof and floor masses meet; side returns close facade gaps",
+    "Wall equipment, signs, pipe runs and porthole attach to mounting surfaces",
+    "Glazing panes stop at mullions; roof gables follow the underside",
+    "Shelter framing, bench uprights, fixtures and ground-level props have support"
+  ]
+}

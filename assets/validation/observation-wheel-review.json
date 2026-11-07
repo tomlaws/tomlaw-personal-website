@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-03",
+  "gondolas": 16,
+  "pairedSpokes": 8,
+  "rimTubeRadius": 0.04,
+  "spokeTubeRadius": 0.027,
+  "nightColour": "#e16f65",
+  "unchangedCabinGeometry": true,
+  "checks": [
+    "Blender manifold frame and fixed fixture meshes",
+    "upright hanging cabins at five rotation phases",
+    "base spotlights aim upward; haze alpha fades to zero at edges/top",
+    "final front daylight/night inspection; side and rear geometry inspected previously",
+    "390px phone night preview",
+    "WebGPU final night preview without console errors",
+    "npm run build",
+    "npm test",
+    "cabin interior emission remains constant at five animation phases",
+    "warm cabin interior front/side night and front daylight inspection",
+    "npm run build and npm test after cabin light update",
+    "roof edge zero emission after user-confirmed shimmer fix",
+    "fixed red fill day/night and colour checks",
+    "live rotating wheel with red spill on lower cabins",
+    "npm run build and npm test after red-fill update"
+  ],
+  "screenshots": [
+    "screenshots/wheel-cabin-red-spill-live.jpg",
+    "screenshots/wheel-cabin-steady-front.jpg",
+    "screenshots/wheel-uplight-front-night.jpg",
+    "screenshots/wheel-uplight-front-day.jpg",
+    "screenshots/wheel-uplight-mobile-night.jpg",
+    "screenshots/wheel-uplight-webgpu-night.jpg"
+  ],
+  "lighting": {
+    "baseUplights": 2,
+    "rimRadiance": 1.1,
+    "spokeRadiance": 0.6,
+    "topWashMultiplier": 0.65,
+    "mistOpacityAtNight": 0.075,
+    "worldSpaceHeightFade": true,
+    "additionalShadowPasses": 0,
+    "cabinRedFill": {
+      "type": "shadowless soft point fill",
+      "intensityAtNight": 1.5,
+      "range": 3,
+      "decay": 0,
+      "fixedToFooting": true,
+      "nightOnly": true
+    }
+  },
+  "cabinInterior": {
+    "colour": "warm ivory",
+    "steady": true,
+    "litSurfaces": [
+      "seats",
+      "floor",
+      "softly feathered glazing"
+    ],
+    "extraDynamicLights": 0,
+    "extraDrawBatches": 0,
+    "unchangedGeometry": true,
+    "roofEdgeEmission": false
+  }
+}

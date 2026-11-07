@@ -1,0 +1,38 @@
+[
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":18.6,\"cpuMs\":5.4,\"completeMs\":20.4,\"gpuMs\":13.1,\"p95\":{\"frameMs\":66.7,\"cpuMs\":9,\"gpuMs\":19.3,\"completeMs\":33.5},\"calls\":689,\"triangles\":2923035,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.3,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":0.8,\"calls\":95,\"triangles\":404231},\"mainAndEffects\":{\"cpuMs\":4.3,\"calls\":594,\"triangles\":2518804}}}",
+    "timestamp": "2026-11-02T18:42:47.244Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793644948354"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":16.2,\"cpuMs\":5.3,\"completeMs\":28.7,\"gpuMs\":16.1,\"p95\":{\"frameMs\":66.8,\"cpuMs\":8.4,\"gpuMs\":20.2,\"completeMs\":33.5},\"calls\":705,\"triangles\":2997663,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.3,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":0.9,\"calls\":98,\"triangles\":417048},\"mainAndEffects\":{\"cpuMs\":4.1,\"calls\":607,\"triangles\":2580615}}}",
+    "timestamp": "2026-11-02T18:42:49.794Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793644948354"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":17.6,\"cpuMs\":5.1,\"completeMs\":22.8,\"gpuMs\":12.4,\"p95\":{\"frameMs\":66.8,\"cpuMs\":9,\"gpuMs\":18.8,\"completeMs\":33.4},\"calls\":683,\"triangles\":2889337,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.3,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":0.8,\"calls\":91,\"triangles\":388613},\"mainAndEffects\":{\"cpuMs\":4,\"calls\":592,\"triangles\":2500724}}}",
+    "timestamp": "2026-11-02T18:42:52.278Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793644948354"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":19.9,\"cpuMs\":5.4,\"completeMs\":17,\"gpuMs\":7.2,\"p95\":{\"frameMs\":50.1,\"cpuMs\":8.6,\"gpuMs\":13.8,\"completeMs\":16.8},\"calls\":675,\"triangles\":2851699,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.3,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":0.9,\"calls\":98,\"triangles\":417975},\"mainAndEffects\":{\"cpuMs\":4.2,\"calls\":577,\"triangles\":2433724}}}",
+    "timestamp": "2026-11-02T18:42:54.795Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793644948354"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":19.2,\"cpuMs\":6.1,\"completeMs\":19.1,\"gpuMs\":11.5,\"p95\":{\"frameMs\":66.7,\"cpuMs\":11.2,\"gpuMs\":18.3,\"completeMs\":33.3},\"calls\":685,\"triangles\":2903500,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.3,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":1,\"calls\":102,\"triangles\":435391},\"mainAndEffects\":{\"cpuMs\":4.9,\"calls\":583,\"triangles\":2468110}}}",
+    "timestamp": "2026-11-02T18:42:57.312Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793644948354"
+  },
+  {
+    "level": "info",
+    "message": "[render-profile] {\"fps\":18.4,\"cpuMs\":6.1,\"completeMs\":21.1,\"gpuMs\":12.8,\"p95\":{\"frameMs\":66.7,\"cpuMs\":9.7,\"gpuMs\":18.9,\"completeMs\":33.4},\"calls\":694,\"triangles\":2949967,\"pixelRatio\":1.5,\"stages\":{\"animation\":{\"cpuMs\":0.3,\"calls\":0,\"triangles\":0},\"reflection\":{\"cpuMs\":1.1,\"calls\":106,\"triangles\":454321},\"mainAndEffects\":{\"cpuMs\":4.6,\"calls\":588,\"triangles\":2495646}}}",
+    "timestamp": "2026-11-02T18:42:59.812Z",
+    "url": "http://127.0.0.1:5181/src/harbour/render-profiler.mjs?t=1793644948354"
+  }
+]

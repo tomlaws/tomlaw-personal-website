@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-11",
+  "asset": "Elevated station stair and platform balustrades",
+  "source": "tools/blender/cartoon_station.py",
+  "editableScene": "assets/blender/nocturne-source.blend",
+  "references": "reference/asset-references.md",
+  "changes": [
+    "Connected outer stair rails through both returns of the intermediate landing",
+    "Closed the central stair well at the turn",
+    "Joined both upper stair rails to the platform perimeter",
+    "Added curved infill and rails around the rounded platform ends",
+    "Narrowed the lift opening to its actual door jambs",
+    "Supported tinted glass bays with shared posts, round caps and fitted sockets",
+    "Aligned the arrival slab with the rounded platform boundary",
+    "Moved the complete clock assembly inside the guard line"
+  ],
+  "geometry": {
+    "status": "passed",
+    "boundaryProbes": 4808,
+    "maxSurfaceDistanceMetres": 0.1273,
+    "clearApproaches": 3,
+    "method": "Evaluated Blender mesh BVH against independently described exposed floor edges; approach raycasts exclude blocking guards"
+  },
+  "gltf": "12 assets; zero errors and warnings",
+  "tests": "npm test passed",
+  "build": "npm run build passed; existing large-chunk advisory remains",
+  "runtimeMaterialBatches": 40,
+  "stationTriangles": 60784,
+  "stationGlbBytes": 2658028,
+  "browser": {
+    "dayAndNightInspected": true,
+    "multipleIsometricViewsInspected": true,
+    "newConsoleErrorsOrWarnings": 0,
+    "screenshots": [
+      "screenshots/station-guards-day.png",
+      "screenshots/station-guards-night.png"
+    ]
+  }
+}

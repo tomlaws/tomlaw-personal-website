@@ -1,0 +1,21 @@
+{
+  "change": "Matched inner and outer road radii with constant-width bends",
+  "browser": "http://127.0.0.1:5173/",
+  "viewport": [1225, 1244],
+  "verified": [
+    "Concentric 1.5 m and 5.7 m radii at all four peripheral turns",
+    "Straight, 4.2 m wide waterfront and side approaches",
+    "Crossings, dropped paving and markings aligned to the revised road",
+    "Full taxi swept body stays on asphalt throughout 3.6 m radius turns",
+    "Day and night browser inspection from two isometric views"
+  ],
+  "consoleWarningsAndErrors": [],
+  "geometryChecks": "passed",
+  "npmTest": "passed; 12 GLB files with zero errors and zero warnings",
+  "productionBuild": "passed; existing bundle-size advisory remains",
+  "screenshots": [
+    "screenshots/concentric-road-bends-day.png",
+    "screenshots/concentric-road-bends-other-angle.png",
+    "screenshots/concentric-road-bends-night.png"
+  ]
+}

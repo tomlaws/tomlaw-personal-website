@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-11",
+  "scope": "Redesign both driver cabs while retaining the cartoon shuttle and railway",
+  "author": "tools/blender/train_cab.py",
+  "source": ["assets/blender/train-source.blend", "assets/blender/nocturne-source.blend"],
+  "reference": "Alstom Metropolis design overview and published Sydney exterior photograph; construction details recorded in reference/asset-references.md",
+  "changes": [
+    "Ivory formed cockpit surround with real openings, inset curved windscreen and separate quarter windows",
+    "Horizontal headlamp optics, parked windscreen wiper and flush service hatch",
+    "Enclosed cockpit with partition, access door, moulded driver seat and sloping instrument console",
+    "Removed the previous open console, circular lamps, route dots and smiling bumper"
+  ],
+  "checks": {
+    "cityGeometry": "passed",
+    "clearCabWindows": 6,
+    "enclosedDriverCompartments": 2,
+    "visibleHeadlamps": 4,
+    "ceilingSightlines": 6,
+    "trainDoorGangwayAndClearanceChecks": "passed",
+    "stationGuardBoundaryProbes": 4808,
+    "npmTest": "passed",
+    "npmRunBuild": "passed; existing large-bundle advisory",
+    "validatedGlbs": 12,
+    "gltfErrors": 0,
+    "gltfWarnings": 0,
+    "browser": "Actual localhost scene reviewed in day and night, with a close view of the cab and platform; no visible new gaps or lighting cutoffs; no captured console warnings or errors"
+  },
+  "preservedFences": {
+    "objects": 526,
+    "geometryAndColourFingerprint": "b8674f017ad6b102946e661c4cec1a894ca8bdb4cfcf352acb1deda982f4a246",
+    "matchesApprovedVersion": true
+  },
+  "export": {
+    "trainTriangles": 76356,
+    "trainBytes": 1713832,
+    "staticCityMaterialBatches": 40
+  },
+  "screenshots": ["screenshots/driver-cab-day.png", "screenshots/driver-cab-night.png"],
+  "blenderCloseup": "assets/validation/train-cab-final-cab.png"
+}

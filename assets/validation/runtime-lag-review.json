@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-03",
+  "changes": [
+    "Keep the traffic headlight list constant; use zero intensity for off-map cars, preserving positions and night brightness.",
+    "Use one WebGL pacing deadline instead of an additional minimum-interval gate that rounded 24 Hz to 20 Hz on 60 Hz displays.",
+    "Use non-blocking GPU elapsed-time queries after the frame fence, when supported, so delayed RAF callbacks do not inflate the cooldown.",
+    "Extend opt-in diagnostics with GPU timing, frame-time percentiles and program count."
+  ],
+  "preserved": ["Map geometry and animation", "Day/night lighting", "Bloom and mist", "Contact shadows", "Planar reflections", "Native pixel ratio", "WebGL default and WebGPU option"],
+  "resolutionChecked": {"width": 1464, "height": 1866, "pixelRatio": 1.5},
+  "checks": {
+    "npm test": "passed",
+    "npm run build": "passed",
+    "headlight regression": "Stable visible light count across eight combinations of car visibility; zero light from hidden traffic; original moving positions retained.",
+    "timer regression": "No blocking reads of unavailable queries; disjoint/unsupported results fall back to existing conservative timing.",
+    "browser": "Night map visually inspected in portfolio and standalone preview."
+  },
+  "measurementLimit": "Before-run logs are saved. Later preview callbacks were throttled to approximately 1 Hz despite document visibility being visible. The after logs are explicitly labelled throttled, and do not support a before/after FPS claim.",
+  "rejectedExperiment": "Per-fragment light-range branching increased shader compilation cost; removed entirely."
+}

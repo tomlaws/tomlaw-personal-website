@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-10",
+  "scope": "Complete replacement of the building behind the tree with Loop Picturehouse",
+  "source": "tools/blender/picturehouse.py",
+  "editableBackup": "assets/legacy/pre-picturehouse-source.blend",
+  "geometry": "Passed: unobstructed ticket-counter and rooflight sightlines, connected hall roof, mezzanine/lift levels, stair foot and landing, no old atelier masses",
+  "assets": "12 current GLBs validate with zero errors and zero warnings; runtime material budget retained",
+  "tests": "npm test passed",
+  "build": "npm run build passed; existing large JavaScript chunk advisory remains",
+  "browser": {
+    "url": "http://127.0.0.1:5173/",
+    "review": "Inspected at city and detail scale in day and night, including the opposite frontage, new stair, pylon lighting and hollow glazed rooflight",
+    "console": "No warnings or errors after final reload",
+    "screenshots": ["screenshots/loop-picturehouse-night.png", "screenshots/loop-picturehouse-day.png"]
+  }
+}

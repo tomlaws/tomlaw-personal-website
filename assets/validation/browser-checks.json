@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-09",
+  "browser": "Codex Chromium in-app browser",
+  "viewports": ["1440 x 900", "390 x 844", "native app pane"],
+  "checked": ["GLB and local Draco loading", "day and night presets", "rain", "pause and resume", "orbit and reset", "slider endpoints 00:00 and 23:59", "Live Hong Kong time", "phone control layout", "viewport resize"],
+  "localFrameSample": {"frames": 240, "averageFps": 60, "p95Milliseconds": 18, "note": "Observed on this Windows machine; not a low-end mobile hardware benchmark."},
+  "glbValidation": {"files": 14, "errors": 0, "warnings": 0},
+  "fixedDuringQA": ["Water shader float operand", "Missing explicit mesh tangents", "Wake shader square-root domain at rasterized edges"]
+}

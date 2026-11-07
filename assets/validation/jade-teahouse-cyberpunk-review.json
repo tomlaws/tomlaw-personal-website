@@ -1,0 +1,90 @@
+{
+  "date": "2026-10-12",
+  "scope": [
+    "Rebuild the Jade corner teahouse completely as a neon cyberpunk shopfront",
+    "Replace the traditional tiled pitch with a flat machine roof after the user rejected it"
+  ],
+  "geometry": {
+    "connectedClosedShell": true,
+    "realApertures": 5,
+    "apertureList": [
+      "divided display shopfront",
+      "entrance leaf with fixed sidelight",
+      "roller service hatch",
+      "east entrance",
+      "round window"
+    ],
+    "wallThicknessMetres": 0.17,
+    "continuousInteriorLightEnvelope": true,
+    "flatMachineRoof": true,
+    "roofDeckMetres": [4.94, 5.06],
+    "parapetTopMetres": 5.46,
+    "standingSeams": 12,
+    "standingSeamCoverMetres": 0.7,
+    "rooftopPlant": [
+      "three packaged condensers on a bolted cranked base",
+      "horizontal water tank on anchor-bolted cradles",
+      "braced tapered antenna mast with dish and equipment cabinet",
+      "kitchen extract on a curb with grease filter and rain hood",
+      "louvred plant cabinet",
+      "curbed access hatch with fixed ladder",
+      "cable-tray runs and roof outlets"
+    ],
+    "cladBeltAndFixings": true,
+    "daylightValueCheck": "Cladding luminance raised from 0.057 to 0.129 so the shop no longer reads as the darkest mass in the district at midday (tenement 0.115, toyshop 0.199, cinema 0.224, paving 0.287)",
+    "neonSignage": 4,
+    "localEmitters": 3,
+    "silhouetteRangeMetres": [0.8, 7.51]
+  },
+  "additionalChecks": [
+    "Every aperture is a through-hole, probed by ray in the authored scene",
+    "Hollow manifold envelope with one connected component",
+    "The removed tiled pitch, gables and ridge sign cannot return",
+    "Roof deck stays level and carries no diagonal smoothed shading",
+    "Coping caps the parapet at its finished level",
+    "Approach paving stays flush and supported on all four sides",
+    "No fixture penetrates the paving",
+    "Interior bounce covers ceiling, floor and both walls",
+    "The fitted night channel clears the parapet face and stays below the coping"
+  ],
+  "runtimeMaterialBatches": 49,
+  "cityGlbBytes": 28816764,
+  "teahouseGlbBytes": 3987296,
+  "teahouseTriangles": 96730,
+  "runtimeLights": 37,
+  "validation": {
+    "npmTest": "passed",
+    "npmBuild": "passed; existing large JS chunk advisory",
+    "glbAssets": 17,
+    "glbErrors": 0,
+    "glbWarnings": 0
+  },
+  "browserReview": [
+    "Night front: the cyan coping line and the rooftop JADE board read against the dark deck; the condenser bank, tank, cabinet and mast silhouette above the shopfront neon",
+    "Day front: standing seams, belt fixings, coping, extract hood, tank, hatch and ladder all read as fitted plant on a ribbed deck",
+    "Night side: the east service run reads as fitted equipment below the parapet light line",
+    "Day rear: the flank keeps its belt, trims, downpipe and drip, and the plant reads over the coping"
+  ],
+  "fixedDuringQA": [
+    "Solid envelope produced shallow recesses instead of through-apertures; added a room void cutter",
+    "Door surrounds dropped 30 mm below paving; gave door bays a shallow sill instead of the window sill",
+    "Table pedestal and interior services sat below the floor level",
+    "Shop interior was unlit surfaces behind glass; added one broad interior ceiling emitter and removed the redundant side-door emitter",
+    "Dark-on-dark service door, shutter laths and pipes were invisible in daylight; switched them to contrasting metal finishes",
+    "Rear elevation had no belt course; extended it around all four elevations",
+    "Ridge cabinet was single-sided; named both faces",
+    "Roof deck planarity check tripped on its own bevel band; the check now reads evaluated corner normals",
+    "Coping drip ring was named inconsistently with the rest of the roof set",
+    "Daylight review: the rebuilt teahouse was the darkest mass in a bright pastel scene, so its pressed-metal cladding was lifted from #3b4453 to #5c6577 and its interior emitter's daytime share reduced from 40% to 25%"
+  ],
+  "screenshots": [
+    "jade-cyberpunk-night.png",
+    "jade-cyberpunk-day.png",
+    "jade-cyberpunk-rear.png",
+    "jade-elevation-front.png",
+    "jade-elevation-rear.png",
+    "jade-elevation-east.png",
+    "jade-elevation-west.png"
+  ],
+  "editableSource": "assets/blender/nocturne-source.blend"
+}

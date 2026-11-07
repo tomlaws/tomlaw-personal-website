@@ -1,0 +1,16 @@
+{
+  "date": "2026-10-10",
+  "scope": "Corner atelier and modern two-car metro, station, track and overhead line",
+  "geometry": "Blender source checks passed, including floor/platform alignment, contact shoe height, stair connections and unobstructed passenger glazing",
+  "assets": "12 GLBs validated with zero errors and zero warnings",
+  "tests": "npm test passed",
+  "build": "npm run build passed; existing large JavaScript chunk advisory remains",
+  "browser": {
+    "url": "http://127.0.0.1:5173/",
+    "desktop": "Inspected day/night and opposite isometric corner, including glazed train cabin and station",
+    "mobile": "Inspected at 390 by 844; controls and city remain in frame; viewport restored",
+    "console": "No warnings or errors following final export reload",
+    "screenshots": ["screenshots/modern-metro-night.png", "screenshots/modern-metro-day.png", "screenshots/arc-metro-mobile.png", "screenshots/arc-quarter-night.png"]
+  },
+  "limitations": ["Indirect interior bounce remains a stylized texture approximation; the metro uses two real ceiling area lights.", "Mobile hardware performance was not physically benchmarked."]
+}

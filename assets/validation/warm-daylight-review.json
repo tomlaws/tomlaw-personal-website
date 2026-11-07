@@ -1,0 +1,16 @@
+{
+  "change": "Warmer, brighter daylight with golden direct light and warm ground bounce",
+  "scope": "Runtime lighting and water shading; existing Blender geometry and baked occlusion retained",
+  "verified": [
+    "Warm sunlit paving, roof highlights and facade colours at noon",
+    "Shaded faces retain depth and readable material detail",
+    "Continuous Hong Kong time and midnight interpolation tests pass",
+    "Night endpoint retains the original light colours, intensities and exposure"
+  ],
+  "npmTest": "passed; 12 GLB files with zero errors and zero warnings",
+  "productionBuild": "passed; existing bundle-size advisory remains",
+  "screenshots": [
+    "screenshots/warm-daylight.png",
+    "screenshots/warm-daylight-night-check.png"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "change": "Rounded building plots and aligned quay perimeter",
+  "browser": "http://127.0.0.1:5173/",
+  "viewport": [1225, 1244],
+  "verified": [
+    "Eight building-plot corners have smooth circular returns",
+    "Quay paving, coping and retaining-wall curves align",
+    "Asphalt is continuous without diagonal overlap shadows",
+    "Recessed streets, dropped crossings and pier connection remain intact",
+    "Day and night appearance checked from two isometric views"
+  ],
+  "consoleWarningsAndErrors": [],
+  "geometryChecks": "passed",
+  "npmTest": "passed; 12 GLB files with zero errors and zero warnings",
+  "productionBuild": "passed; existing bundle-size advisory remains",
+  "screenshots": [
+    "screenshots/rounded-ground-day.png",
+    "screenshots/rounded-ground-other-angle.png",
+    "screenshots/rounded-ground-night.png"
+  ]
+}

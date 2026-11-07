@@ -1,0 +1,43 @@
+{
+  "date": "2026-10-11",
+  "asset": "Original cartoon elevated railway",
+  "status": "Complete: day and night screenshots visually inspected",
+  "source": [
+    "tools/blender/metro_train.py",
+    "tools/blender/cartoon_station.py",
+    "tools/blender/public_realm.py",
+    "src/railConfig.json"
+  ],
+  "editableScene": "assets/blender/nocturne-source.blend",
+  "references": "reference/asset-references.md",
+  "geometry": "passed",
+  "gltf": "12 assets; no errors or warnings",
+  "tests": "npm test passed",
+  "build": "npm run build passed; existing large-chunk advisory remains",
+  "checks": [
+    "4 station doorways align to the 8 train side doors at central dwell",
+    "Train body clears platform screens and end buffers",
+    "16 wheels meet running rails; 4 bogie bolsters connect to carriage floors",
+    "3 viaduct piers meet ground and bearings",
+    "40 equal stair risers; connected platform landing",
+    "Protected through lift with doors aligned to paving and platform",
+    "Continuous transparent wraparound windows around hollow cabins",
+    "Ceiling, floor and lower-wall interior light envelopes",
+    "2 curved canopy shells with fitted soffit lights",
+    "Unique exported light names avoid duplicate React keys",
+    "Smooth timetable dwells and safe turnbacks remain compatible with pause",
+    "Daytime and night browser review, no new errors after lighting identity fix"
+  ],
+  "runtimeMaterialBatches": 40,
+  "trainLengthMetres": 20.239999771118164,
+  "railTopMetres": 6.4,
+  "trainGlbBytes": 1193464,
+  "trainTriangles": 27100,
+  "screenshots": [
+    "screenshots/cartoon-railway-day.png",
+    "screenshots/cartoon-railway-night.png"
+  ],
+  "animationScope": "The shuttle dwells centrally, then reverses at both protected ends. Carriage doors and platform gates remain closed. The existing animated cinema lift and ferry are preserved.",
+  "performanceNote": "Train GLB reduced from 2950488 to 1193464 bytes. 40 static material batches retained. Foreground frame rate has not been benchmarked.",
+  "browserErrorsAfterFix": 0
+}

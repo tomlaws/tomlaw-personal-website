@@ -1,0 +1,15 @@
+{
+  "change": "Muted marine-blue daylight water with broad, gentle tonal variation and blue sky reflections",
+  "scope": "Water shader palette only; no changes to Blender geometry, reflection cadence or render resolution",
+  "verified": [
+    "Daylight water complements the warm paving and terracotta building",
+    "Night water retains its deep navy endpoint and reflected waterfront lights",
+    "Day and night inspected in the actual browser; no console warnings or errors"
+  ],
+  "npmTest": "passed; 12 GLB files with zero errors and zero warnings",
+  "productionBuild": "passed; existing bundle-size advisory remains",
+  "screenshots": [
+    "screenshots/marine-blue-sea-day.png",
+    "screenshots/marine-blue-sea-night.png"
+  ]
+}

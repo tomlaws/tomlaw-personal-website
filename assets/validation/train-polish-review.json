@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-11",
+  "scope": "Train model polish and station canopy/lift-cover recolour",
+  "authoring": "Blender 5.2; build_neighborhood.py and finish_assets.py completed",
+  "source": ["assets/blender/nocturne-source.blend", "assets/blender/train-source.blend"],
+  "changes": [
+    "Ochre and ivory train paint with graphite glazing and bellows",
+    "Fitted two-leaf doors, surrounds and seals following the body rake",
+    "Curved bumper and four integrated headlamps with open bezels",
+    "Continuous folded gangway around a clear inter-car passage",
+    "Smooth closed roof shells and visible continuous cabin headlining",
+    "Existing burgundy enamel on the two station shelter roofs and lift cap"
+  ],
+  "approvedStationGuards": {
+    "unchanged": true,
+    "objects": 526,
+    "beforeAndAfterSha256": "b8674f017ad6b102946e661c4cec1a894ca8bdb4cfcf352acb1deda982f4a246",
+    "comparison": "Source geometry, object placement, material base colours and alpha"
+  },
+  "geometry": {
+    "visibleHeadlamps": 4,
+    "fittedDoorSurrounds": 8,
+    "gangwaySideProbes": 30,
+    "clearInterCarPassage": true,
+    "ceilingSightlines": 6,
+    "completeCityChecks": "passed"
+  },
+  "export": {
+    "trainTriangles": 46192,
+    "trainBytes": 1491264,
+    "stationTriangles": 60784,
+    "stationBytes": 2648016,
+    "staticCityMaterialBatches": 40,
+    "validatedGlbs": 12,
+    "gltfErrors": 0,
+    "gltfWarnings": 0
+  },
+  "checks": {
+    "npmTest": "passed",
+    "npmRunBuild": "passed; existing bundle-size advisory remains",
+    "browser": "Actual localhost WebGL scene inspected in day and night; no captured console warnings or errors",
+    "visualInspection": "Roof and door joins, coach connection, glazing and cabin illumination, recoloured shelters and lift cap; no visible gaps or lighting cutoff on the inspected train",
+    "dayScreenshot": "screenshots/train-polish-day.png",
+    "nightScreenshot": "screenshots/train-polish-night.png",
+    "blenderCloseups": ["assets/validation/train-polished-front.png", "assets/validation/train-polished-joint.png"]
+  }
+}

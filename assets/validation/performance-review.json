@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-09",
+  "environment": {
+    "browser": "Codex in-app Chromium, local Vite development server",
+    "gpu": "NVIDIA GeForce RTX 4070",
+    "viewport": [1225, 1244],
+    "scene": "Night preset, animation enabled, initial isometric view",
+    "method": "120 visible frames after warmup; asynchronous EXT_disjoint_timer_query_webgl2; draw calls include shadow, reflection and postprocessing passes"
+  },
+  "baseline": {
+    "fps": 60,
+    "p95FrameMs": 18,
+    "meanGpuMs": 5.78,
+    "meanDrawCalls": 282,
+    "maxDrawCalls": 445,
+    "pixelRatio": 1.5,
+    "staticMaterialBatches": 133,
+    "cityGlbBytes": 12553992
+  },
+  "revised": {
+    "fps": 60,
+    "p95FrameMs": 18,
+    "meanGpuMs": 1.95,
+    "meanDrawCalls": 133,
+    "maxDrawCalls": 235,
+    "pixelRatio": 0.9919923160736472,
+    "msaaSamples": 4,
+    "staticMaterialBatches": 36,
+    "cityGlbBytes": 11735592,
+    "ambientOcclusionAtlas": [3072, 4096]
+  },
+  "browserChecks": {
+    "dayNightTransition": "passed",
+    "rainToggle": "passed",
+    "cameraReset": "passed",
+    "orthographicCamera": true,
+    "settledElevationDegrees": 35.264389682754654,
+    "observedCornerAzimuthsDegrees": [45, -45, -135, 135],
+    "mobileFraming": [390, 844],
+    "temporaryViewportOverrideReset": true,
+    "consoleWarnings": 0,
+    "consoleErrors": 0
+  },
+  "automatedChecks": {
+    "npmTest": "passed: time, motion, isometric projection, pixel budget, atlas and UV checks",
+    "gltfValidation": "14 assets; zero errors and zero warnings",
+    "productionBuild": "passed; Vite reports large Three.js/R3F chunks"
+  },
+  "limitations": [
+    "Both baseline and revised measurements reached the display's 60 FPS limit; the improvement is reduced GPU work, not a measured FPS increase.",
+    "The revised renderer uses a lower pixel budget, shared materials, cheaper satin shading, cached shadows and smaller bounded-cadence reflections.",
+    "Mobile layout was checked with a browser viewport override, not on physical low-end hardware.",
+    "Small moving vehicles no longer cast live shadows. Architectural shadows and baked ambient occlusion are retained."
+  ]
+}

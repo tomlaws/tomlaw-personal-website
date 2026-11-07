@@ -1,0 +1,37 @@
+{
+  "pixelComparison": {
+    "moving": {
+      "canopyMeanAbsoluteDifference": 19.450451135442012,
+      "changedCanopyPixels": 10002,
+      "region": [
+        545,
+        540,
+        682,
+        636
+      ]
+    },
+    "paused": {
+      "canopyMeanAbsoluteDifference": 0.0,
+      "changedCanopyPixels": 0,
+      "region": [
+        545,
+        540,
+        682,
+        636
+      ]
+    }
+  },
+  "geometryValidation": "pass",
+  "gltfValidation": "12 GLBs, zero errors or warnings",
+  "npmTest": "pass",
+  "productionBuild": "pass",
+  "browserShaderErrors": 0,
+  "browserVisualReview": "Day and night checked; rooted trunk, gentle canopy motion, pause freezes canopy exactly; simulation resumed.",
+  "screenshots": [
+    "screenshots/tree-wind-moving-a.png",
+    "screenshots/tree-wind-moving-b.png",
+    "screenshots/tree-wind-paused-a.png",
+    "screenshots/tree-wind-paused-b.png",
+    "screenshots/tree-wind-night.png"
+  ]
+}

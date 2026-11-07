@@ -1,0 +1,174 @@
+[
+  {
+    "timestamp": "2026-10-11T02:37:32.583Z",
+    "label": "baseline",
+    "viewport": [
+      1225.3333740234375,
+      1244
+    ],
+    "dpr": 0.9919923160736472,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "samples": 360,
+    "fps": 59.8,
+    "p95Ms": 21.8,
+    "over25Ms": 6,
+    "cpuMs": 3.08,
+    "gpuMs": 5.76,
+    "gpuP95Ms": 10.25,
+    "meanDrawCalls": 115.48,
+    "maxDrawCalls": 237,
+    "meanTriangles": 764312,
+    "textures": 144,
+    "buckets": {
+      "ordinary": {
+        "samples": 313,
+        "gpuMs": 5.45,
+        "cpuMs": 2.86
+      },
+      "shadow": {
+        "samples": 23,
+        "gpuMs": 6.53,
+        "cpuMs": 3
+      },
+      "reflection": {
+        "samples": 22,
+        "gpuMs": 8.95,
+        "cpuMs": 5.9
+      },
+      "both": {
+        "samples": 1,
+        "gpuMs": 12.25,
+        "cpuMs": 3.9
+      }
+    }
+  },
+  {
+    "timestamp": "2026-10-11T02:41:28.920Z",
+    "label": "final-legacy",
+    "viewport": [
+      1225.3333740234375,
+      1244
+    ],
+    "dpr": 0.9919923160736472,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "samples": 360,
+    "fps": 60,
+    "p95Ms": 20.1,
+    "over25Ms": 7,
+    "cpuMs": 3.15,
+    "gpuMs": 5.34,
+    "gpuP95Ms": 8.66,
+    "meanDrawCalls": 116.01,
+    "maxDrawCalls": 233,
+    "meanTriangles": 764533,
+    "textures": 144,
+    "buckets": {
+      "ordinary": {
+        "samples": 313,
+        "gpuMs": 5.12,
+        "cpuMs": 2.97
+      },
+      "shadow": {
+        "samples": 23,
+        "gpuMs": 6.53,
+        "cpuMs": 2.88
+      },
+      "reflection": {
+        "samples": 22,
+        "gpuMs": 7.3,
+        "cpuMs": 5.89
+      },
+      "both": {
+        "samples": 1,
+        "gpuMs": 4.53,
+        "cpuMs": 5
+      }
+    }
+  },
+  {
+    "timestamp": "2026-10-11T02:43:08.095Z",
+    "label": "optimized-lighting",
+    "viewport": [
+      1225.3333740234375,
+      1244
+    ],
+    "dpr": 0.9919923160736472,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "samples": 360,
+    "fps": 59.99,
+    "p95Ms": 20.4,
+    "over25Ms": 4,
+    "cpuMs": 2.87,
+    "gpuMs": 3.88,
+    "gpuP95Ms": 6.66,
+    "meanDrawCalls": 115.01,
+    "maxDrawCalls": 240,
+    "meanTriangles": 764529,
+    "textures": 143,
+    "buckets": {
+      "ordinary": {
+        "samples": 314,
+        "gpuMs": 3.67,
+        "cpuMs": 2.68
+      },
+      "shadow": {
+        "samples": 22,
+        "gpuMs": 4.62,
+        "cpuMs": 3.06
+      },
+      "reflection": {
+        "samples": 21,
+        "gpuMs": 5.98,
+        "cpuMs": 5.31
+      },
+      "both": {
+        "samples": 2,
+        "gpuMs": 7.7,
+        "cpuMs": 6.05
+      }
+    }
+  },
+  {
+    "timestamp": "2026-10-11T02:43:41.029Z",
+    "label": "optimized-lighting",
+    "viewport": [
+      1225.3333740234375,
+      1244
+    ],
+    "dpr": 0.9919923160736472,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "samples": 360,
+    "fps": 59.99,
+    "p95Ms": 18.3,
+    "over25Ms": 3,
+    "cpuMs": 2.56,
+    "gpuMs": 4.24,
+    "gpuP95Ms": 7.25,
+    "meanDrawCalls": 115,
+    "maxDrawCalls": 238,
+    "meanTriangles": 764525,
+    "textures": 143,
+    "buckets": {
+      "ordinary": {
+        "samples": 313,
+        "gpuMs": 4.06,
+        "cpuMs": 2.41
+      },
+      "shadow": {
+        "samples": 23,
+        "gpuMs": 4.82,
+        "cpuMs": 2.64
+      },
+      "reflection": {
+        "samples": 22,
+        "gpuMs": 5.84,
+        "cpuMs": 4.5
+      },
+      "both": {
+        "samples": 1,
+        "gpuMs": 9.85,
+        "cpuMs": 4.1
+      }
+    }
+  }
+]

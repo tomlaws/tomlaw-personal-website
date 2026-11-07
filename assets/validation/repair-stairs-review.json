@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-11",
+  "asset": "Kowloon repair house rear stair tower",
+  "source": "tools/blender/repair_stairs.py",
+  "editableScene": "assets/blender/nocturne-source.blend",
+  "checks": [
+    "Eight side-window sightlines clear",
+    "Handrails outside the facade",
+    "Eight connected flights with headroom",
+    "Four support columns terminate at landings",
+    "Tower clears both roads",
+    "Browser front and reverse views inspected",
+    "Night lighting inspected"
+  ],
+  "geometry": "pass",
+  "gltf": "12 assets; zero errors and warnings",
+  "tests": "npm test passed",
+  "build": "npm run build passed",
+  "browserErrors": 0
+}

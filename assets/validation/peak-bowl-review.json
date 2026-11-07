@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-03",
+  "connectedShells": 1,
+  "manifold": true,
+  "vertices": 232,
+  "triangles": 460,
+  "solidEnds": [
+    "left",
+    "right"
+  ],
+  "depth": 1.74,
+  "terraceJoinHeight": 2.5425,
+  "flatEndCaps": true,
+  "preserved": [
+    "original lower curve",
+    "original width and depth",
+    "central grille aperture",
+    "atrium",
+    "podium",
+    "terrace glazing, railings and concealed lighting"
+  ],
+  "unchangedArchitectureMeshes": 72,
+  "browserViews": [
+    "front day",
+    "side day",
+    "rear day",
+    "front night",
+    "side night",
+    "rear night"
+  ],
+  "checks": {
+    "npm test": "passed",
+    "npm run build": "passed",
+    "GLB validation": "passed"
+  },
+  "proof": "screenshots/peak-bowl-flat-ends.jpg"
+}

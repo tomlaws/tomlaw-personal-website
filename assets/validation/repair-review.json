@@ -1,0 +1,58 @@
+{
+  "date": "2026-10-10",
+  "fixes": [
+    "Inward teahouse roof pitch, missing roof thickness and gables",
+    "Opaque shop backplates hiding furniture",
+    "Lift cabin breaking through the shaft cap, wrong exit direction and floor alignment",
+    "Terrace intersecting the lift shaft",
+    "Delivery lane disconnected from the main road and blocked by curb",
+    "Paving extending beyond the seawall",
+    "Floating pier without submerged piles",
+    "Aliased bright water reflections"
+  ],
+  "geometry": {
+    "upwardRoofPitches": true,
+    "teahouseSightline": "Kitchen copper pot",
+    "repairShopSightline": "Stock box.017",
+    "workshopSightline": "Radio face",
+    "deliveryLaneConnected": true,
+    "liftClearance": true,
+    "coastAndPierSupported": true
+  },
+  "staticTriangles": 434294,
+  "combinedBytes": 11053956,
+  "materialBatches": 35,
+  "validation": {
+    "npmTest": "passed",
+    "gltfFiles": 12,
+    "gltfErrors": 0,
+    "gltfWarnings": 0,
+    "productionBuild": "passed; large graphics chunk warning",
+    "browserErrors": 0
+  },
+  "browserChecks": [
+    "night",
+    "day",
+    "alternative isometric corner",
+    "camera reset",
+    "zoom",
+    "pause/play",
+    "rain toggle"
+  ],
+  "desktopMeasurement": {
+    "viewport": [
+      1225,
+      1244
+    ],
+    "fps": 60,
+    "p95FrameMs": 19,
+    "gpuMs": 4.27,
+    "meanDrawCalls": 90,
+    "dpr": 0.9919923160736472,
+    "note": "120-frame dev audit on this desktop; not a mobile performance guarantee."
+  },
+  "screenshots": [
+    "screenshots/repairs-day.png",
+    "screenshots/repairs-night.png"
+  ]
+}

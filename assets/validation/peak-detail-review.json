@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-03",
+  "louvresPerElevation": 6,
+  "previousLouvresPerElevation": 19,
+  "grilleUprightsPerElevation": 5,
+  "rooftopPostsPerLongSide": 4,
+  "unchangedArchitectureMeshes": 74,
+  "checks": [
+    "Blender manifold detail meshes",
+    "unchanged crescent, atrium, entrance and rooftop light vertices",
+    "front/side/rear day and night browser views",
+    "390px phone preview",
+    "npm test",
+    "npm run build"
+  ]
+}

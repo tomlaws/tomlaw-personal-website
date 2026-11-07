@@ -1,0 +1,128 @@
+{
+  "noChineseLettering": true,
+  "flatMachineRoofWithoutTiles": true,
+  "teahouseSightline": "Tea urn copper lid",
+  "repairShopSightline": "Stock box.017",
+  "cinemaLobbySightline": "Cinema ticket terminal",
+  "continuousPicturehouseAndPreservedEntrance": {
+    "connectedClosedShell": true,
+    "realDoorAndWindowOpenings": true,
+    "entranceAndCanopyObjectsPreserved": 82,
+    "teaOutdoorStoolsRemoved": true
+  },
+  "buildingAssembliesConnected": true,
+  "exteriorBuildingStairsRemoved": true,
+  "mezzanineAndLandingServedWithoutExteriorStair": true,
+  "loadingRailsClearOfWall": true,
+  "glazingClearOfMullions": true,
+  "shelterPostsConnected": true,
+  "deliveryLaneConnected": true,
+  "asphaltUnifiedWithoutOverlappingVolumes": true,
+  "liftClearance": true,
+  "roundedGroundLayersAligned": true,
+  "coastAndPierSupported": true,
+  "concentricConstantWidthRoadBends": true,
+  "taxiBodyFitsRevisedBends": true,
+  "eightRoundedBuildingPlotCorners": true,
+  "continuousPavingWithoutDrainSlots": true,
+  "noPeopleInCityOrVehicles": true,
+  "teaDoorHasInteriorDepth": true,
+  "pierStepsExposedWithEqualRisers": true,
+  "sculptedTreesWithRecessedSoil": true,
+  "authoredTreeWindAnchorsAndLeafTipWeights": true,
+  "connectedPublicRealmAndEnclosedLift": true,
+  "cartoonShuttleDoorAlignmentAndSweptClearance": true,
+  "refinedTrainJoineryAndLighting": {
+    "visibleHeadlamps": 4,
+    "fittedDoorSurrounds": 8,
+    "gangwaySideProbes": 30,
+    "clearInterCarPassage": true,
+    "ceilingSightlines": 6,
+    "clearCabWindows": 6,
+    "enclosedDriverCompartments": 2
+  },
+  "cartoonRailSupportsAccessAndProtectedLift": true,
+  "continuousStationGuardsAndClearEntrances": {
+    "boundaryProbes": 4808,
+    "maxSurfaceDistance": 0.1273,
+    "clearApproaches": 3
+  },
+  "hollowGlazedTransportAndClosedHull": true,
+  "deepShopfrontLinings": 24,
+  "taxiHollowCabinOpenWheelArchesAndRoadContact": true,
+  "completeInteriorLightEnvelopes": true,
+  "referenceLedTexturedAssemblies": true,
+  "trafficSignalsJoineryVisibilityAndClearance": true,
+  "easternMallAssembly": {
+    "continuousEnvelope": true,
+    "oppositeShopSightlines": true,
+    "atriumOpenToRoof": true,
+    "publicPavingConnected": true,
+    "escalatorTreadsVisible": true,
+    "existingStreetClear": true,
+    "approvedEntrancePreserved": 27,
+    "furnishedRoomsHaveFlushFloors": true,
+    "circulationClear": true,
+    "upperRetailLightingCoverage": true,
+    "threeDistinctFloorProgrammes": true,
+    "fourAlignedProtectedLiftStops": true,
+    "clearProtectedRooftop": true,
+    "approvedDomeObjectsPreserved": 17,
+    "viewingTerrace": {
+      "outwardFacingBenches": 4,
+      "binocularViewer": true,
+      "groundedFeet": true,
+      "domeClearance": true,
+      "rooftopLamps": 4,
+      "lampBenchGaps": [
+        1.225,
+        1.225,
+        1.225,
+        1.225
+      ],
+      "lampViewerClearance": 4.754
+    },
+    "originalGlassDomeProportions": true,
+    "digitalScreensOnOpaqueFacade": true,
+    "mallFootprintMetres": [
+      17.0,
+      15.0,
+      13.42
+    ]
+  },
+  "toyshopAssembly": {
+    "connectedClosedShell": true,
+    "clearGlazedOpenings": 10,
+    "displayToys": 10,
+    "openRoofLightwell": true,
+    "planarRoofNormals": true,
+    "ceilingLightsAboveWindows": true,
+    "physicalMaterialsAndShadows": true,
+    "continuousPavingAndClearApproach": true,
+    "texturedFinishes": 4,
+    "lowRetailProportions": true
+  },
+  "nightIdentity": {
+    "fittedChannels": 10,
+    "pairedMetalHousingAndOpalDiffuser": true,
+    "sealedRoundedFixtures": true,
+    "localFacadeWashLights": 5,
+    "preservedBuildingEnvelopes": true,
+    "additionalShadowMaps": 0
+  },
+  "cyberpunkTeahouseAssembly": {
+    "connectedClosedShell": true,
+    "realApertures": 5,
+    "continuousInteriorLightEnvelope": true,
+    "flatMachineRoof": true,
+    "rooftopPlant": [
+      "3 condensers",
+      "water tank",
+      "antenna mast",
+      "extract",
+      "access hatch"
+    ],
+    "cladBeltAndFixings": true,
+    "localEmitters": 3
+  }
+}

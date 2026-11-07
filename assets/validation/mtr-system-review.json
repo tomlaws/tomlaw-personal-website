@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-11",
+  "asset": "Elevated MTR railway and full-proportioned Q-train study",
+  "source": [
+    "tools/blender/metro_train.py",
+    "tools/blender/mtr_station.py",
+    "tools/blender/public_realm.py",
+    "src/railConfig.json"
+  ],
+  "editableScene": "assets/blender/nocturne-source.blend",
+  "references": "reference/asset-references.md",
+  "checks": [
+    "Ten station gate positions align to train doors at the central dwell",
+    "Twenty train side doorways; two four-wheel bogies per car",
+    "Train sweep clears platform furniture and end buffers",
+    "Rail datum, boarding floor and overhead contact wire share runtime configuration",
+    "Five piers meet the continuous ground and bearings; supported elevated box girder",
+    "96 stair treads with equal rises, landings and road clearance",
+    "Enclosed through-lift with aligned ground and upper doors",
+    "Rounded train windows retain complete polygon boundaries",
+    "Continuous ceiling, floor and lower-wall lighting behind laminated glazing",
+    "Day and settled night browser inspections from both sides",
+    "Camera reset clears pending orbit inertia"
+  ],
+  "geometry": "pass",
+  "gltf": "12 assets; zero errors and warnings",
+  "tests": "npm test passed",
+  "build": "npm run build passed; existing large-chunk advisory remains",
+  "browserErrors": 0,
+  "runtimeMaterialBatches": 40,
+  "trainLengthMetres": 46.1,
+  "trainGlbBytes": 2950488,
+  "railTopMetres": 7.8,
+  "screenshots": [
+    "screenshots/mtr-elevated-day.png",
+    "screenshots/mtr-elevated-night.png",
+    "screenshots/mtr-elevated-overview.png"
+  ],
+  "miniatureAdaptation": "Two full-proportioned cars with five door pairs each; not an exact eight-car fleet replica. Doors remain closed; the train dwells centrally and reverses in protected headshunts.",
+  "performanceNote": "40 static material batches retained. No representative foreground FPS claim: browser automation was background-throttled during the build.",
+  "status": "Superseded by cartoon-railway-review.json; retained as historical review"
+}

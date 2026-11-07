@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-13",
+  "reference": "reference/daytime/73a716795c185d391043f1d30eeb12dc.jpg",
+  "scope": [
+    "Shift the daytime art direction heavily toward the approved bright isometric toy-city reference",
+    "Add street greenery: three planted trees in recessed soil openings plus relocated promenade planting",
+    "Preserve the approved night direction while the daylight finishes changed"
+  ],
+  "referenceProfile": {
+    "method": "PIL/numpy sampling of the 1080x1080 reference: whole-image and per-region sRGB means, luminance percentiles and a k-means palette split",
+    "wholeImageMeanSrgb": [167, 183, 180],
+    "meanSaturation": 0.237,
+    "luminanceP05P50P95": [0.369, 0.767, 0.921],
+    "sky": "sRGB(188,217,229) hue 197, sat 0.18 - pale blue, not grey",
+    "sea": "sRGB(154,191,210) hue 200, sat 0.27",
+    "land": "warm khaki/olive clusters sRGB(145,138,111) sat 0.23 and sRGB(185,174,137) sat 0.26; roads sit around 60% of the paving value; no neutral grey cluster"
+  },
+  "measuredBefore": {
+    "islandMeanSrgb": [170, 178, 176],
+    "meanSaturation": 0.161,
+    "luminanceP05P50P95": [0.296, 0.738, 0.885]
+  },
+  "measuredAfter": {
+    "islandMeanSrgb": [165, 176, 175],
+    "meanSaturation": 0.239,
+    "luminanceP05P50P95": [0.215, 0.752, 0.881],
+    "note": "Mean colour and mean saturation now match the reference (167,183,180 / 0.237) and the median luminance is within 2%. The fifth-percentile leads the reference lower because this harbour keeps deliberate dark accents the reference does not have: the cyberpunk machine-shop teahouse, deep roof plant and dark glazing."
+  },
+  "changes": {
+    "atmosphere": "Day keyframes 08:00-16:00 lift the sky to #bed7e6 and the ambient fill from 0.6 to 1.3 while the sun eases from 5.8 to 5.2; exposure 1.2 to 1.3; environment intensity 0.38 to 0.5; fill 0.4 to 0.44; the fog closes from 200/550 to 160/500 for aerial haze",
+    "water": "The harbour began as a milky grey-blue: the first pass lifted the base to linear (0.20,0.36,0.46) but that still measured sRGB(169,190,198) at 0.18 saturation with 0.2% of pixels above 0.35. The user then asked for the reference's bluer water, so the base now mixes linear (0.05,0.28,0.54) into (0.32,0.56,0.72) with the swell amplitude widened from 0.10 to 0.17",
+    "buildingTone": "Buildings now follow the reference's architecture and tone: one saturated wall colour per building, painted cream trim on every floor band, window frame and parapet coping (new Trim cream surface), and glazing darker than the wall (#a9b9c3 to #6d879c). Mineral blue #46687f to #4c7fa8 and the tenement facade unified to that single colour, Cinema terracotta #b5715d to #c87a52, Toyshop limestone #d7c8ae to #e2d6bd and ochre #b89755 to #c19c58",
+    "palette": "Warm, chromatic land: asphalt #282c35 to #5b584e (khaki-grey road instead of a black ribbon), paving #96918e to #a49786 (warm sand), soot concrete #333e51 to #3d4a5c, dusty plaster #958b80 to #9d9080, ochre plaster #d2c3a6 to #d9c396, patchwork render #707b7f to #7a8177, stone #959496 to #9d9384, foliage #577143/#83955c to #5f7d45/#8fa85f",
+    "greenery": "public_realm.TREES now lists four street trees; the tree builder is parameterised by tag and seed so each planting differs, each tree gets its own recessed soil opening and mulch spread, and the wind anchors stay one per tree",
+    "nightPreservation": "Night tints were re-derived wherever the daylight finish moved far enough to change the evening: Street asphalt #728cca at 0.72 becomes #002992 at 0.95, Neon panel #92b0e4 at 0.60 becomes #314b70 at 0.88, Mineral blue #849ddd at 0.76 becomes #6b5d88 at 0.76, Cinema terracotta #405fde at 0.96 becomes #3355fa at 0.96, and the new Trim cream takes the coping's previous evening value"
+  },
+  "seaMeasurements": {
+    "referenceMidWater": "sRGB(154,196,211) hue 195, 39.3% of pixels above 0.35 saturation",
+    "before": "sRGB(169,190,198) hue 198, 0.2% above 0.35",
+    "after": "sRGB(151,191,209) hue 197, 20.6% above 0.35"
+  },
+  "nightCheck": {
+    "islandMeanLuminanceP50BeforeTintFix": 0.191,
+    "islandMeanLuminanceP50AfterTintFix": 0.125,
+    "meanSaturationBefore": 0.504,
+    "meanSaturationAfter": 0.563,
+    "note": "The night rig (exposure, ambient, fill, rim and hemisphere) is untouched; only the two re-derived tints moved, restoring the depth of the approved evening look."
+  },
+  "trees": {
+    "count": 4,
+    "rootsMetres": [[16, -2.5], [19, -11.6], [34, -14.5], [-30, -14.5]],
+    "bedMetres": [3.2, 2.6],
+    "soilTopMetres": 0.762,
+    "pavingTopMetres": 0.8,
+    "placedBy": "Ray-cast clearance test: every bed sits on 9/9 paving samples with no structure inside the 2.9 m canopy band (3.0-6.5 m), so no canopy passes through a facade and no bed cuts the recessed asphalt"
+  },
+  "runtimeLights": 37,
+  "runtimeMaterialBatches": 50,
+  "cityGlbBytes": 30058844,
+  "cityGlbBytesBefore": 28844964,
+  "validation": {
+    "npmTest": "passed (9 checks, 17 GLB assets, 0 errors, 0 warnings)",
+    "npmBuild": "passed; existing large JS chunk advisory",
+    "blenderChecks": "sculptedTreesWithRecessedSoil, authoredTreeWindAnchorsAndLeafTipWeights and the paving-excavation point list now cover all four plantings"
+  },
+  "browserReview": [
+    "Day city: azure sea, pale blue sky, warm sand paving, khaki-grey asphalt with readable white markings, saturated blue tenement with cream trim bands and white frames, orange cinema, cream Galleria and dark machine-shop teahouse each read separately",
+    "Day city: four tree canopies green the west promenade, the central plaza, the Galleria forecourt and the quarter",
+    "Night city: indigo paving, dark roads and strong cyan/magenta neon restored after the tint compensation; the cream trim no longer reads as a white roof",
+    "Tree bed close-ups (tree-bed-plaza/forecourt/west/quarter.png): rounded recessed soil opening, soil below paving level, mulch spread inside the bed, root flare seated in the soil, bench and lamp clear of the canopy"
+  ],
+  "screenshots": [
+    "daylight-before-city.png",
+    "daylight-city-day.png",
+    "daylight-city-night.png",
+    "tree-bed-plaza.png",
+    "tree-bed-forecourt.png",
+    "tree-bed-west.png",
+    "tree-bed-quarter.png"
+  ],
+  "editableSource": "assets/blender/nocturne-source.blend"
+}

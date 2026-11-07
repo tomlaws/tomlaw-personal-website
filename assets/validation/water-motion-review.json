@@ -1,0 +1,27 @@
+{
+  "pixelComparison": {
+    "playing": {
+      "meanAbsoluteDifference": 5.025161111111111,
+      "changedPixels": 97756,
+      "waterRegion": [
+        100,
+        130,
+        1100,
+        250
+      ]
+    },
+    "paused": {
+      "meanAbsoluteDifference": 0.013741666666666668,
+      "changedPixels": 21,
+      "waterRegion": [
+        100,
+        130,
+        1100,
+        250
+      ]
+    }
+  },
+  "npmTest": "pass",
+  "productionBuild": "pass",
+  "browserShaderErrors": 0
+}

@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-03",
+  "building": "Jardine House",
+  "cause": "GLTFLoader sanitizes the circular glass mesh names with underscores. The old space-only match failed and selected rectangular light diffusion.",
+  "fix": "Recognize imported and original names; derive continuous circular glow coordinates in each glass disc's own plane, independent of rim normals and building heading.",
+  "preserved": "Original GLB, every window position/index/normal, daytime glass, palettes, window brightness, map layout and resolution.",
+  "baseLightFollowUp": "Removed only the Jardine House low window-spill point light that burned a bright patch into the base. Building identities now survive scene serialization so this exclusion is exact and does not select a replacement light. Other three spill positions and intensities are unchanged.",
+  "regression": "All 144 actual GLB panes are checked across three building headings for the circular flag, circular perimeter coordinates and unchanged geometry/topology.",
+  "browser": "Front close-ups verified in daylight and at night. Side view was occluded by the neighbouring tower; all four facades are covered by the geometry checks.",
+  "proof": "screenshots/jardine-windows-and-base-fixed.jpg",
+  "checks": {"npm test": "passed", "npm run build": "passed"}
+}

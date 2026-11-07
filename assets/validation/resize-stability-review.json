@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-03",
+  "changes": [
+    "WebGL and WebGPU drawing-buffer resizes are coalesced and applied inside a render frame.",
+    "Unchanged device pixel ratio no longer triggers redundant buffer resets.",
+    "The iframe and page backings match the current Hong Kong daylight theme.",
+    "The canvas stays fixed; camera framing supplies upward parallax without exposing the canvas bottom edge, and respects reduced motion."
+  ],
+  "preserved": ["native resolution", "all map geometry and effects", "camera angle and zoom scroll animation", "full-size canvas", "WebGL default and WebGPU option"],
+  "checks": ["production build", "full npm test suite", "rapid viewport changes with the live map visible", "map stage remains 870.40px high at both 1280x600 and 1280x1000 viewports"],
+  "screenshots": ["screenshots/map-scroll-sync-mobile.jpg", "screenshots/map-scroll-sync-middle.jpg"]
+}

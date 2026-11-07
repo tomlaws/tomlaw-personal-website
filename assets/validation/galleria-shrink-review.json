@@ -1,0 +1,67 @@
+{
+  "request": "The user found the Harbor Galleria too large for the neighbourhood and asked for it to be shrunk rather than replaced with a reference building.",
+  "date": "2026-10-13",
+  "decision": "Reduce the four-storey 28 x 26 m department store to a three-storey 17 x 15 m corner emporium on a 13.42 m roof, re-lay the interior inside the smaller plan, and rebuild the released quay as small reference-style shophouses.",
+  "measurements": {
+    "footprintMetres": { "before": [28.0, 26.0], "after": [17.0, 15.0], "floorAreaPercent": -64.9 },
+    "levels": { "before": [0.94, 5.10, 9.90, 14.20], "after": [0.94, 5.10, 9.26] },
+    "roofMetres": { "before": 18.55, "after": 13.42 },
+    "boundingVolumeCubicMetres": { "before": 13504, "after": 3422, "percent": -74.7 },
+    "shareOfQuayLandPercent": { "before": 14.3, "after": 5.0 },
+    "liftStops": { "before": 5, "after": 4 },
+    "escalatorFlights": { "before": 6, "after": 4 },
+    "escalatorTreads": { "before": 144, "after": 96 },
+    "atriumRoofMetres": { "before": [11.8, 17.8, 3.1], "after": [6.6, 9.2, 2.35], "tessellationVertices": 865 },
+    "programmes": { "before": 4, "after": 3 }
+  },
+  "plan": {
+    "frameSource": "src/mallConfig.json plan block, shared by the Blender modules, the runtime lift animation and the area-light shader",
+    "footprint": { "cx": 46.0, "cy": -1.5, "halfX": 8.5, "halfY": 7.5, "corner": 1.9, "face": 0.21 },
+    "levels": [0.94, 5.10, 9.26],
+    "ceilingHeights": [4.46, 8.62, 12.78],
+    "atrium": { "cx": 46.0, "cy": -1.0, "rx": 4.96, "ry": 4.9 },
+    "escalators": { "x": [44.9, 47.1], "run": [-4.1, 3.1], "bridges": { "arrivalY": 3.35, "departureY": -4.3 } },
+    "lift": { "x": 39.9, "y": 3.6, "doorY": 2.02, "stops": [0.94, 5.10, 9.26, 13.42] },
+    "rooms": ["bookshop and cafe in the ground-floor wings", "design salon and ceramics atelier", "reading room and listening lounge"],
+    "screens": [{ "x": 46.0, "y": -9.075, "width": 5.4 }, { "x": 54.575, "y": 2.2, "width": 3.6 }],
+    "terrace": { "guard": [16.1, 14.1], "benches": 4, "lamps": 4, "lampBenchGaps": 1.225, "lampViewerClearance": 4.754, "plantingTroughs": 2 }
+  },
+  "preservedApprovedFeatures": {
+    "fingerprintBaseline": "assets/validation/mall-entrance-approved.json, captured from the pre-shrink approved exterior",
+    "matchedObjects": 27,
+    "objects": ["entrance doors mullions, transoms and panes", "atrium entrance glass mullions, transoms and panes", "entrance pulls", "formed entrance canopy, ivory surface and recessed strips"],
+    "note": "Every preserved digest equals its pre-shrink value, so the approved south entrance bay, glazing, canopy and flush threshold survived the shrink unchanged. The dome baseline was re-captured for the deliberately smaller atrium roof at 17 objects."
+  },
+  "defectsFoundAndFixed": [
+    "The first shrunken shell cut 13.6 m facade apertures while the shopfront and entrance glazing only spanned 11.8 m, leaving unglazed gaps in the envelope. Each aperture is now cut to the exact span of the window or doors that fill it.",
+    "The cafe counter originally shared space with a separate kitchen wall, so the two intersected. The counter now backs onto the room's own side wall.",
+    "Upper-storey ceiling emitters were shallower than the rear gallery, so the rear circulation had no direct coverage. Both upper emitters now span the full plan.",
+    "The double-height foyer light sat above the storey gate and would have been blocked below the first upper slab. It now sits 0.32 m below that ceiling so the foyer stays lit to its ground floor.",
+    "Elevation review of the released-quay shops found upper window courses and side service bays floating above the shorter roofs. One course is now built per storey above the shopfront, service bays are filtered to sit below the roof, and the market hall was raised to two storeys.",
+    "The first roof beds read as bare troughs. Bed planting is now denser and taller, and the shops gained a rolled flank blind and a projecting blade sign so their quieter elevations are inhabited."
+  ],
+  "elevationReview": {
+    "script": "assets/validation/capture-forecourt-elevations.py",
+    "rendered": ["forecourt-shops-front", "forecourt-shops-rear", "forecourt-shops-east", "forecourt-shops-west", "forecourt-gallery-front", "forecourt-gallery-rear", "forecourt-gallery-east", "forecourt-gallery-west"],
+    "result": "Fronts show the jade plinth and piers, recessed shopfront glazing, the fabric awning on brackets, the lit shop sign and occupied upper rooms; flanks show service bays, pipes, condensers and the rolled blind; roofs show the planted trough, stair cabin and tank inside the parapet. No element floats above a roof."
+  },
+  "releasedQuay": {
+    "newCollection": "08 · Forecourt shops",
+    "buildings": ["two narrow shophouses with fabric awnings, occupied upper rooms, side service bays and planted parapet roofs", "one single-storey market hall fronting the side street"],
+    "streetTrees": { "before": 4, "after": 6, "note": "two further trees in recessed soil openings on the released paving, each authored separately" }
+  },
+  "validatorsUpdated": [
+    "tools/blender/validate_mall.py rewritten for the smaller plan: aperture/glazing fit, escalator tread visibility, four aligned lift stops, direct lighting coverage, released paving, terrace clearances, preserved-entrance fingerprints and dome proportions.",
+    "scripts/verify-mall.mjs: three floor programmes, four lift stops, the new storey-light gate heights and the renamed geometry-report keys.",
+    "src/areaLightShader.js: mall bounds, storey gate and atrium void derived from src/mallConfig.json instead of hard-coded numbers.",
+    "src/mallMotion.js and src/App.jsx: the lift sequence and the instanced landing-door count follow the configured stop count.",
+    "tools/blender/validate_scene.py: the deep shopfront lining check now compares against the number of deep bays instead of a fixed 12, so added bays stay covered."
+  ],
+  "verification": {
+    "mallGeometry": "MALL_GEOMETRY_OK: continuous manifold envelope, one connected shell, preserved entrance 27 fingerprints, four aligned protected lift stops, two upper floors, clear protected rooftop, terrace clearance.",
+    "blenderBuild": "Green: geometry report easternMallAssembly all true, mall footprint 17 x 15 m at 13.42 m, 17 GLB assets, 35 runtime lights, 6 tree wind anchors.",
+    "npmTest": "Green: 9 checks, 18 GLBs validated with 0 errors and 0 warnings, including the updated mall check for three programmes, four lift stops, the resized dome and the renamed geometry-report keys.",
+    "npmBuild": "Green in 8.9 s (only the pre-existing chunk-size advisory).",
+    "browserDayNight": "Inspected at 12:00 and 21:00 in the wide isometric view and in the mall and mall-rear presets: the emporium now reads at the same scale as the tenement and cinema, the released quay carries the new shophouses with their street trees, the cyan cornice and crown channels plus the two media campaigns carry the evening identity, and the lit atrium still reads through the reduced dome."
+  }
+}

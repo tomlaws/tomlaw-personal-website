@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "direction": "Four user-supplied cartoon miniature references",
+  "assets": {
+    "validatedGLBs": 14,
+    "errors": 0,
+    "warnings": 0,
+    "combinedBytes": 12039908,
+    "roomEmissionTextures": "Embedded ceiling-falloff images, with distinct RoomUV coordinates behind glass"
+  },
+  "browser": {
+    "nightAndDayCloseups": "Visually inspected",
+    "nightMobile": "390 x 844; no horizontal overflow; controls 44 x 44 px",
+    "performanceSample": { "fps": 60, "p95Ms": 18, "geometries": 176, "textures": 64 },
+    "shadows": "PCF filtering with expanded radius and baked occlusion; experimental PCSS removed after driver warnings"
+  },
+  "checks": [
+    "npm test passed: time, transitions, traffic, vehicle dimensions, animation bounds and GLB validation",
+    "npm run build passed; existing graphics bundle size advisory remains",
+    "Night, Day, pause/play, zoom and camera reset exercised in browser"
+  ],
+  "screenshots": [
+    "screenshots/stylized-night-detail.png",
+    "screenshots/stylized-day-detail.png",
+    "screenshots/stylized-mobile.png",
+    "screenshots/stylized-final.png"
+  ]
+}

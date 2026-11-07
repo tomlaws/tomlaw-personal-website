@@ -1,0 +1,48 @@
+{
+  "reviewedAt": "2026-10-10T05:40:47.6122707+08:00",
+  "sceneBuild": 1791581913.7794673,
+  "changedAssets": [
+    "taxi",
+    "teashop roof",
+    "lift cabin and shaft",
+    "kerbs",
+    "shop canopy",
+    "pier and stairs",
+    "shelter and promenade benches",
+    "vending cabinet"
+  ],
+  "nightChecks": [
+    "Teashop side door illuminated continuously from ceiling to threshold",
+    "Radio entrance lining and glass display illuminated without a half-height cutoff",
+    "Vending cabinet shelves and reveals lit continuously",
+    "Repair-shop and teashop fixtures aimed into the storefronts"
+  ],
+  "dayChecks": [
+    "Separate curved roof tiles and ridge caps",
+    "Timber pier joints, fixings and supports visible",
+    "Equal exposed stair risers meet the quay",
+    "Glazed lift cabin, guide rails and landing hardware reviewed"
+  ],
+  "consoleWarningsAndErrors": [],
+  "browserPerformanceSample": {
+    "maxDrawCalls": 163,
+    "textures": 103,
+    "timestamp": "2026-10-09T21:38:25.527Z",
+    "p95Ms": 18,
+    "fps": 60,
+    "meanDrawCalls": 94,
+    "gpuMs": 1.9,
+    "meanTriangles": 659815
+  },
+  "validation": {
+    "productionBuild": "passed",
+    "glbWarnings": 0,
+    "glbErrors": 0,
+    "npmTest": "passed",
+    "materialBatches": 36
+  },
+  "screenshots": [
+    "screenshots/craftsmanship-night.png",
+    "screenshots/craftsmanship-pier.png"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "reviewedAt": "2026-10-10T05:25:44.1826465+08:00",
+  "environment": "Local Codex browser, 1225 x 1244 viewport, adaptive DPR 0.992",
+  "checks": {
+    "treeCrownAndDoorwayInDaylight": true,
+    "recessedDoorwayAtNight": true,
+    "tramGlazingFromRearView": true,
+    "ferryHullAndCabinDayAndNight": true,
+    "fiveExposedPierTreads": true,
+    "keyboardPanningAfterCameraInitialization": true,
+    "noBrowserWarningsOrErrors": true,
+    "npmTest": "passed; 12 GLBs, zero errors and warnings",
+    "productionBuild": "passed; existing graphics bundle size warning"
+  },
+  "initialAnimatedViewMeasurement": {
+    "timestamp": "2026-10-09T21:23:56.77Z",
+    "fps": 60,
+    "p95FrameMs": 17,
+    "gpuMs": 2.18,
+    "meanDrawCalls": 87,
+    "meanTriangles": 497456
+  },
+  "screenshots": [
+    "screenshots/blender-tree-day-rebuilt.png",
+    "screenshots/teashop-recessed-glass-door.png",
+    "screenshots/glazed-tram-night.png",
+    "screenshots/rebuilt-ferry-and-pier.png",
+    "screenshots/ferry-cabin-night.png"
+  ]
+}

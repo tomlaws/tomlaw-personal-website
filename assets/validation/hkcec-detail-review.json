@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-03",
+  "parts": 33,
+  "mullions": 23,
+  "roofCopings": 5,
+  "mullionWidth": 0.072,
+  "oldMajorMullionDiameter": 0.042,
+  "transomHeight": 0.06,
+  "oldTransomDiameter": 0.024,
+  "preserved": [
+    "all three roof shells",
+    "glazing envelope",
+    "podium",
+    "terrace bands",
+    "entrance",
+    "interior volumes",
+    "night lighting"
+  ],
+  "removed": [
+    "fine roof ridge",
+    "redundant shared-corner mullions",
+    "secondary thin frame lines"
+  ],
+  "roofFit": "All frame heads, foyer supports and transom ends checked across their full profiles beneath the lowest overlapping canopy.",
+  "validation": "Full npm test suite and production build passed. 10 protected architectural parts and original night emission unchanged. 36 static batches / 252705 vertices.",
+  "browserViews": [
+    "front day",
+    "side day",
+    "rear day",
+    "front night",
+    "side night",
+    "rear night",
+    "390px front day",
+    "390px portfolio"
+  ],
+  "screenshots": [
+    "screenshots/hkcec-front-day.jpg",
+    "screenshots/hkcec-front-night.jpg",
+    "screenshots/hkcec-mobile-day.jpg"
+  ]
+}

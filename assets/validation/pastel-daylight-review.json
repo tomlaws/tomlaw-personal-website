@@ -1,0 +1,55 @@
+{
+  "change": "Pastel toy-town daylight palette with the cyberpunk neon night retained",
+  "scope": "Shared Blender surface palette, daylight lighting and exposure, thin-line detail reduction, lawn aprons in the recessed tree beds, and re-solved evening tints so the approved night identity is unchanged",
+  "reference": {
+    "file": "reference/daytime/pastel-toytown-isometric.png",
+    "source": "user attachment, copied into the repository and measured with PIL/numpy",
+    "measured": {
+      "landClusters": {
+        "road grey": "#8d867b",
+        "warm cream paving": "#f2dfc1, #dccb9f",
+        "saturated cobalt": "#4083a1",
+        "foliage greens": "#acbd6c, #7d974b",
+        "terracotta": "#de9f6e, #ad6d48",
+        "near-white wall": "#f9f4e4"
+      },
+      "luma": { "mean": 0.664, "median": 0.658, "p5": 0.388, "p95": 0.929 },
+      "saturation": { "mean": 0.283, "median": 0.224, "shareAbove018": 0.604 },
+      "darkShareBelowHalfLuma": 0.202
+    }
+  },
+  "approach": [
+    "Walls to warm sand-white #dbcaa4 over paving #cdb992; roads to warm grey #8e8779 instead of near-black asphalt; structure metal to slate #6f7c8a",
+    "Saturated colour moved off the walls onto cobalt #3380ab, terracotta #b96a3c, ochre #d6b174, awning coral and lawn #86a83f",
+    "Simple punched openings: the shared facade course no longer splits a window with a meeting stile, and remaining divided bays use 0.12-0.14 m members instead of 0.075-0.08 m",
+    "Heavier small members: railing posts 0.085 m at 2.4 m spacing, thicker handrails, lantern arms and service pipes, fewer and heavier shutter slats, one pressed AC grille instead of fan blades and louvre strips",
+    "High-key daylight: ambient 2.0 against sun 4.2, environment fill 0.96, exposure 1.06 so the pale surfaces stop clipping to white, sky #cde5ec, soft PCF shadows, fog 260/640, deeper and less sky-washed day water",
+    "Pastel accents on joinery rather than walls: the shared facade course takes a surround colour per building (repair house ochre surrounds and mint shopfront), and each forecourt shophouse takes one accent across its surrounds, transom, canvas awning and a painted entrance door set behind the right-hand pane",
+    "Colour structure following the reference: one pale base (#dbcaa4) on every building's walls, spandrels and piers; one secondary per building on plinth, piers, parapet and stair room (cobalt for the repair house; cobalt, terracotta or jade for the shophouses); one small accent per building on surrounds, transom, awning and doors. The cinema's terracotta moved from its walls to the auditorium roof, and the toyshop's brick masonry was repainted pale with its limestone lightened. The teahouse and arcade shopfronts keep their approved dark schemes.",
+    "Simplified elevations on request: the repair house's exterior fire-escape tower (8 flights, 4 landings, guards, columns, doors) and the picturehouse/arcade access stair are removed and the stair module deleted; the mezzanine, landing and tenement floors are served from inside. The tenement also loses its 8 side-window bays and linings, facade pipe clips, cable runs, utility slots and two of four condensers, and its 16 service bays become one recessed bay per storey.",
+    "Every re-lit surface's evening tint re-solved in linear space to reach the value the previous, darker palette produced, so the neon night is unchanged"
+  ],
+  "measuredRenders": {
+    "note": "same central band for every image, page background excluded",
+    "reference": { "lumaMedian": 0.658, "lumaP5": 0.388, "saturationMean": 0.283, "saturationShareAbove018": 0.604, "darkShareBelowHalfLuma": 0.202 },
+    "beforeOldDaylight": { "lumaMedian": 0.744, "lumaP5": 0.349, "saturationMean": 0.233, "saturationShareAbove018": 0.560, "darkShareBelowHalfLuma": 0.117 },
+    "afterFirstPastelPass": { "lumaMedian": 0.769, "lumaP5": 0.221, "saturationMean": 0.204, "saturationShareAbove018": 0.473, "darkShareBelowHalfLuma": 0.098 },
+    "reading": "Direction confirmed (cold near-black metals removed, pastel daylight read), but the first pass overshot: surfaces clipped toward white, so total saturation fell below both the reference and the previous daylight. Two further passes therefore warmed and darkened the surfaces, deepened the day water, and eased exposure while raising fill, with every tint re-solved in linear space to keep the evening identical. The final pass is verified by geometry, exported-palette and test checks, but could not be re-captured in the browser."
+  },
+  "defectsFoundAndFixed": [
+    "The exported-palette test guarded the previous daylight target; its expectations were updated to the measured pastel palette",
+    "A stray non-ASCII digit was introduced into a material hex while editing base materials and was corrected immediately",
+    "The measurement tool sampled the flat page background outside the WebGL canvas, which dominated the darkest percentiles; it now crops to the canvas interior"
+  ],
+  "verified": {
+    "blenderGeometryChecks": "all true; approved mall entrance 27 objects and glass dome 17 objects still preserved; 10 fitted night channels and 5 facade washes unchanged; no additional shadow maps",
+    "exportedPalette": "nocturne-city.glb Mineral blue, Paving stone and Street asphalt base colour textures match the authored sRGB values",
+    "tests": "npm test green: 9 checks, 18 GLB assets, 0 errors and 0 warnings",
+    "productionBuild": "npm run build green; only the pre-existing chunk-size advisory",
+    "browserDayAndNight": "day (12:00) and night (21:00) inspected on the first pastel pass: the day reads pastel with warm paving, light roads, cobalt and terracotta masses and green tree beds, and the night keeps its neon identity with lit interiors and dark neon-clad shopfronts"
+  },
+  "pending": {
+    "browserReCheckOfFinalPass": "The final passes could not be captured: the shared browser lost its WebGL context and no page in it can create a new one (every page, freshly opened included, reports 'This scene requires WebGL.'). Reopen the preview, or open http://127.0.0.1:5173/ in a normal browser, to view the final palette.",
+    "notAdopted": "The reference's saturated pitched roofs are not adopted: the flat machine roofs and the neon quarter's dark cladding are approved features asserted by validate_scene (flatMachineRoofWithoutTiles, nightIdentity). Colour is carried by trim, awnings, planting and the existing saturated wall colours instead."
+  }
+}

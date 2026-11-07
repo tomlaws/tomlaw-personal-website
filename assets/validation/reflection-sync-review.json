@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-03",
+  "cause": "The live planar mirror refreshed at about 5 Hz and only 10 Hz during camera changes, independently of the main view. Its simulation-time interval could slow further under low frame rates.",
+  "fix": "Both WebGL and WebGPU refresh the mirror from the same animation/camera pose on every presented frame. WebGL updates the shared shadow atlas before either view uses it. Hidden/offscreen pausing and the one-frame GPU budget remain in force.",
+  "preserved": "1024 x 1024 HDR reflection, clipping/frustum coverage, transmission snapshots, original materials and lighting, full map resolution and effects.",
+  "observedWebGL": {
+    "viewportPixels": [1464,1866],
+    "pixelRatio": 1.5,
+    "sampleUtc": "2026-11-02T19:06:59.456Z",
+    "frames": 60,
+    "reflectionUpdates": 60,
+    "fps": 24,
+    "gpuMs": 12.5,
+    "gpuP95Ms": 14.5
+  },
+  "checks": {"npm test": "passed", "npm run build": "passed"}
+}

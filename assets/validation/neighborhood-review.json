@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-10",
+  "design": "Lantern Ward / three-building neighbourhood",
+  "runtimeMaterialBatches": 35,
+  "staticTriangles": 417786,
+  "combinedBytes": 11123868,
+  "gltfValidation": {
+    "files": 12,
+    "errors": 0,
+    "warnings": 0
+  },
+  "checks": [
+    "npm test",
+    "npm run build",
+    "Exported color PNG samples match the authored sRGB palette",
+    "Desktop night and day",
+    "Alternate isometric corner",
+    "390x844 responsive viewport",
+    "No browser warnings or errors during final visual review"
+  ],
+  "performance": {
+    "fps": null,
+    "reason": "The in-app browser ran near a one-second frame cadence during automation. This background-throttled sample is not representative of foreground rendering; no foreground FPS claim is made.",
+    "pixelBudget": 1500000,
+    "dprMax": 1.25,
+    "staticMaterials": 35
+  },
+  "limitations": [
+    "No physical low-end mobile GPU test",
+    "WebGL indirect lighting is an approximation, not Cycles path tracing",
+    "Vite reports large graphics-engine chunks"
+  ],
+  "screenshots": [
+    "screenshots/neighborhood-final.png",
+    "screenshots/neighborhood-detail.png",
+    "screenshots/neighborhood-day.png",
+    "screenshots/neighborhood-mobile.png"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "reviewedAt": "2026-10-10T06:08:04.5025986+08:00",
+  "changes": [
+    "Sculpted branching tree with veined broad leaves and recessed granular soil",
+    "Roads recessed 0.16 m with softened continuous pavement lips and dropped crossings",
+    "Promenade benches face the water",
+    "Streetlamps moved clear of taxi swept body",
+    "Lift fully enclosed with protected guides, floor pit and aligned terrace opening",
+    "Workshop palette changed to ochre, terracotta and bronze",
+    "Tram rails embedded without raised track or platform slabs"
+  ],
+  "validation": {
+    "npmTest": "passed",
+    "materialBatches": 40,
+    "glbWarnings": 0,
+    "glbErrors": 0,
+    "geometryChecks": "passed",
+    "npmBuild": "passed"
+  },
+  "browser": {
+    "warningsAndErrors": [],
+    "performanceSample": {
+      "dpr": 1,
+      "gpuMs": 2.67,
+      "meanTriangles": 637911,
+      "meanDrawCalls": 101,
+      "fps": 60,
+      "timestamp": "2026-10-09T22:07:23.372Z",
+      "p95Ms": 19
+    },
+    "views": [
+      "day front",
+      "day opposite and rear",
+      "day tree and lift detail",
+      "night front and detail"
+    ]
+  },
+  "screenshots": [
+    "screenshots/public-realm-day.png",
+    "screenshots/public-realm-details.png",
+    "screenshots/public-realm-night-details.png",
+    "screenshots/public-realm-night.png"
+  ]
+}

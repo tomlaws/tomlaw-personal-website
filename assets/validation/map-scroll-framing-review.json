@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-03",
+  "changes": [
+    "Zoom-out, orbit rotation and upward parallax use one smoothed scroll progress and one eased phase in both WebGL and WebGPU.",
+    "Framing fits the base zoom before applying the shared zoom-out factor, preventing the early zoom plateau that delayed zoom relative to rotation.",
+    "The map and hero share a width-based stage with an 840px desktop minimum and a 930px mobile minimum, independent of window height.",
+    "Phones show the complete centered sea plate; desktop retains its permanent slight right-tip crop from the initial pose.",
+    "One 85% content veil keeps the map visible as background decoration after the intro."
+  ],
+  "preserved": ["native resolution", "map geometry", "all existing lighting and reflection effects", "WebGL default", "optional WebGPU", "reduced-motion support"],
+  "checks": [
+    "Production build and full npm test suite pass.",
+    "Camera tests verify zoom and orbit share the same phase.",
+    "Prepared-world framing tests verify actual zoom decreases from the first scroll sample across eight desktop and mobile stage sizes, without vertical clipping or pose drift.",
+    "Browser QA: complete mobile framing at 390x844; desktop map stage unchanged between 1280x600 and 1280x1000; initial, intermediate and work poses checked at 1919x1286.",
+    "Browser confirms the canvas has no CSS translation and the content veil alpha is 0.85; temporary viewport overrides were reset."
+  ],
+  "screenshots": ["screenshots/map-scroll-sync-mobile.jpg", "screenshots/map-scroll-sync-start.jpg", "screenshots/map-scroll-sync-middle.jpg", "screenshots/map-scroll-sync-work.jpg"]
+}

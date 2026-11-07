@@ -1,0 +1,26 @@
+{
+  "change": "Complete Blender rebuild of the red-and-silver Hong Kong sedan",
+  "editableSource": "assets/blender/taxi-source.blend",
+  "builder": "tools/blender/taxi_sedan.py",
+  "asset": "public/models/taxi.glb",
+  "dimensionsIncludingMirrorsAndRoofSignMetres": [2.07, 4.703, 1.73],
+  "triangles": 30758,
+  "assetBytes": 1086040,
+  "verified": [
+    "Blender front and rear close-ups: corrected lamp intersections and visible cabin through glass",
+    "Editable scene ray checks: hollow cabin and fully open wheel arches",
+    "Four tyre contact heights and conservative full-body clearance through the road bends",
+    "Daylight browser inspection from rear three-quarter angle",
+    "Night browser inspection from front three-quarter angle: continuous lamps, joined roof/glazing and road contact",
+    "No browser console warnings or errors"
+  ],
+  "pipeline": "build_neighborhood.py and finish_assets.py completed",
+  "tests": "npm test passed; 12 GLB files with zero errors and zero warnings",
+  "build": "npm run build passed; pre-existing bundle-size advisory remains",
+  "images": [
+    "assets/validation/taxi-front.png",
+    "assets/validation/taxi-rear.png",
+    "screenshots/taxi-rebuild-day.png",
+    "screenshots/taxi-rebuild-night.png"
+  ]
+}

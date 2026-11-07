@@ -1,0 +1,252 @@
+{
+  "date": "2026-10-11",
+  "scope": "Runtime performance; authored Blender geometry and embedded PBR textures unchanged",
+  "method": "Local Vite, in-app Chromium on RTX 4070; identical viewport/DPR, Night preset, animated default isometric view; 120 warm-up plus 360 visible frames, asynchronous GPU queries; repeatable development legacy/optimized paths.",
+  "baseline": {
+    "timestamp": "2026-10-11T02:41:28.920Z",
+    "label": "final-legacy",
+    "viewport": [
+      1225.3333740234375,
+      1244
+    ],
+    "dpr": 0.9919923160736472,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "samples": 360,
+    "fps": 60,
+    "p95Ms": 20.1,
+    "over25Ms": 7,
+    "cpuMs": 3.15,
+    "gpuMs": 5.34,
+    "gpuP95Ms": 8.66,
+    "meanDrawCalls": 116.01,
+    "maxDrawCalls": 233,
+    "meanTriangles": 764533,
+    "textures": 144,
+    "buckets": {
+      "ordinary": {
+        "samples": 313,
+        "gpuMs": 5.12,
+        "cpuMs": 2.97
+      },
+      "shadow": {
+        "samples": 23,
+        "gpuMs": 6.53,
+        "cpuMs": 2.88
+      },
+      "reflection": {
+        "samples": 22,
+        "gpuMs": 7.3,
+        "cpuMs": 5.89
+      },
+      "both": {
+        "samples": 1,
+        "gpuMs": 4.53,
+        "cpuMs": 5
+      }
+    }
+  },
+  "optimized": {
+    "timestamp": "2026-10-11T02:43:41.029Z",
+    "label": "optimized-lighting",
+    "viewport": [
+      1225.3333740234375,
+      1244
+    ],
+    "dpr": 0.9919923160736472,
+    "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "samples": 360,
+    "fps": 59.99,
+    "p95Ms": 18.3,
+    "over25Ms": 3,
+    "cpuMs": 2.56,
+    "gpuMs": 4.24,
+    "gpuP95Ms": 7.25,
+    "meanDrawCalls": 115,
+    "maxDrawCalls": 238,
+    "meanTriangles": 764525,
+    "textures": 143,
+    "buckets": {
+      "ordinary": {
+        "samples": 313,
+        "gpuMs": 4.06,
+        "cpuMs": 2.41
+      },
+      "shadow": {
+        "samples": 23,
+        "gpuMs": 4.82,
+        "cpuMs": 2.64
+      },
+      "reflection": {
+        "samples": 22,
+        "gpuMs": 5.84,
+        "cpuMs": 4.5
+      },
+      "both": {
+        "samples": 1,
+        "gpuMs": 9.85,
+        "cpuMs": 4.1
+      }
+    }
+  },
+  "gpuTimeReductionPercent": 20.6,
+  "changes": [
+    "Fuse alpha-weighted bloom addition with colour output; retain original threshold, all five blur levels, kernels and four-sample scene AA.",
+    "Eliminate the unused second multisampled scene allocation and depth buffers on bloom intermediates.",
+    "Reject the already-dark back side of rectangular lights before LTC lookups using the same mathematical predicate as Three r180.",
+    "Prepare linear HDR shader variants asynchronously and upload textures in short batches before revealing the scene.",
+    "Demand rendering idles paused presets and hidden pages, while animation, live time, orbit damping, time transitions and delayed water reflections can request frames.",
+    "Make development profiling opt-in and exclude it and the legacy comparison switch from production."
+  ],
+  "visualComparison": {
+    "crop": [
+      0,
+      150,
+      1225,
+      1100
+    ],
+    "method": "Paused initial view, identical models, time and pixel budget; RGB absolute pixel difference excluding controls. Small shadow-cache settling and float rounding differences remain.",
+    "results": {
+      "day": {
+        "meanChannelError255": 0.1376,
+        "p99ChannelError255": 3,
+        "pixelsWithin2LevelsPercent": 98.312
+      },
+      "night": {
+        "meanChannelError255": 0.2244,
+        "p99ChannelError255": 3,
+        "pixelsWithin2LevelsPercent": 97.317
+      }
+    }
+  },
+  "browserChecks": {
+    "dayNightWhilePaused": "passed",
+    "pausedLoopIdle": "observed after startup, transitions and camera orbit",
+    "cameraCorner": {
+      "yawDegrees": 135,
+      "elevationDegrees": 35.264389682754654,
+      "orthographic": true
+    },
+    "rainAndPauseControls": "passed",
+    "liveTime": "passed in production preview",
+    "productionLoad": "passed",
+    "mobileViewport": [
+      390,
+      844
+    ],
+    "viewportRestored": true,
+    "consoleErrors": 0,
+    "consoleWarnings": 0
+  },
+  "automatedChecks": {
+    "npmTest": "passed, including renderer state/blur/alpha checks and 12 GLBs with zero errors/warnings",
+    "npmBuild": "passed",
+    "productionAuditAndLegacySwitchRemoved": true,
+    "buildAdvisory": "Existing Three/R3F chunks exceed Vite 500 kB advisory"
+  },
+  "assets": {
+    "nocturne-city.glb": "711923d6e1b4cf22e60636577a33bda1617f7f84de2caa2824320a9c7a1d4cc6",
+    "metro.glb": "38132cde2e04d3f0b4adb4c2fd54fede4940c914190ba419ed0fb09dea0741aa",
+    "taxi.glb": "c611d603dc773172bc4f8f2d6377ecb183916ba531760c92e84dc366eb866dbd",
+    "ferry.glb": "566a30b9a1474229c650f0842e4e224ab18b6a2b315b544721eac81bcf56cd9c",
+    "lift.glb": "773f81ffd541bd671f1ceb3548f0eb3e739aae7d16d9156a9dbd56dc23ef8396"
+  },
+  "limitations": [
+    "Both versions reached approximately 60 FPS on the test GPU. This measures less GPU work, not an increase above the display refresh cap.",
+    "GPU timings vary with clock speeds and other desktop activity. The earlier original baseline was 5.76 ms; the paired final legacy run was 5.34 ms.",
+    "The 390 x 844 check validates viewport resizing and production rendering, not performance on a physical phone.",
+    "Startup preparation is implemented and verified visually; no numerical cold-download speed improvement is claimed.",
+    "The repeated optimized run measured 4.24 ms versus 3.88 ms in the first run; report the observed 20.6–27.3% range against the 5.34 ms paired baseline."
+  ],
+  "optimizedRuns": [
+    {
+      "timestamp": "2026-10-11T02:43:08.095Z",
+      "label": "optimized-lighting",
+      "viewport": [
+        1225.3333740234375,
+        1244
+      ],
+      "dpr": 0.9919923160736472,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "samples": 360,
+      "fps": 59.99,
+      "p95Ms": 20.4,
+      "over25Ms": 4,
+      "cpuMs": 2.87,
+      "gpuMs": 3.88,
+      "gpuP95Ms": 6.66,
+      "meanDrawCalls": 115.01,
+      "maxDrawCalls": 240,
+      "meanTriangles": 764529,
+      "textures": 143,
+      "buckets": {
+        "ordinary": {
+          "samples": 314,
+          "gpuMs": 3.67,
+          "cpuMs": 2.68
+        },
+        "shadow": {
+          "samples": 22,
+          "gpuMs": 4.62,
+          "cpuMs": 3.06
+        },
+        "reflection": {
+          "samples": 21,
+          "gpuMs": 5.98,
+          "cpuMs": 5.31
+        },
+        "both": {
+          "samples": 2,
+          "gpuMs": 7.7,
+          "cpuMs": 6.05
+        }
+      }
+    },
+    {
+      "timestamp": "2026-10-11T02:43:41.029Z",
+      "label": "optimized-lighting",
+      "viewport": [
+        1225.3333740234375,
+        1244
+      ],
+      "dpr": 0.9919923160736472,
+      "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070 (0x00002786) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "samples": 360,
+      "fps": 59.99,
+      "p95Ms": 18.3,
+      "over25Ms": 3,
+      "cpuMs": 2.56,
+      "gpuMs": 4.24,
+      "gpuP95Ms": 7.25,
+      "meanDrawCalls": 115,
+      "maxDrawCalls": 238,
+      "meanTriangles": 764525,
+      "textures": 143,
+      "buckets": {
+        "ordinary": {
+          "samples": 313,
+          "gpuMs": 4.06,
+          "cpuMs": 2.41
+        },
+        "shadow": {
+          "samples": 23,
+          "gpuMs": 4.82,
+          "cpuMs": 2.64
+        },
+        "reflection": {
+          "samples": 22,
+          "gpuMs": 5.84,
+          "cpuMs": 4.5
+        },
+        "both": {
+          "samples": 1,
+          "gpuMs": 9.85,
+          "cpuMs": 4.1
+        }
+      }
+    }
+  ],
+  "gpuTimeReductionRangePercent": [
+    20.6,
+    27.3
+  ]
+}

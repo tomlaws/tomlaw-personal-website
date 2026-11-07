@@ -1,0 +1,49 @@
+{
+  "date": "2026-11-03",
+  "stationsRemoved": [
+    "Garden Road",
+    "The Peak"
+  ],
+  "stationTerracesAndLandingRemoved": true,
+  "tramInteriorLighting": "warm yellow recessed ceiling diffusers, one shadowless wash per carriage",
+  "trackLighting": {
+    "fixtures": 6,
+    "layout": "two paired positions on opposite loop shoulders, one light on each approach",
+    "actualPointLights": 6,
+    "range": 4.4,
+    "decay": 0,
+    "intensityAtNight": 1.75,
+    "pairedIntensityGain": 0.55,
+    "shadows": false,
+    "trackSelfEmission": false
+  },
+  "checks": [
+    "Blender housing/diffuser manifold geometry",
+    "original cabin geometry hashes unchanged",
+    "all route sample coordinates unchanged",
+    "lights follow carriage articulation",
+    "lights switch off in daylight",
+    "front/side/rear day/night browser inspection; rear partly obscured by existing Peak Tower",
+    "npm run build",
+    "npm test",
+    "four real wash lights anchored to four fixtures",
+    "each light reaches the surrounding mountain, with more than 2.5 units between sources",
+    "sparse fixture daylight inspection",
+    "WebGL complete map and close-up night inspection",
+    "two lamps on each passing-loop shoulder",
+    "near/far illumination balance prevents source hotspot",
+    "balanced broad-wash browser inspection"
+  ],
+  "screenshots": [
+    "screenshots/peak-tram-balanced-wash-map.jpg",
+    "screenshots/peak-tram-balanced-wash-site.jpg",
+    "screenshots/peak-tram-broad-wash-front.jpg"
+  ],
+  "trackMist": {
+    "type": "wide terrain-following feathered scattering",
+    "patches": 12,
+    "lowerOpacity": 0.065,
+    "upperOpacity": 0.0273,
+    "offInDaylight": true
+  }
+}

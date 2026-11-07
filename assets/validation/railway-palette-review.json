@@ -1,0 +1,27 @@
+{
+  "date": "2026-10-11",
+  "scope": "Colour-only revision to approved train, station shelters and lift cover",
+  "palette": {
+    "trainBodyAndSeats": {"material": "Rail slate", "sRGB": "#657e92"},
+    "trainRoofCabAndTrim": {"material": "Rail cream", "unchanged": true},
+    "twoStationShelterRoofsAndLiftCap": {"material": "Paving stone", "sRGB": "#96918e"}
+  },
+  "source": ["assets/blender/nocturne-source.blend", "assets/blender/train-source.blend"],
+  "checks": {
+    "fullBlenderRebuild": "complete",
+    "cityGeometry": "passed",
+    "cabGeometryAndAnimation": "unchanged",
+    "stationGuardObjects": 526,
+    "approvedGuardFingerprintUnchanged": "b8674f017ad6b102946e661c4cec1a894ca8bdb4cfcf352acb1deda982f4a246",
+    "trainTriangles": 76356,
+    "stationTriangles": 60784,
+    "staticCityMaterialBatches": 40,
+    "validatedGlbs": 12,
+    "gltfErrors": 0,
+    "gltfWarnings": 0,
+    "npmTest": "passed",
+    "npmRunBuild": "passed; existing bundle-size advisory",
+    "browser": "Day and night palette reviewed in the actual localhost scene; no captured console warnings or errors"
+  },
+  "screenshots": ["screenshots/railway-palette-day.png", "screenshots/railway-palette-night.png"]
+}

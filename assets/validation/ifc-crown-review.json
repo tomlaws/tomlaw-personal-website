@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-03",
+  "finsBefore": 28,
+  "finsAfter": 16,
+  "heightBefore": 1.78,
+  "heightAfter": 1.17,
+  "unchangedBodyMeshes": 252,
+  "glbErrors": 0,
+  "checks": [
+    "front, side and rear in browser by day and night",
+    "native WebGPU night render without console errors",
+    "npm test",
+    "npm run build"
+  ],
+  "screenshots": [
+    "screenshots/ifc-curved-front-day.jpg",
+    "screenshots/ifc-curved-front-night.jpg",
+    "screenshots/ifc-curved-side-day.jpg",
+    "screenshots/ifc-curved-side-night.jpg",
+    "screenshots/ifc-curved-rear-day.jpg",
+    "screenshots/ifc-curved-rear-night.jpg"
+  ],
+  "inwardSweep": 0.39,
+  "curveSegments": 8
+}

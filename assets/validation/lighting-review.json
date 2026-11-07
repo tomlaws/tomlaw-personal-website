@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-10",
+  "timezone": "Asia/Hong_Kong",
+  "findings": [
+    "Strong ambient, rim and front fill flattened the distinction between lit and shaded faces.",
+    "Large emissive interior panels competed with small neon fixtures.",
+    "The previous occlusion bake ignored neighbouring assets, so the quay lacked contact shading beneath buildings and the viaduct.",
+    "Taxis sat above the road and had no contact shadows."
+  ],
+  "changes": [
+    "Reduced broad fill and environment lighting; kept one dominant cool directional key and softer filtered cast shadows.",
+    "Reduced room emission separately from neon, increased glass reflectivity and restricted bloom to brighter highlights.",
+    "Rebaked nine static assets with district-wide ambient occlusion and a 3.2 m reach; retained the shared atlas and 36 material batches.",
+    "Applied restrained baked contact attenuation to diffuse lighting, including unshadowed WebGL area lights.",
+    "Aligned taxis with the road and added soft multiplicative contact-shadow planes.",
+    "Reduced and blurred water reflections."
+  ],
+  "verification": {
+    "dayNightViews": "Visually checked, including close framing and another isometric angle",
+    "consoleAfterFinalReload": "No warnings or errors",
+    "tests": "Passed: existing time, animation, projection, quality-budget and asset checks",
+    "gltfAssets": 14,
+    "gltfErrors": 0,
+    "gltfWarnings": 0,
+    "productionBuild": "Passed; existing large graphics-chunk advisory",
+    "combinedAssetBytes": 10824924
+  },
+  "performance": {
+    "environment": "RTX 4070, 1225 x 1244 browser viewport, night preset, animation enabled",
+    "fps": 60,
+    "p95FrameMs": 17,
+    "meanGpuMs": 2.08,
+    "meanDrawCalls": 137,
+    "dpr": 0.9919923160736472,
+    "limitation": "Local steady-state measurement; not a physical mobile-device test"
+  },
+  "renderingLimitations": [
+    "Area lights do not cast real-time WebGL shadows; baked contact attenuation is an approximation.",
+    "Taxi contact shadows are soft planes, not live directional shadow maps.",
+    "Interior illumination remains an authored ceiling-falloff texture behind reflective glazing."
+  ],
+  "screenshots": [
+    "screenshots/lighting-before.png",
+    "screenshots/lighting-after.png",
+    "screenshots/lighting-night-detail.png",
+    "screenshots/lighting-day.png"
+  ]
+}

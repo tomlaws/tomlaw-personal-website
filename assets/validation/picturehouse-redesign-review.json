@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-11",
+  "scope": [
+    "Remove three outdoor Jade Tea stools and their bases",
+    "Rebuild picturehouse shell, window, sign tower and roof while preserving entrance and canopy"
+  ],
+  "geometry": {
+    "connectedClosedShell": true,
+    "realDoorAndWindowOpenings": true,
+    "entranceAndCanopyObjectsPreserved": 82,
+    "teaOutdoorStoolsRemoved": true
+  },
+  "additionalChecks": [
+    "Coping meets rounded sign tower",
+    "Roof recess does not cut into tower rear"
+  ],
+  "runtimeMaterialBatches": 40,
+  "cityGlbBytes": 15353732,
+  "validation": {
+    "npmTest": "passed",
+    "npmBuild": "passed; existing large JS chunk advisory",
+    "glbAssets": 12,
+    "glbErrors": 0,
+    "glbWarnings": 0,
+    "browserConsoleErrors": 0
+  },
+  "browserReview": [
+    "Night front: continuous rounded walls, intact canopy and glazing",
+    "Day front: textured plaster and joined roof trim",
+    "Night rear: closed tower and connected rear/side walls",
+    "Jade Tea: unobstructed pavement without outdoor stools"
+  ],
+  "screenshots": [
+    "picturehouse-redesign-day.png",
+    "picturehouse-redesign-night.png",
+    "picturehouse-redesign-rear.png",
+    "jade-tea-cleared-pavement.png"
+  ],
+  "editableSource": "assets/blender/nocturne-source.blend"
+}
