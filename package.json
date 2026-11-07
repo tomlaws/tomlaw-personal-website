@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "node scripts/prepare-geometry.mjs && node scripts/prepare-world.mjs && vite build",
-    "test": "node scripts/verify-portfolio.mjs && node scripts/verify-webgpu.mjs && node scripts/verify-circular-windows.mjs && node scripts/verify-ifc-crown.mjs && node scripts/verify-peak-detail.mjs && node scripts/verify-hkcec-detail.mjs && node scripts/verify-observation-wheel.mjs && node scripts/verify-peak-tram-lighting.mjs && node scripts/verify-geometry-maps.mjs && node scripts/verify-prepared-world.mjs",
+    "test": "node scripts/verify-portfolio.mjs && node scripts/verify-webgpu.mjs && node scripts/verify-circular-windows.mjs && node scripts/verify-ifc-crown.mjs && node scripts/verify-peak-detail.mjs && node scripts/verify-hkcec-detail.mjs && node scripts/verify-observation-wheel.mjs && node scripts/verify-peak-tram-lighting.mjs && node scripts/verify-geometry-maps.mjs && node scripts/verify-prepared-world.mjs && node scripts/verify-harbour-edges.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test:portfolio": "node scripts/verify-portfolio.mjs",
     "sync:github": "node scripts/sync-github.mjs"

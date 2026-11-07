@@ -386,6 +386,9 @@ export function createWorld({ models = null } = {}) {
   sideGeometry.setAttribute('color', new T.BufferAttribute(sideColors, 3));
   const sideMaterial = m.sea.clone(); sideMaterial.name = 'Opaque graded harbour cutaway';
   sideMaterial.vertexColors = true; sideMaterial.emissiveIntensity = .12;
+  // The far walls must also be visible through the transparent water surface;
+  // otherwise the clear background shows as bright strips along the cut edges.
+  sideMaterial.side = T.DoubleSide;
   const oceanSides = mesh(sideGeometry, sideMaterial, oceanRoot, HARBOUR_CENTER[0], (ocean.level + ocean.floor) / 2, HARBOUR_CENTER[1]);
   oceanSides.name = 'Continuous opaque ocean sides'; oceanSides.castShadow = false; oceanSides.receiveShadow = false;
   // Transparency belongs only to the horizontal water surface. There are no
