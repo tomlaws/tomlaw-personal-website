@@ -1,7 +1,32 @@
 import * as T from 'three';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
-// Keep the page backdrop in sync without changing the solid map silhouette.
+// Match the page background after Three.js NeutralToneMapping and sRGB output.
+// Inverting the tone curve lets antialiasing blend in linear light before output.
+export function neutralToneMap(colour) {
+  const x = Math.min(colour.r, colour.g, colour.b);
+  const offset = x < .08 ? x - 6.25 * x * x : .04;
+  const result = colour.clone().addScalar(-offset);
+  const peak = Math.max(result.r, result.g, result.b);
+  if (peak < .76) return result;
+  const next = 1 - .24 * .24 / (peak + .24 - .76);
+  const desaturation = 1 - 1 / (.15 * (peak - next) + 1);
+  return result.multiplyScalar(next / peak).lerp(new T.Color(next, next, next), desaturation);
+}
+
+export function linearBackdrop(cssColour, exposure) {
+  const target = new T.Color(cssColour);
+  const guess = target.clone().addScalar(.04);
+  for (let i = 0; i < 100; i++) {
+    const mapped = neutralToneMap(guess);
+    guess.r = Math.max(0, guess.r + .9 * (target.r - mapped.r));
+    guess.g = Math.max(0, guess.g + .9 * (target.g - mapped.g));
+    guess.b = Math.max(0, guess.b + .9 * (target.b - mapped.b));
+  }
+  return guess.multiplyScalar(1 / exposure);
+}
+
+// Composite the backdrop in linear light, before the output tone curve.
 export function createPortfolioAtmosphere() {
   const pass = new ShaderPass({
     uniforms: {
@@ -31,9 +56,8 @@ export function createPortfolioAtmosphere() {
   pass.material.depthWrite = false;
   return {
     pass,
-    setBackground(cssColour) {
-      // This pass follows OutputPass, so its uniform is in display colour space.
-      pass.uniforms.uBackground.value.set(cssColour).convertLinearToSRGB();
+    setBackground(cssColour, exposure) {
+      pass.uniforms.uBackground.value.copy(linearBackdrop(cssColour, exposure));
     },
   };
 }

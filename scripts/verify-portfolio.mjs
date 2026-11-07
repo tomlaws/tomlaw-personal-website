@@ -5,7 +5,7 @@ import { connectPortfolio } from '../src/harbour/portfolio-bridge.mjs';
 import { harbourTheme } from '../src/harbour-theme.mjs';
 import { portfolioCameraPose } from '../src/harbour/portfolio-camera.mjs';
 import { homeView } from '../src/harbour/camera-home.mjs';
-import { createPortfolioAtmosphere } from '../src/harbour/portfolio-atmosphere.mjs';
+import { createPortfolioAtmosphere, neutralToneMap } from '../src/harbour/portfolio-atmosphere.mjs';
 import { createRenderBudget } from '../src/harbour/render-budget.mjs';
 import { CityContactPass } from '../src/harbour/contact-shadows.mjs';
 import { createFrameResize } from '../src/harbour/frame-resize.mjs';
@@ -127,8 +127,11 @@ assert.ok('tCoverage' in atmosphere.pass.uniforms, 'Backdrop composition accepts
 assert.match(atmosphere.pass.material.fragmentShader, /1\. - coverage/, 'Partial coverage blends with the page background');
 for(const time of [0,.5,1]) {
   const background=harbourTheme(time)['--background'];
-  atmosphere.setBackground(background);
-  assert.ok(atmosphere.pass.uniforms.uBackground.value.equals(new Color(background).convertLinearToSRGB()),'The compositor matches the page colour at every time of day');
+  const exposure = .98 + (.72 - .98) * time;
+  atmosphere.setBackground(background, exposure);
+  const displayed = neutralToneMap(atmosphere.pass.uniforms.uBackground.value.clone().multiplyScalar(exposure));
+  const expected = new Color(background);
+  assert.ok(Math.abs(displayed.r-expected.r)<1e-5 && Math.abs(displayed.g-expected.g)<1e-5 && Math.abs(displayed.b-expected.b)<1e-5, 'Tone-mapped backdrop matches the page colour');
 }
 atmosphere.pass.dispose();depth.dispose();
 const budgets=[];

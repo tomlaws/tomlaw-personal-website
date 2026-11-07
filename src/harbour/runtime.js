@@ -252,10 +252,9 @@ if(!cyberpunkRoute){
 }
 composer.addPass(bloom);
 const output = new OutputPass();
-// Post-processing must preserve the beauty depth used by backdrop composition.
+// Fullscreen output must not overwrite scene depth.
 output.material.depthTest = false;
 output.material.depthWrite = false;
-composer.addPass(output);
 // Preserve the multisampled beauty alpha before later passes reuse the target.
 // It records partial silhouette coverage for composition against the page.
 const silhouetteTarget = new T.WebGLRenderTarget(1, 1, { depthBuffer: false, type: T.HalfFloatType });
@@ -279,6 +278,7 @@ beauty.render = (renderer, writeBuffer, readBuffer, ...args) => {
   atmosphere.pass.uniforms.tCoverage.value = silhouetteTarget.texture;
 };
 composer.addPass(atmosphere.pass);
+composer.addPass(output);
 let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false;
 let reflectionDirty = false;
 function applyScrollCamera() {
@@ -370,12 +370,12 @@ function setNight(night) {
   // The backdrop is deliberately blank. The map's own boundary is the edge of the sea
   // platform, and anything drawn behind it would compete with that edge: a coloured
   // background reads as more sea, and the sea is now something the scene builds.
-  atmosphere.setBackground(harbourTheme(Number(night))['--background']);
   scene.fog.color.set(night ? '#15213f' : '#bedfe9');
   scene.fog.near = night ? 36 : 70;
   scene.fog.far = night ? 90 : 240;
   renderer.setClearColor(night ? (cyberpunkRoute ? '#0b1225' : '#1a1830') : '#bedfe9');
   renderer.toneMappingExposure = night ? 1.02 : .98;
+  atmosphere.setBackground(harbourTheme(Number(night))['--background'], renderer.toneMappingExposure);
   scene.environment = night ? nightEnvironment : dayEnvironment;
   bloom.strength = night ? .62 : .12;
   bloom.threshold = night ? .72 : 2.2;
@@ -392,7 +392,6 @@ function setTimeOfDay(value) {
   world.materials.warm.emissiveIntensity=T.MathUtils.lerp(.55,2.4,t);
   world.materials.teal.emissiveIntensity=T.MathUtils.lerp(.60,1.3,t);
   world.materials.pink.emissiveIntensity=T.MathUtils.lerp(.55,1.5,t);
-  atmosphere.setBackground(harbourTheme(t)['--background']);
   const haze=T.MathUtils.smoothstep(t,.35,.95);
   // Humid harbour air softens the far skyline more than the near waterfront.
   // Reuse material fog and bloom, avoiding extra volumetric render passes.
@@ -401,6 +400,7 @@ function setTimeOfDay(value) {
   // Dim the final image after bloom, preserving the soft window halos rather
   // than weakening their light source below the glow threshold.
   renderer.toneMappingExposure=T.MathUtils.lerp(.98,.72,t);
+  atmosphere.setBackground(harbourTheme(t)['--background'], renderer.toneMappingExposure);
   environmentBlend.update(t);scene.environment=environmentBlend.texture;
   scene.environmentIntensity=T.MathUtils.lerp(.82,.38,t);
   bloom.strength=T.MathUtils.lerp(.12,.62,t);bloom.threshold=T.MathUtils.lerp(2.2,.70,t);
