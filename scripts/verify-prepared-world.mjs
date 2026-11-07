@@ -7,7 +7,7 @@ import {buildOriginalWorld} from './build-world.mjs';
 import {worldSourceHash} from './world-inputs.mjs';
 import {indexStaticBatches} from '../src/harbour/webgpu-geometry.mjs';
 import {decodeSceneData,readSceneData} from '../src/harbour/scene-codec.mjs';
-import {restorePreparedWorld} from '../src/harbour/prepared-world.mjs';
+import {restorePreparedWorld,restorePreparedWorldAsync} from '../src/harbour/prepared-world.mjs';
 import {createCoastalLighting} from '../src/harbour/coastal-world.mjs';
 import {createHarbourTime} from '../src/harbour/harbour-time.mjs';
 import {fitMapCamera} from '../src/harbour/camera-framing.mjs';
@@ -133,3 +133,16 @@ for(const night of [0,.5,1]){
   }
 }
 console.log(`Prepared world: ${actual.length} meshes retain every expanded vertex/attribute; five animation phases and day/dusk/night materials match.`);
+
+const sliced = await restorePreparedWorldAsync(data);
+prepared.animate(0); sliced.animate(0);
+const meshList = root => {const result=[]; root.traverse(o=>{if(o.isMesh)result.push(o);});return result;};
+const syncMeshes=meshList(prepared.root), slicedMeshes=meshList(sliced.root);
+assert.equal(slicedMeshes.length,syncMeshes.length,'Yielded parsing preserves every mesh');
+for(let i=0;i<syncMeshes.length;i++) {
+  const a=syncMeshes[i],b=slicedMeshes[i];
+  assert.equal(a.name,b.name);
+  assert.equal(a.material?.uuid,b.material?.uuid);
+  for(const key of Object.keys(a.geometry.attributes)) assert.deepEqual(b.geometry.attributes[key].array,a.geometry.attributes[key].array,`${a.name} ${key} is unchanged`);
+}
+

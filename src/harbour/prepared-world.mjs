@@ -6,10 +6,44 @@ import {createHarbourMotion} from './harbour-motion.mjs';
 import {createCanopyInstances} from './canopy-instances.mjs';
 import {prepareVehicleGlazing,prepareFerryGlazing} from './legacy-glazing.mjs';
 
+// Parse independent resources in short tasks so page input and painting can run
+// between batches. The synchronous restoration remains available to offline tools.
+const yieldToBrowser = () => globalThis.scheduler?.yield
+  ? globalThis.scheduler.yield()
+  : new Promise(resolve => setTimeout(resolve, 0));
+
+export async function restorePreparedWorldAsync(input) {
+  const {scene} = input;
+  const loader = new T.ObjectLoader();
+  const animations = loader.parseAnimations(scene.animations);
+  const shapes = loader.parseShapes(scene.shapes);
+  const geometries = {};
+  let deadline = performance.now() + 5;
+  for (const geometry of scene.geometries || []) {
+    Object.assign(geometries, loader.parseGeometries([geometry], shapes));
+    if (performance.now() >= deadline) { await yieldToBrowser(); deadline = performance.now() + 5; }
+  }
+  const images = loader.parseImages(scene.images);
+  const textures = loader.parseTextures(scene.textures, images);
+  const materials = {};
+  deadline = performance.now() + 5;
+  for (const material of scene.materials || []) {
+    Object.assign(materials, loader.parseMaterials([material], textures));
+    if (performance.now() >= deadline) { await yieldToBrowser(); deadline = performance.now() + 5; }
+  }
+  await yieldToBrowser();
+  const root = loader.parseObject(scene.object, geometries, materials, textures, animations);
+  const skeletons = loader.parseSkeletons(scene.skeletons, root);
+  loader.bindSkeletons(root, skeletons);
+  loader.bindLightTargets(root);
+  await yieldToBrowser();
+  return restorePreparedWorld(input, root);
+}
+
 // Load the complete world, then bind the original continuous animation maths.
 // This is a live scene, not a rendered picture or sampled animation playback.
-export function restorePreparedWorld({scene,world:data,exactMaterials,transforms}){
-  const root=new T.ObjectLoader().parse(scene),objects=new Map(),materials=new Map();
+export function restorePreparedWorld({scene,world:data,exactMaterials,transforms}, parsedRoot){
+  const root=parsedRoot ?? new T.ObjectLoader().parse(scene),objects=new Map(),materials=new Map();
   root.traverse(object=>{
     objects.set(object.uuid,object);
     for(const material of Array.isArray(object.material)?object.material:[object.material])if(material)materials.set(material.uuid,material);

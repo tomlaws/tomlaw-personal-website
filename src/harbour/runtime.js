@@ -420,9 +420,8 @@ setTimeOfDay(harbourTime().night);
 // Let supported drivers compile materials in parallel instead of blocking the
 // first visible frame on all landmark shaders at once.
 await renderer.compileAsync(scene, camera);
-// Taken once more now that the lighting is final, so the water reflects the district it is
-// actually sitting in rather than the one it was before the sun and the sky were set.
-harbourMirror.update();
+// The first animation frame captures the reflection before composing the map.
+// Avoid submitting a duplicate full-scene capture during initialization.
 
 canvas.addEventListener('webglcontextlost', e => {
   if(disposed)return;
