@@ -18,6 +18,7 @@ export function createBrowserRenderHost() {
       this.canvas.dataset.renderer = backend;
       const loading = document.getElementById('loading'); loading.classList.add('ready'); loading.hidden = true;
       console.info(`[harbour-renderer] ${backend}`);
+      if (parent !== window) parent.postMessage({type:'harbour:state',ready:true,...harbourTime()},location.origin);
     },
     diagnostic(label, data) { console.info(`[${label}]`, JSON.stringify(data)); },
     onResize(callback) { addEventListener('resize', callback); return () => removeEventListener('resize', callback); },

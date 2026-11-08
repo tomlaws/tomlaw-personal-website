@@ -36,7 +36,7 @@ for (const month of ['01', '04', '07', '11']) {
 }
 assert.match(harbourTime(new Date('2026-12-31T16:00:00Z')).date, /01 Jan 2027/);
 const runtime = readFileSync('src/harbour/runtime.js', 'utf8');
-assert.match(runtime, /document.hidden \|\| \(!portfolioActive && !reflectionDirty && Math\.abs\(scrollAmount-scrollTarget\)<=\.0001\)/);
+assert.match(runtime, /host.hidden \|\| \(!portfolioActive && !reflectionDirty && Math\.abs\(scrollAmount-scrollTarget\)<=\.0001\)/);
 assert.match(runtime, /motionEnabled/);
 assert.match(runtime, /mapPixelRatio/);
 assert.match(runtime, /nextBackgroundFrame/);

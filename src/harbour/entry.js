@@ -28,13 +28,26 @@ import.meta.hot?.dispose(() => currentRenderer?.dispose());
 async function startLegacy(reason) {
   if (fallbackStarted) return;
   fallbackStarted = true;
-  if (reason) console.warn('WebGPU initialization failed; using the preserved WebGL renderer.', reason);
-  // A canvas cannot change context type after WebGPU has claimed it.
-  const canvas = freshCanvas();
-  document.documentElement.dataset.renderer = 'webgl'; canvas.dataset.renderer = 'webgl';
-  document.documentElement.dataset.renderThread = 'main';
-  console.info('[harbour-renderer] webgl');
-  await import('./runtime.js');
+  if (reason) console.warn('Worker renderer unavailable; using main-thread WebGL.', reason);
+  freshCanvas();
+  const mainFixture = import.meta.env.DEV && new URLSearchParams(location.search).get('qaThread') === 'main';
+  if (!reason && !mainFixture && matchMedia('(max-width: 650px)').matches &&
+      typeof Worker !== 'undefined' && 'transferControlToOffscreen' in HTMLCanvasElement.prototype) {
+    try {
+      const { startWorkerRenderer } = await import('./worker-controller.mjs');
+      currentRenderer = await startWorkerRenderer({backend:'webgl', onFailure: error => startMainWebGL(error).catch(showError)});
+      return;
+    } catch (error) { console.warn('Offscreen WebGL unavailable; using the main thread.', error); freshCanvas(); }
+  }
+  await startMainWebGL();
+}
+let legacyMainStarted = false;
+async function startMainWebGL(reason) {
+  if (legacyMainStarted) return;
+  legacyMainStarted = true;
+  if (reason) { console.warn('Offscreen WebGL interrupted; using the main thread.', reason); freshCanvas(); }
+  const { startWebGL } = await import('./runtime.js');
+  currentRenderer = await startWebGL({onFailure:showError});
 }
 
 let mainStarted = false;

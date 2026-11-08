@@ -4,10 +4,12 @@ import { connectPortfolio } from './portfolio-bridge.mjs';
 const liveWorkers = new Set();
 import.meta.hot?.dispose(() => { for (const dispose of [...liveWorkers]) dispose(); });
 
-export function startWorkerRenderer({onFailure = () => {}} = {}) {
+export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu'} = {}) {
   return new Promise((resolve, reject) => {
     const canvas = document.getElementById('world');
-    const worker = new Worker(new URL('./webgpu-worker.js', import.meta.url), {type:'module'});
+    const worker = backend === 'webgl'
+      ? new Worker(new URL('./webgl-worker.js', import.meta.url), {type:'module'})
+      : new Worker(new URL('./webgpu-worker.js', import.meta.url), {type:'module'});
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
     const started = performance.now();
     let settled = false, disposed = false, disconnect = () => {};

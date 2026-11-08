@@ -13,7 +13,7 @@ import { createWaterReflection } from './water-reflection.mjs';
 import {createEnvironmentBlend} from './environment-blend.mjs';
 import {createHarbourTime} from './harbour-time.mjs';
 import {createRenderProfiler} from './render-profiler.mjs';
-import { connectPortfolio } from './portfolio-bridge.mjs';
+import { createBrowserRenderHost } from './render-host.mjs';
 import { harbourTime } from '../hong-kong-time.mjs';
 import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
@@ -22,32 +22,29 @@ import { mapPixelRatio } from './render-quality.mjs';
 import { nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
-import './map.css';
 
-const $ = id => document.getElementById(id);
-const canvas = $('world');
+export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
+const canvas = host.canvas;
 const startupAt=performance.now();
 const fullQuality=true;
-const preparedWorld=loadHarbourWorld({procedural:import.meta.env.DEV&&new URLSearchParams(location.search).get('qaWorld')==='procedural'}).then(world=>({world}),error=>({error}));
+const preparedWorld=loadHarbourWorld({procedural:import.meta.env.DEV&&new URLSearchParams(host.search).get('qaWorld')==='procedural'}).then(world=>({world}),error=>({error}));
 const cyberpunkRoute = false;
-if (cyberpunkRoute) { document.body.classList.add('night'); document.title = 'Lantern Quarter · cyberpunk coast'; canvas.setAttribute('aria-label', 'A cyberpunk coastal city at night.'); }
+
 // A capture run — `npm run capture` puts ?capture= in the url — has nobody watching the
 // opening card, and leaving it up only risks the screenshot landing on its fade instead of
 // on the city behind it. A flag about how the page is being looked at, not what it does.
-const capturing = new URLSearchParams(location.search).has('capture');
+const capturing = new URLSearchParams(host.search).has('capture');
 // The Peak Tram runs continuously while the harbour retains its composed opening pose.
 const state = { night: false, time: 0 };
 let renderer;
 try {
   renderer = new T.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
 } catch {
-  $('loading').classList.add('error');
-  $('loading').querySelector('p').textContent = 'This little world needs WebGL. Enable hardware acceleration in your browser, then reload.';
   throw new Error('WebGL initialization failed');
 }
-function pixelRatio() { return mapPixelRatio(devicePixelRatio); }
+function pixelRatio() { return mapPixelRatio(host.dpr); }
 renderer.setPixelRatio(pixelRatio());
-renderer.setSize(innerWidth, innerHeight, false);
+renderer.setSize(host.width, host.height, false);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = T.VSMShadowMap;
 renderer.shadowMap.autoUpdate = false;
@@ -213,17 +210,17 @@ lighting.update(0);
 // a render target instead of the canvas, which is what left every silhouette hard
 // edged next to the offline render. The composer therefore gets a multisampled
 // target of its own, and the edges are resolved before the effect chain reads it.
-const composerTarget = new T.WebGLRenderTarget(innerWidth, innerHeight, { type: T.HalfFloatType, samples: 4 });
-composerTarget.depthTexture = new T.DepthTexture(innerWidth, innerHeight);
+const composerTarget = new T.WebGLRenderTarget(host.width, host.height, { type: T.HalfFloatType, samples: 4 });
+composerTarget.depthTexture = new T.DepthTexture(host.width, host.height);
 const composer = new EffectComposer(renderer, composerTarget);
 const beauty = new RenderPass(scene, camera);
 composer.addPass(beauty);
-const contactShadows = new CityContactPass(scene, camera, innerWidth, innerHeight);
+const contactShadows = new CityContactPass(scene, camera, host.width, host.height);
 contactShadows.blendIntensity = .42;
 contactShadows.updateGtaoMaterial({ radius: .14, thickness: .12, distanceExponent: 1.6, distanceFallOff: 1, scale: .65, samples: 16 });
 contactShadows.updatePdMaterial({ radius: 4, lumaPhi: 8, depthPhi: 2, normalPhi: 3 });
 composer.addPass(contactShadows);
-const bloom = new UnrealBloomPass(new T.Vector2(innerWidth, innerHeight), .62, .62, .72);
+const bloom = new UnrealBloomPass(new T.Vector2(host.width, host.height), .62, .62, .72);
 if(!cyberpunkRoute){
     // Use the same emitting-channel threshold for every window colour, without
     // hue-specific amplification of the resulting halo.
@@ -282,13 +279,13 @@ composer.addPass(output);
 let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false;
 let reflectionDirty = false;
 function applyScrollCamera() {
-  const pose = portfolioCameraPose(home, scrollAmount, innerWidth <= 650);
+  const pose = portfolioCameraPose(home, scrollAmount, host.width <= 650);
   camera.position.copy(pose.position);
   camera.zoom = pose.zoom;
   controls.update();
-  if(portfolioFrame)fitScrollFrame(camera,world.framingPoints,portfolioFrame,innerWidth,innerHeight,riseTarget*pose.phase,pose.zoomFactor);
+  if(portfolioFrame)fitScrollFrame(camera,world.framingPoints,portfolioFrame,host.width,host.height,riseTarget*pose.phase,pose.zoomFactor);
   if(import.meta.env.DEV){
-    const params=new URLSearchParams(location.search),peakView=params.get('qaPeak'),wheelView=params.get('qaWheel'),tramView=params.get('qaTram'),jardineView=params.get('qaJardine'),hkcecView=params.get('qaHKCEC');
+    const params=new URLSearchParams(host.search),peakView=params.get('qaPeak'),wheelView=params.get('qaWheel'),tramView=params.get('qaTram'),jardineView=params.get('qaJardine'),hkcecView=params.get('qaHKCEC');
     const view=tramView??wheelView??peakView??jardineView??hkcecView??params.get('qaIFC');
     const offset={front:[0,2.5,7],side:[7,2.5,0],rear:[peakView||wheelView?3:0,2.5,-7]}[view];
     if(offset){
@@ -301,7 +298,7 @@ function applyScrollCamera() {
       if(hkcecView)viewOffset.applyQuaternion(tower.group.getWorldQuaternion(new T.Quaternion()));
       camera.position.copy(target).add(viewOffset);controls.target.copy(target);controls.update();camera.zoom=1;
       const halfHeight=tramView?1.35:wheelView?3:jardineView?3.7:peakView?2.65:hkcecView?3.15:2.1;
-      camera.left=-halfHeight*innerWidth/innerHeight;camera.right=-camera.left;camera.top=halfHeight;camera.bottom=-halfHeight;
+      camera.left=-halfHeight*host.width/host.height;camera.right=-camera.left;camera.top=halfHeight;camera.bottom=-halfHeight;
       camera.updateMatrixWorld(true);
     }
   }
@@ -314,10 +311,10 @@ function resize() {
   if(ratioChanged)renderer.setPixelRatio(ratio);
   frameMap();
   applyScrollCamera();
-  renderer.setSize(innerWidth, innerHeight, false);
+  renderer.setSize(host.width, host.height, false);
   if(ratioChanged)composer.setPixelRatio(ratio);
-  composer.setSize(innerWidth, innerHeight);
-  contactShadows.setSize(Math.round(innerWidth * .8), Math.round(innerHeight * .8));
+  composer.setSize(host.width, host.height);
+  contactShadows.setSize(Math.round(host.width * .8), Math.round(host.height * .8));
   // The reflection and main image are redrawn together in this render frame.
   reflectionDirty = true;
 }
@@ -331,17 +328,17 @@ function frameMap() {
   camera.position.copy(home.position);
   camera.zoom = 1;
   controls.update();
-  const aspect = innerWidth / innerHeight;
-  const sideSpace = innerWidth > 650 ? .34 : 0;
+  const aspect = host.width / host.height;
+  const sideSpace = host.width > 650 ? .34 : 0;
   fitMapCamera(camera, world.framingPoints, aspect * (1 - sideSpace), 1.12);
   const halfHeight = (camera.top - camera.bottom) / 2;
   const centerX = (camera.left + camera.right) / 2;
   camera.left = centerX - halfHeight * aspect * (1 + sideSpace);
   camera.right = centerX + halfHeight * aspect * (1 - sideSpace);
-  if (innerWidth <= 650) {
+  if (host.width <= 650) {
     camera.top += halfHeight * .55;
     camera.bottom += halfHeight * .55;
-    keepMobileMapVisible(camera, world.framingPoints, innerHeight, portfolioCameraPose(home, 0, true).zoom);
+    keepMobileMapVisible(camera, world.framingPoints, host.height, portfolioCameraPose(home, 0, true).zoom);
   } else {
     // Wide, short windows need headroom beneath the navigation and HK clock.
     const headroom = halfHeight * T.MathUtils.clamp((aspect - 1.1) * .30, 0, .20);
@@ -351,11 +348,11 @@ function frameMap() {
   portfolioFrame={left:camera.left,right:camera.right,top:camera.top,bottom:camera.bottom};
   camera.updateProjectionMatrix();
 }
-addEventListener('resize', requestResize); resize();
+const disconnectResize = host.onResize(requestResize); resize();
 
 function setNight(night) {
   state.night = night;
-  document.body.classList.toggle('night', night);
+  host.setNight(night ? 1 : 0);
   // The town is painted pastel either way; what changes is how much the sky and
   // the signs contribute. Daylight is bright and flat, dusk lets the neon lead.
   // The resting look is the flat, even daylight of the offline render: a wide
@@ -385,7 +382,7 @@ function setNight(night) {
 }
 function setTimeOfDay(value) {
   const t=T.MathUtils.clamp(value,0,1);
-  state.night=t>.55;document.body.classList.toggle('night',state.night);
+  state.night=t>.55;host.setNight(t);
   timeLighting.set(t);
   harbourMirror.setNight(t);
   harbourGlint.intensity=T.MathUtils.lerp(40,5,t);
@@ -416,7 +413,7 @@ function setTimeOfDay(value) {
   harbourMirror.updateSky();
   renderer.shadowMap.needsUpdate=true;
 }
-setTimeOfDay(harbourTime().night);
+setTimeOfDay(host.night());
 // Let supported drivers compile materials in parallel instead of blocking the
 // first visible frame on all landmark shaders at once.
 await renderer.compileAsync(scene, camera);
@@ -424,24 +421,23 @@ await renderer.compileAsync(scene, camera);
 // Avoid submitting a duplicate full-scene capture during initialization.
 
 canvas.addEventListener('webglcontextlost', e => {
-  if(disposed)return;
-  e.preventDefault(); renderer.setAnimationLoop(null); $('loading').hidden = false; $('loading').className = 'error';
-  $('loading').querySelector('p').textContent = 'The graphics context was interrupted. Reload to return to the harbour.';
+  if (disposed) return;
+  e.preventDefault(); renderer.setAnimationLoop(null);
+  onFailure(new Error('The WebGL context was interrupted'));
 });
 
 let portfolioActive = true;
 let firstFrameReady=false;
-const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
-let motionEnabled = !capturing&&!motionPreference.matches;
-motionPreference.addEventListener('change', () => {
-  motionEnabled = !capturing&&!motionPreference.matches;
+let motionEnabled = !capturing&&!host.reducedMotion;
+const disconnectMotion = host.onMotion(() => {
+  motionEnabled = !capturing&&!host.reducedMotion;
   if (!motionEnabled) {
     scrollTarget = scrollAmount = riseTarget = 0;
     applyScrollCamera();
   }
   reflectionDirty = true;
 });
-const disconnectPortfolio=connectPortfolio({
+const disconnectPortfolio=host.connect({
   isReady:()=>firstFrameReady,
   setTime(value) { setTimeOfDay(value); reflectionDirty = true; },
   setActive(value) { portfolioActive = value; reflectionDirty = true; },
@@ -451,9 +447,9 @@ const disconnectPortfolio=connectPortfolio({
 let previousFrame,lastRendered=-Infinity,lastShadowTime=-Infinity,lastReflectionTime=-Infinity;
 const gl=renderer.getContext();
 let frameFence=null,frameStarted=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0;
-const profiler=new URLSearchParams(location.search).has('profile')?createRenderProfiler(renderer):null;
+const profiler=new URLSearchParams(host.search).has('profile')?createRenderProfiler(renderer, data=>host.diagnostic('render-profile',data)):null;
 const gpuTimer=createGpuFrameTimer(gl);
-const profilingUncapped=profiler&&new URLSearchParams(location.search).get('profile')!=='idle';
+const profilingUncapped=profiler&&new URLSearchParams(host.search).get('profile')!=='idle';
 renderer.setAnimationLoop(timestamp => {
   // One completed GPU frame at a time, with the same headroom budget as WebGPU.
   // Keep native resolution rather than reacting to load by blurring the map.
@@ -471,16 +467,14 @@ renderer.setAnimationLoop(timestamp => {
     if(!firstFrameReady){
       firstFrameReady=true;
       const readyMs=Math.round(performance.now()-startupAt);
-      canvas.dataset.readyMs=String(readyMs);
-      if(new URLSearchParams(location.search).has('profile'))console.info('[startup-webgl]',JSON.stringify({readyMs,pixelRatio:renderer.getPixelRatio(),fullQuality}));
-      if(parent!==window)parent.postMessage({type:'harbour:state',ready:true,...harbourTime()},location.origin);
-      $('loading').classList.add('ready');$('loading').hidden=true;
+      if(new URLSearchParams(host.search).has('profile'))host.diagnostic('startup-webgl',{readyMs,pixelRatio:renderer.getPixelRatio(),fullQuality});
+      host.ready('webgl');
     }
   }
   // The faded background keeps its last frame. A resize or daylight update
   // may refresh that decoration without running its animation continuously.
-  if (document.hidden || (!portfolioActive && !reflectionDirty && Math.abs(scrollAmount-scrollTarget)<=.0001)) { previousFrame = undefined; return; }
-  if (!motionEnabled && !reflectionDirty && $('loading').classList.contains('ready')) { previousFrame = undefined; return; }
+  if (host.hidden || (!portfolioActive && !reflectionDirty && Math.abs(scrollAmount-scrollTarget)<=.0001)) { previousFrame = undefined; return; }
+  if (!motionEnabled && !reflectionDirty && firstFrameReady) { previousFrame = undefined; return; }
   // The background leaves GPU headroom while keeping every display pixel.
   // Explicit throughput profiling can still lift the animation cap.
   // A second minimum-interval check rounded every 24 Hz deadline up to a
@@ -513,7 +507,7 @@ renderer.setAnimationLoop(timestamp => {
   // updates. Once the camera settles, refresh immediately and resume the
   // usual per-frame moving reflection.
   if(timestamp-lastShadowTime>=1000/6){renderer.shadowMap.needsUpdate=true;lastShadowTime=timestamp;}
-  if (shouldUpdateReflection(innerWidth, cameraChanging, timestamp, lastReflectionTime)) {
+  if (shouldUpdateReflection(host.width, cameraChanging, timestamp, lastReflectionTime)) {
     harbourMirror.update();
     lastReflectionTime=timestamp;
     reflectionDirty=false;
@@ -529,10 +523,12 @@ let disposed=false;
 function dispose(){
   if(disposed)return;disposed=true;
   renderer.setAnimationLoop(null);disconnectPortfolio();
-  removeEventListener('resize',requestResize);
+  disconnectResize(); disconnectMotion(); disconnectDispose();
   if(frameFence){gl.deleteSync(frameFence);frameFence=null;}
   gpuTimer?.dispose();
   silhouetteTarget.dispose();renderer.dispose();renderer.forceContextLoss();
 }
-addEventListener('pagehide',dispose,{once:true});
+const disconnectDispose = host.onDispose(dispose);
 import.meta.hot?.dispose(dispose);
+return {dispose, backend:'webgl'};
+}
