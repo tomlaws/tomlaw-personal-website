@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { harbourTime } from '../src/hong-kong-time.mjs';
 import { connectPortfolio } from '../src/harbour/portfolio-bridge.mjs';
 import { harbourTheme } from '../src/harbour-theme.mjs';
-import { portfolioCameraPose } from '../src/harbour/portfolio-camera.mjs';
+import { portfolioCameraPose, smoothScroll } from '../src/harbour/portfolio-camera.mjs';
 import { homeView } from '../src/harbour/camera-home.mjs';
 import { createPortfolioAtmosphere, neutralToneMap } from '../src/harbour/portfolio-atmosphere.mjs';
 import { createRenderBudget } from '../src/harbour/render-budget.mjs';
@@ -34,7 +34,7 @@ for (const month of ['01', '04', '07', '11']) {
 }
 assert.match(harbourTime(new Date('2026-12-31T16:00:00Z')).date, /01 Jan 2027/);
 const runtime = readFileSync('src/harbour/runtime.js', 'utf8');
-assert.match(runtime, /document.hidden \|\| \(!portfolioActive && !reflectionDirty\)/);
+assert.match(runtime, /document.hidden \|\| \(!portfolioActive && !reflectionDirty && Math\.abs\(scrollAmount-scrollTarget\)<=\.0001\)/);
 assert.match(runtime, /motionEnabled/);
 assert.match(runtime, /mapPixelRatio/);
 assert.match(runtime, /nextBackgroundFrame/);
@@ -89,6 +89,14 @@ try {
 }
 const cameraHome=homeView([-2,-1.5]);
 const originalPosition=cameraHome.position.toArray();
+// Scroll motion should advance by elapsed time rather than frame count, and
+// never snap when the hero goes offscreen.
+let manyFrames=0;
+for(let i=0;i<10;i++) manyFrames=smoothScroll(manyFrames,1,20);
+assert.ok(Math.abs(manyFrames-smoothScroll(0,1,200))<1e-12, 'Camera smoothing is stable at low frame rates');
+assert.ok(smoothScroll(0,1,200)<1, 'Camera motion does not jump to the target');
+assert.equal(smoothScroll(.4,1,0),.4);
+
 for(const mobile of [false,true]) {
   const start=portfolioCameraPose(cameraHome,0,mobile),end=portfolioCameraPose(cameraHome,1,mobile);
   assert.deepEqual(start.position.toArray(),cameraHome.position.toArray());

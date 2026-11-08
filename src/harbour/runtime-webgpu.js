@@ -7,7 +7,7 @@ import { homeView } from './camera-home.mjs';
 import { createHarbourTime } from './harbour-time.mjs';
 import { createRenderProfiler } from './render-profiler.mjs';
 import { harbourTheme } from '../harbour-theme.mjs';
-import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame } from './portfolio-camera.mjs';
+import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { mapPixelRatio } from './render-quality.mjs';
 import { portHarbourMaterials } from './webgpu-materials.mjs';
 import { createNodeEnvironment, mixedSky } from './webgpu-sky.mjs';
@@ -185,7 +185,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     let framePending = false, qaFrame = 0;
     renderer.setAnimationLoop(async timestamp => {
       if (framePending) return;
-      if (failed || host.hidden || (!active && !reflectionDirty)) { previousFrame = undefined; return; }
+      if (failed || host.hidden || (!active && !reflectionDirty && Math.abs(scrollAmount-scrollTarget)<=.0001)) { previousFrame = undefined; return; }
       if (!motion && !reflectionDirty && !temporalQA) { previousFrame = undefined; return; }
       if (temporalQA && qaFrame >= 16) return;
       if (performance.now() < nextFrameAt) return;
@@ -197,8 +197,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
         profiler?.begin(timestamp); if (motion) time += delta;
         const moving = Math.abs(scrollAmount - scrollTarget) > .0001;
         if (moving) {
-          const amount=active?1-Math.exp(-delta*7):1;
-          scrollAmount = T.MathUtils.lerp(scrollAmount, scrollTarget, amount);
+          scrollAmount = smoothScroll(scrollAmount, scrollTarget, frameMs || 1000 / 60);
         }
         if(moving||cameraDirty){
           pose(); reflectionDirty = true;

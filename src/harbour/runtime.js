@@ -17,7 +17,7 @@ import { connectPortfolio } from './portfolio-bridge.mjs';
 import { harbourTime } from '../hong-kong-time.mjs';
 import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
-import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame } from './portfolio-camera.mjs';
+import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { mapPixelRatio } from './render-quality.mjs';
 import { nextBackgroundFrame } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
@@ -479,7 +479,7 @@ renderer.setAnimationLoop(timestamp => {
   }
   // The faded background keeps its last frame. A resize or daylight update
   // may refresh that decoration without running its animation continuously.
-  if (document.hidden || (!portfolioActive && !reflectionDirty)) { previousFrame = undefined; return; }
+  if (document.hidden || (!portfolioActive && !reflectionDirty && Math.abs(scrollAmount-scrollTarget)<=.0001)) { previousFrame = undefined; return; }
   if (!motionEnabled && !reflectionDirty && $('loading').classList.contains('ready')) { previousFrame = undefined; return; }
   // The background leaves GPU headroom while keeping every display pixel.
   // Explicit throughput profiling can still lift the animation cap.
@@ -497,8 +497,7 @@ renderer.setAnimationLoop(timestamp => {
   previousFrame = timestamp; if (motionEnabled) state.time += delta;
   const cameraMoving = Math.abs(scrollAmount - scrollTarget) > .0001;
   if (cameraMoving) {
-    const amount=portfolioActive?1-Math.exp(-delta*7):1;
-    scrollAmount = T.MathUtils.lerp(scrollAmount, scrollTarget, amount);
+    scrollAmount = smoothScroll(scrollAmount, scrollTarget, frameMs || 1000 / 60);
   }
   if(cameraMoving||cameraDirty){
     applyScrollCamera();

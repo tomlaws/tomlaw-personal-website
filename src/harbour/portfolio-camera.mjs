@@ -1,5 +1,12 @@
 import * as T from 'three';
 
+// Camera easing uses elapsed wall time, even when a slow GPU skips frames.
+// The animation clock remains independently capped for the moving vehicles.
+export function smoothScroll(current, target, frameMs) {
+  const seconds = Math.min(.25, Math.max(0, frameMs / 1000));
+  return T.MathUtils.lerp(current, target, 1 - Math.exp(-seconds * 7));
+}
+
 export function portfolioCameraPose(home, progress, mobile = false) {
   const t = T.MathUtils.smoothstep(T.MathUtils.clamp(progress, 0, 1), 0, 1);
   const offset = home.position.clone().sub(home.target);
