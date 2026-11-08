@@ -1,3 +1,4 @@
+import { mobileScrollTransform } from './mobile-scroll.mjs';
 import React, { useEffect, useRef, useState } from "react";
 import { harbourTime } from "./hong-kong-time.mjs";
 import { harbourTheme } from "./harbour-theme.mjs";
@@ -73,6 +74,8 @@ export default function Portfolio() {
   const frame = useRef(null);
   const firstMapFrame = useRef(false);
   const hero = useRef(null);
+  const heroVisible = useRef(true);
+  const scrollPaused = useRef(false);
   const sendActive = (active) =>
     frame.current?.contentWindow?.postMessage(
       { type: "harbour:command", command: "active", active },
@@ -109,7 +112,8 @@ export default function Portfolio() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        sendActive(entry.isIntersecting);
+        heroVisible.current = entry.isIntersecting;
+        sendActive(entry.isIntersecting && !scrollPaused.current);
       },
       { threshold: 0.02 },
     );
@@ -120,7 +124,7 @@ export default function Portfolio() {
   }, [ready]);
   useEffect(() => {
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    let queued = 0, lastProgress = -1, lastRise = -1;
+    let queued = 0, lastProgress = -1, lastRise = -1, lastMobile = null, resumeTimer = 0;
     const update = () => {
       queued = 0;
       if (!hero.current) return;
@@ -131,22 +135,42 @@ export default function Portfolio() {
       const rise = reducedMotion.matches
         ? 0
         : Math.min(50, bounds.height * .06);
-      if (Math.abs(progress - lastProgress) < .002 && Math.abs(rise-lastRise) < .5) return;
+      const mobile = window.innerWidth <= 650;
+      if (Math.abs(progress - lastProgress) < .002 && Math.abs(rise-lastRise) < .5 && mobile === lastMobile) return;
+      const modeChanged = mobile !== lastMobile;
       lastProgress = progress;
       lastRise = rise;
-      frame.current?.contentWindow?.postMessage(
-        { type: "harbour:command", command: "scroll", progress, rise },
+      lastMobile = mobile;
+      if (frame.current) frame.current.style.transform = mobile && !reducedMotion.matches
+        ? mobileScrollTransform(progress, rise) : '';
+      // Mobile scrolling uses the compositor; keep the live camera at its home
+      // pose so a low 3D frame rate cannot make the gesture itself stutter.
+      if (!mobile || modeChanged) frame.current?.contentWindow?.postMessage(
+        { type: "harbour:command", command: "scroll", progress: mobile ? 0 : progress, rise: mobile ? 0 : rise },
         location.origin,
       );
     };
     const schedule = () => { if (!queued) queued = requestAnimationFrame(update); };
-    addEventListener("scroll", schedule, { passive: true });
+    const onScroll = () => {
+      if (window.innerWidth <= 650 && !reducedMotion.matches) {
+        if (!scrollPaused.current) { scrollPaused.current = true; sendActive(false); }
+        clearTimeout(resumeTimer);
+        resumeTimer = setTimeout(() => {
+          scrollPaused.current = false;
+          sendActive(heroVisible.current);
+        }, 150);
+      }
+      schedule();
+    };
+    addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", schedule);
     reducedMotion.addEventListener("change", schedule);
     update();
     return () => {
       cancelAnimationFrame(queued);
-      removeEventListener("scroll", schedule);
+      removeEventListener("scroll", onScroll);
+      clearTimeout(resumeTimer);
+      scrollPaused.current = false;
       removeEventListener("resize", schedule);
       reducedMotion.removeEventListener("change", schedule);
     };

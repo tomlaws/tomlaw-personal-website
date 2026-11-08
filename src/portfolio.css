@@ -132,6 +132,7 @@ input:focus-visible {
 @keyframes map-loading-appear { to { opacity: .85; } }
 @keyframes map-loading-spin { to { transform: rotate(360deg); } }
 @media (max-width: 650px) {
+  .world-background iframe { transform-origin: 50% 70%; will-change: transform; }
   .map-loading { left: 50%; top: 70%; }
 }
 @media (prefers-reduced-motion: reduce) {
