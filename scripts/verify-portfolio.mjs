@@ -1,3 +1,4 @@
+import { shouldUpdateReflection } from '../src/harbour/frame-pacing.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { harbourTime } from '../src/hong-kong-time.mjs';
@@ -211,3 +212,8 @@ for (const [, name] of modelSource.matchAll(/hk-models\/([^']+\.glb)/g)) {
 assert.ok(existsSync('public/images/hong-kong-night.png'));
 
 console.log('Portfolio: live HK daylight, shared background theme, no map controls, public GitHub metadata and bundled models passed.');
+
+assert.equal(shouldUpdateReflection(390,true,50,0),false,'During mobile motion reuse the recent reflection');
+assert.equal(shouldUpdateReflection(390,true,100,0),true,'Mobile motion refreshes within 100ms');
+assert.equal(shouldUpdateReflection(390,false,50,0),true,'Refresh immediately when motion settles');
+assert.equal(shouldUpdateReflection(900,true,50,0),true,'Desktop reflection remains per-frame');

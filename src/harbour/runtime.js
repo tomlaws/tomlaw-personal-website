@@ -19,7 +19,7 @@ import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { mapPixelRatio } from './render-quality.mjs';
-import { nextBackgroundFrame } from './frame-pacing.mjs';
+import { nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import './map.css';
@@ -448,7 +448,7 @@ const disconnectPortfolio=connectPortfolio({
   setScroll(value,rise=0) { scrollTarget = motionEnabled ? value : 0; riseTarget=motionEnabled?rise:0; cameraDirty=true; reflectionDirty=true; },
 });
 
-let previousFrame,lastRendered=-Infinity,lastShadowTime=-Infinity;
+let previousFrame,lastRendered=-Infinity,lastShadowTime=-Infinity,lastReflectionTime=-Infinity;
 const gl=renderer.getContext();
 let frameFence=null,frameStarted=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0;
 const profiler=new URLSearchParams(location.search).has('profile')?createRenderProfiler(renderer):null;
@@ -499,7 +499,8 @@ renderer.setAnimationLoop(timestamp => {
   if (cameraMoving) {
     scrollAmount = smoothScroll(scrollAmount, scrollTarget, frameMs || 1000 / 60);
   }
-  if(cameraMoving||cameraDirty){
+  const cameraChanging = cameraMoving || cameraDirty;
+  if(cameraChanging){
     applyScrollCamera();
     reflectionDirty = true;
   }
@@ -507,11 +508,16 @@ renderer.setAnimationLoop(timestamp => {
   lighting.update();
   controls.update();
   profiler?.mark('animation');
-  // Both views use this frame's animation/camera pose and the same shadow
-  // atlas. A separate 5 Hz mirror made moving reflections visibly step and
-  // fall behind the scene, especially when the animation clock was capped.
+  // During phone scrolls the mirror is the most expensive duplicate draw.
+  // Keep its full resolution, but briefly reuse the previous capture between
+  // updates. Once the camera settles, refresh immediately and resume the
+  // usual per-frame moving reflection.
   if(timestamp-lastShadowTime>=1000/6){renderer.shadowMap.needsUpdate=true;lastShadowTime=timestamp;}
-  harbourMirror.update();reflectionDirty=false;
+  if (shouldUpdateReflection(innerWidth, cameraChanging, timestamp, lastReflectionTime)) {
+    harbourMirror.update();
+    lastReflectionTime=timestamp;
+    reflectionDirty=false;
+  }
   profiler?.mark('reflection');
   composer.render();
   profiler?.mark('mainAndEffects');

@@ -7,3 +7,9 @@ export function nextBackgroundFrame(previousDeadline, started, completed, fps = 
   const work = Math.max(0, completed - started);
   return Math.max(anchor + interval, completed + work * (1 - duty) / duty);
 }
+
+// Reuse a full-resolution reflection only during mobile camera motion. Always
+// refresh once motion settles and on every ordinary animation frame.
+export function shouldUpdateReflection(width, cameraChanging, timestamp, lastUpdate) {
+  return width > 650 || !cameraChanging || timestamp - lastUpdate >= 100;
+}
