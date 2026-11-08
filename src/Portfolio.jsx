@@ -124,7 +124,8 @@ export default function Portfolio() {
   }, [ready]);
   useEffect(() => {
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    let queued = 0, lastProgress = -1, lastRise = -1, lastMobile = null, resumeTimer = 0;
+    const nativeTimeline = typeof CSS !== "undefined" && CSS.supports("animation-timeline: scroll(root block)") && CSS.supports("animation-range: 0px 100px");
+    let queued = 0, lastProgress = -1, lastRise = -1, lastMobile = null, resumeTimer = 0, lastHeight = -1, lastStart = -1;
     const update = () => {
       queued = 0;
       if (!hero.current) return;
@@ -136,13 +137,26 @@ export default function Portfolio() {
         ? 0
         : Math.min(50, bounds.height * .06);
       const mobile = window.innerWidth <= 650;
-      if (Math.abs(progress - lastProgress) < .002 && Math.abs(rise-lastRise) < .5 && mobile === lastMobile) return;
+      const start = hero.current.offsetTop;
+      const geometryChanged = Math.abs(bounds.height - lastHeight) >= .5 || Math.abs(start - lastStart) >= .5;
+      if (Math.abs(progress - lastProgress) < .002 && Math.abs(rise-lastRise) < .5 && mobile === lastMobile && !geometryChanged) return;
       const modeChanged = mobile !== lastMobile;
+      lastHeight = bounds.height; lastStart = start;
       lastProgress = progress;
       lastRise = rise;
       lastMobile = mobile;
-      if (frame.current) frame.current.style.transform = mobile && !reducedMotion.matches
-        ? mobileScrollTransform(progress, rise) : '';
+      if (frame.current) {
+        // Native scroll timelines follow the browser's scrolling thread rather
+        // than waiting for JavaScript scroll events on supported browsers.
+        frame.current.style.transform = mobile && !reducedMotion.matches && !nativeTimeline
+          ? mobileScrollTransform(progress, rise) : '';
+        if (mobile && nativeTimeline && (modeChanged || geometryChanged || Math.abs(rise - (Number(frame.current.dataset.scrollRise) || 0)) >= .5)) {
+          frame.current.style.setProperty('--mobile-scroll-start', `${start}px`);
+          frame.current.style.setProperty('--mobile-scroll-end', `${start + bounds.height * .85}px`);
+          frame.current.style.setProperty('--mobile-scroll-rise', `${rise}px`);
+          frame.current.dataset.scrollRise = String(rise);
+        }
+      }
       // Mobile scrolling uses the compositor; keep the live camera at its home
       // pose so a low 3D frame rate cannot make the gesture itself stutter.
       if (!mobile || modeChanged) frame.current?.contentWindow?.postMessage(
@@ -151,17 +165,17 @@ export default function Portfolio() {
       );
     };
     const schedule = () => { if (!queued) queued = requestAnimationFrame(update); };
-    const onScroll = () => {
-      if (window.innerWidth <= 650 && !reducedMotion.matches) {
-        if (!scrollPaused.current) { scrollPaused.current = true; sendActive(false); }
-        clearTimeout(resumeTimer);
-        resumeTimer = setTimeout(() => {
-          scrollPaused.current = false;
-          sendActive(heroVisible.current);
-        }, 150);
-      }
-      schedule();
+    const pauseDuringGesture = () => {
+      if (window.innerWidth > 650 || reducedMotion.matches) return;
+      if (!scrollPaused.current) { scrollPaused.current = true; sendActive(false); }
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        scrollPaused.current = false;
+        sendActive(heroVisible.current);
+      }, 200);
     };
+    const onScroll = () => { pauseDuringGesture(); schedule(); };
+    addEventListener("touchstart", pauseDuringGesture, { passive: true });
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", schedule);
     reducedMotion.addEventListener("change", schedule);
@@ -169,6 +183,7 @@ export default function Portfolio() {
     return () => {
       cancelAnimationFrame(queued);
       removeEventListener("scroll", onScroll);
+      removeEventListener("touchstart", pauseDuringGesture);
       clearTimeout(resumeTimer);
       scrollPaused.current = false;
       removeEventListener("resize", schedule);

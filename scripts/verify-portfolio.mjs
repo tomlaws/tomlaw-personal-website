@@ -223,3 +223,7 @@ assert.match(mobileScrollTransform(0,50), /scale\(1\)/, 'Mobile map starts at it
 assert.match(mobileScrollTransform(1,50), /scale\(0\.9\)/, 'Mobile map zooms out at full scroll');
 assert.equal(mobileScrollTransform(2,50),mobileScrollTransform(1,50),'Mobile scroll remains bounded');
 assert.equal(mobileScrollTransform(-1,50),mobileScrollTransform(0,50),'Mobile scroll does not overshoot its home pose');
+
+const portfolioCSS=readFileSync('src/portfolio.css','utf8');
+assert.match(portfolioCSS,/animation-timeline:\s*scroll\(root block\)/,'Mobile scroll animation uses the native scroll timeline');
+assert.match(portfolioCSS,/prefers-reduced-motion:\s*no-preference/,'Native scroll animation respects reduced motion');
