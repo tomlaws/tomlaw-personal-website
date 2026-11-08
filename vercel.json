@@ -3,6 +3,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "headers": [
-    { "source": "/world/:file*", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] }
+    { "source": "/world/:file*", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+    { "source": "/world-br/:file*", "headers": [
+      { "key": "Content-Type", "value": "application/octet-stream" },
+      { "key": "Content-Encoding", "value": "br" },
+      { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+    ] }
   ]
 }

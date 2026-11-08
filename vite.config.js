@@ -20,13 +20,21 @@ const worldVersion={
 
 // Begin downloading the lossless world as soon as production HTML arrives,
 // rather than waiting for React, the iframe and the renderer module graph.
+const encodedWorldHeaders = (req, res, next) => {
+  if (/^\/world-br\/.*\.bin\.br(?:\?|$)/.test(req.url || '')) {
+    res.setHeader('Content-Encoding', 'br');
+    res.setHeader('Content-Type', 'application/octet-stream');
+  }
+  next();
+};
 const worldPreload = {
   name: 'harbour-world-preload',
-  apply: 'build',
+  configureServer(server) { server.middlewares.use(encodedWorldHeaders); },
+  configurePreviewServer(server) { server.middlewares.use(encodedWorldHeaders); },
   async transformIndexHtml(html, context) {
-    if (!context.filename.endsWith('index.html') || context.filename.includes('harbour')) return;
+    if (context.server || !context.filename.endsWith('index.html') || context.filename.includes('harbour')) return;
     const asset = JSON.parse(await readFile('src/harbour/world-asset.json', 'utf8'));
-    return [{ tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: `world/${asset.file}`, crossorigin: 'anonymous' }, injectTo: 'head-prepend' }];
+    return [{ tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: `world-br/${asset.brotliFile}`, crossorigin: 'anonymous' }, injectTo: 'head-prepend' }];
   },
 };
 

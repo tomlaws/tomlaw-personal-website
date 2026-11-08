@@ -28,7 +28,12 @@ async function loadPreparedData(url) {
 export async function loadHarbourWorld({procedural=false,diagnostic=()=>{}}={}){
   if(!procedural&&asset.sourceHash===sourceHash){
     try{
-      const data=await loadPreparedData(`${import.meta.env.BASE_URL}world/${asset.file}`);
+      let data;
+      if (asset.brotliFile) {
+        try { data = await loadPreparedData(`${import.meta.env.BASE_URL}world-br/${asset.brotliFile}`); }
+        catch (error) { console.warn('Brotli scene unavailable; trying gzip.', error); }
+      }
+      data ??= await loadPreparedData(`${import.meta.env.BASE_URL}world/${asset.file}`);
       const world=await restorePreparedWorldAsync(data);diagnostic('world-source',{source:'prepared'});return world;
     }catch(error){console.warn('Prepared harbour unavailable; constructing the original scene.',error);}
   }

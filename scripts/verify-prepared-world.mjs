@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {gunzipSync} from 'node:zlib';
+import {gunzipSync,brotliDecompressSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {Scene,Raycaster,Vector3,OrthographicCamera} from 'three';
 import {buildOriginalWorld} from './build-world.mjs';
@@ -17,6 +17,9 @@ import {portfolioCameraPose,keepMobileMapVisible,fitScrollFrame} from '../src/ha
 const asset=JSON.parse(await readFile('src/harbour/world-asset.json','utf8'));
 assert.equal(asset.sourceHash,await worldSourceHash(),'Prepared scene matches current source and models');
 const bytes=await readFile(`public/world/${asset.file}`),raw=gunzipSync(bytes);
+const compact=await readFile(`public/world-br/${asset.brotliFile}`);
+assert.deepEqual(brotliDecompressSync(compact),raw,'Brotli transport preserves every byte of the prepared world');
+assert.ok(compact.length<bytes.length,'Brotli transport reduces the network payload');
 assert.equal(createHash('sha256').update(raw).digest('hex'),asset.sha256);
 const data=decodeSceneData(raw.buffer.slice(raw.byteOffset,raw.byteOffset+raw.byteLength));
 assert.equal((await readSceneData(new Response(bytes))).world.worldSize,data.world.worldSize);
