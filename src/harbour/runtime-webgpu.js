@@ -18,7 +18,7 @@ import { createBrowserRenderHost } from './render-host.mjs';
 import { nextBackgroundFrame } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
-import { createFrameResize } from './frame-resize.mjs';
+import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
 
 export async function startWebGPU({ host = createBrowserRenderHost(), onFailure = () => {} } = {}) {
   const canvas = host.canvas;
@@ -101,8 +101,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
       cameraDirty=false;
     }
     function resize() {
-      if(renderer.getPixelRatio()!==ratio())renderer.setPixelRatio(ratio());
-      renderer.setSize(host.width, host.height, false);
+      const bufferResized = resizeWebGpuBuffer(renderer, host.width, host.height, ratio());
       camera.position.copy(home.position); camera.zoom = 1; look();
       const aspect = host.width / host.height, sideSpace = host.width > 650 ? .34 : 0;
       fitMapCamera(camera, world.framingPoints, aspect * (1 - sideSpace), 1.12);
@@ -115,6 +114,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
       portfolioFrame={left:camera.left,right:camera.right,top:camera.top,bottom:camera.bottom};
       pose();
       reflectionDirty = true;
+      return bufferResized;
     }
     const pendingResize=createFrameResize(resize);
     const requestResize=()=>{pendingResize.request();reflectionDirty=true;};
@@ -158,7 +158,13 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     // The page can finish layout or resize while shaders initialize off-thread.
     // Refit from the latest host dimensions before declaring the scene ready;
     // otherwise the old drawing buffer gets stretched into the new viewport.
-    resize();
+    if (resize()) {
+      // setDrawingBufferSize clears the canvas. If the viewport changed while
+      // compiling, paint the full-quality frame before reporting readiness.
+      mirror.update(); post.render();
+      if (renderer.backend.device) await renderer.backend.device.queue.onSubmittedWorkDone();
+      checkAlive();
+    }
     const onMotion = () => { motion = !capturing && !temporalQA && !host.reducedMotion; if (!motion) { scrollTarget = scrollAmount = riseTarget = 0; pose(); } reflectionDirty = true; };
     const disconnectMotion = host.onMotion(onMotion), disconnectResize = host.onResize(requestResize);
     const disconnect = host.connect({

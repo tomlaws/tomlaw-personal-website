@@ -1,3 +1,4 @@
+import { resizeWebGpuBuffer } from '../src/harbour/frame-resize.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
@@ -21,6 +22,18 @@ import {CompactLighting} from '../src/harbour/compact-lighting.mjs';
 import {PointLight,HemisphereLight} from 'three';
 import {createCoastalLighting} from '../src/harbour/coastal-lighting.mjs';
 import {createGpuFrameTimer} from '../src/harbour/gpu-frame-timer.mjs';
+
+// Reassigning canvas dimensions clears even a completed WebGPU frame.
+const sizeFixture={width:800,height:600,dpr:1.5,resizes:0,
+  getSize(target){return target.set(this.width,this.height);},
+  getPixelRatio(){return this.dpr;},
+  setDrawingBufferSize(width,height,dpr){Object.assign(this,{width,height,dpr});this.resizes++;},
+};
+assert.equal(resizeWebGpuBuffer(sizeFixture,800,600,1.5),false);
+assert.equal(sizeFixture.resizes,0,'An unchanged viewport retains the rendered first frame');
+assert.equal(resizeWebGpuBuffer(sizeFixture,810,600,1.5),true);
+assert.equal(resizeWebGpuBuffer(sizeFixture,810,600,2),true);
+assert.equal(sizeFixture.resizes,2,'Real viewport and DPR changes resize exactly once each');
 
 // Off-map traffic must not change the shader's light count or recompile every
 // material. It must still produce no headlight illumination beyond the road.

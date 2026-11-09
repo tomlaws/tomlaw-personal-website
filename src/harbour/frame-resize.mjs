@@ -12,3 +12,12 @@ export function createFrameResize(apply) {
     },
   };
 }
+
+// Avoid clearing the first presented frame when the viewport did not change.
+// Update all dimensions together so a DPR change does not resize twice.
+export function resizeWebGpuBuffer(renderer, width, height, pixelRatio) {
+  const size = renderer.getSize({ set(x, y) { this.x = x; this.y = y; return this; } });
+  if (size.x === width && size.y === height && renderer.getPixelRatio() === pixelRatio) return false;
+  renderer.setDrawingBufferSize(width, height, pixelRatio);
+  return true;
+}
