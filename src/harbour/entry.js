@@ -14,9 +14,8 @@ function showError(error) {
     parent.postMessage({ type: "harbour:error" }, location.origin);
 }
 
-// The measured full-resolution WebGL path has the lower cold-start cost for
-// this scene. Native WebGPU remains available by explicit renderer selection.
-const requested = new URLSearchParams(location.search).get('renderer')??'webgl';
+// Prefer WebGPU where available; explicit selection and WebGL fallback remain available.
+const requested = new URLSearchParams(location.search).get('renderer')??'webgpu';
 function freshCanvas() {
   const previous = document.getElementById('world');
   const canvas = previous.cloneNode(false); previous.replaceWith(canvas);
