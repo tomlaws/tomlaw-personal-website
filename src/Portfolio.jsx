@@ -1,3 +1,4 @@
+import { createMobileGesture } from './mobile-gesture.mjs';
 import { mobileScrollTransform } from './mobile-scroll.mjs';
 import React, { useEffect, useRef, useState } from "react";
 import { harbourTime } from "./hong-kong-time.mjs";
@@ -125,7 +126,7 @@ export default function Portfolio() {
   useEffect(() => {
     const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
     const nativeTimeline = typeof CSS !== "undefined" && CSS.supports("animation-timeline: scroll(root block)") && CSS.supports("animation-range: 0px 100px");
-    let queued = 0, lastProgress = -1, lastRise = -1, lastMobile = null, resumeTimer = 0, lastHeight = -1, lastStart = -1;
+    let queued = 0, lastProgress = -1, lastRise = -1, lastMobile = null, lastHeight = -1, lastStart = -1;
     const update = () => {
       queued = 0;
       if (!hero.current) return;
@@ -165,17 +166,25 @@ export default function Portfolio() {
       );
     };
     const schedule = () => { if (!queued) queued = requestAnimationFrame(update); };
-    const pauseDuringGesture = () => {
-      if (window.innerWidth > 650 || reducedMotion.matches) return;
-      if (!scrollPaused.current) { scrollPaused.current = true; sendActive(false); }
-      clearTimeout(resumeTimer);
-      resumeTimer = setTimeout(() => {
-        scrollPaused.current = false;
-        sendActive(heroVisible.current);
-      }, 200);
+    const gesture = createMobileGesture({
+      enabled: () => window.innerWidth <= 650 && !reducedMotion.matches,
+      setSuspended: suspended => {
+        scrollPaused.current = suspended;
+        sendActive(!suspended && heroVisible.current);
+      },
+    });
+    const onTouchStart = () => gesture.touchStart();
+    const onTouchEnd = event => gesture.touchEnd(event);
+    const onScrollEnd = () => gesture.scrollEnd();
+    const onScroll = () => {
+      gesture.scroll();
+      // Native timelines already follow scrolling without per-frame DOM reads.
+      if (!nativeTimeline || window.innerWidth > 650) schedule();
     };
-    const onScroll = () => { pauseDuringGesture(); schedule(); };
-    addEventListener("touchstart", pauseDuringGesture, { passive: true });
+    addEventListener("touchstart", onTouchStart, { passive: true });
+    addEventListener("touchend", onTouchEnd, { passive: true });
+    addEventListener("touchcancel", onTouchEnd, { passive: true });
+    addEventListener("scrollend", onScrollEnd, { passive: true });
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", schedule);
     reducedMotion.addEventListener("change", schedule);
@@ -183,8 +192,11 @@ export default function Portfolio() {
     return () => {
       cancelAnimationFrame(queued);
       removeEventListener("scroll", onScroll);
-      removeEventListener("touchstart", pauseDuringGesture);
-      clearTimeout(resumeTimer);
+      removeEventListener("touchstart", onTouchStart);
+      removeEventListener("touchend", onTouchEnd);
+      removeEventListener("touchcancel", onTouchEnd);
+      removeEventListener("scrollend", onScrollEnd);
+      gesture.dispose();
       scrollPaused.current = false;
       removeEventListener("resize", schedule);
       reducedMotion.removeEventListener("change", schedule);
