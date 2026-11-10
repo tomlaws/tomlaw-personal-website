@@ -14,8 +14,8 @@ function showError(error) {
     parent.postMessage({ type: "harbour:error" }, location.origin);
 }
 
-// Prefer WebGPU where available; explicit selection and WebGL fallback remain available.
-const requested = new URLSearchParams(location.search).get('renderer')??'webgpu';
+// Use WebGL by default; WebGPU remains available for explicit testing.
+const requested = new URLSearchParams(location.search).get('renderer')??'webgl';
 function freshCanvas() {
   const previous = document.getElementById('world');
   const canvas = previous.cloneNode(false); previous.replaceWith(canvas);
