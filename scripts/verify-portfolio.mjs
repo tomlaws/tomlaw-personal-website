@@ -211,13 +211,14 @@ assert.ok(existsSync('public/images/hong-kong-night.png'));
 
 console.log('Portfolio: live HK daylight, shared background theme, no map controls, public GitHub metadata and bundled models passed.');
 
-assert.equal(shouldUpdateReflection(390,true,50,0),false,'During mobile motion reuse the recent reflection');
-assert.equal(shouldUpdateReflection(390,true,100,0),true,'Mobile motion refreshes within 100ms');
-assert.equal(shouldUpdateReflection(390,false,50,0),true,'Refresh immediately when motion settles');
-assert.equal(shouldUpdateReflection(900,true,50,0),true,'Desktop reflection remains per-frame');
+assert.equal(shouldUpdateReflection(390,false,50,0),false,'Phone reflection is reused between full-resolution updates');
+assert.equal(shouldUpdateReflection(390,false,84,0),true,'Phone reflection becomes eligible after 1/12 second');
+assert.equal(shouldUpdateReflection(390,true,50,0),true,'Camera or lighting changes refresh the reflection immediately');
+assert.equal(shouldUpdateReflection(900,false,50,0),true,'Desktop reflection remains per-frame');
 
 const portfolioCSS=readFileSync('src/portfolio.css','utf8');
 const portfolioJS=readFileSync('src/Portfolio.jsx','utf8');
 assert.match(portfolioCSS,/\.world-background\s*\{[^}]*position:\s*fixed/s,'The live map stays fixed behind scrolling content');
 assert.doesNotMatch(portfolioCSS,/mobile-map-scroll|animation-timeline:\s*scroll\(root block\)/,'Scrolling does not transform the map');
 assert.doesNotMatch(portfolioJS,/command:\s*["']scroll["']|mobileScrollTransform/,'Scrolling does not move the 3D camera');
+assert.doesNotMatch(portfolioJS,/createMobileGesture|IntersectionObserver|command:\s*["']active["']/,'Scrolling and leaving the intro do not pause the background scene');

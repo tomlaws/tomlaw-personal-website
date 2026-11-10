@@ -1,4 +1,3 @@
-import { createMobileGesture } from './mobile-gesture.mjs';
 import React, { useEffect, useRef, useState } from "react";
 import { harbourTime } from "./hong-kong-time.mjs";
 import { harbourTheme } from "./harbour-theme.mjs";
@@ -74,13 +73,6 @@ export default function Portfolio() {
   const frame = useRef(null);
   const firstMapFrame = useRef(false);
   const hero = useRef(null);
-  const heroVisible = useRef(true);
-  const scrollPaused = useRef(false);
-  const sendActive = (active) =>
-    frame.current?.contentWindow?.postMessage(
-      { type: "harbour:command", command: "active", active },
-      location.origin,
-    );
   useEffect(() => {
     const update = () => setNow(harbourTime());
     const timer = setInterval(update, 1000);
@@ -109,47 +101,6 @@ export default function Portfolio() {
       document.removeEventListener("visibilitychange", update);
     };
   }, []);
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        heroVisible.current = entry.isIntersecting;
-        sendActive(entry.isIntersecting && !scrollPaused.current);
-      },
-      { threshold: 0.02 },
-    );
-    if (hero.current) observer.observe(hero.current);
-    return () => {
-      observer.disconnect();
-    };
-  }, [ready]);
-  useEffect(() => {
-    const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-    const gesture = createMobileGesture({
-      enabled: () => window.innerWidth <= 650 && !reducedMotion.matches,
-      setSuspended: suspended => {
-        scrollPaused.current = suspended;
-        sendActive(!suspended && heroVisible.current);
-      },
-    });
-    const onTouchStart = () => gesture.touchStart();
-    const onTouchEnd = event => gesture.touchEnd(event);
-    const onScrollEnd = () => gesture.scrollEnd();
-    const onScroll = () => gesture.scroll();
-    addEventListener("touchstart", onTouchStart, { passive: true });
-    addEventListener("touchend", onTouchEnd, { passive: true });
-    addEventListener("touchcancel", onTouchEnd, { passive: true });
-    addEventListener("scrollend", onScrollEnd, { passive: true });
-    addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      removeEventListener("scroll", onScroll);
-      removeEventListener("touchstart", onTouchStart);
-      removeEventListener("touchend", onTouchEnd);
-      removeEventListener("touchcancel", onTouchEnd);
-      removeEventListener("scrollend", onScrollEnd);
-      gesture.dispose();
-      scrollPaused.current = false;
-    };
-  }, [ready]);
   useEffect(() => {
     const style = harbourTheme(now.night);
     for (const [key, value] of Object.entries(style)) {

@@ -502,12 +502,10 @@ renderer.setAnimationLoop(timestamp => {
   lighting.update();
   controls.update();
   profiler?.mark('animation');
-  // During phone scrolls the mirror is the most expensive duplicate draw.
-  // Keep its full resolution, but briefly reuse the previous capture between
-  // updates. Once the camera settles, refresh immediately and resume the
-  // usual per-frame moving reflection.
+  // Refresh the full-resolution mirror less often on phones; camera, time,
+  // and resize changes still invalidate it immediately.
   if(timestamp-lastShadowTime>=1000/6){renderer.shadowMap.needsUpdate=true;lastShadowTime=timestamp;}
-  if (shouldUpdateReflection(host.width, cameraChanging, timestamp, lastReflectionTime)) {
+  if (shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflectionTime)) {
     harbourMirror.update();
     lastReflectionTime=timestamp;
     reflectionDirty=false;

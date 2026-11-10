@@ -8,10 +8,10 @@ export function nextBackgroundFrame(previousDeadline, started, completed, fps = 
   return Math.max(anchor + interval, completed + work * (1 - duty) / duty);
 }
 
-// Reuse a full-resolution reflection only during mobile camera motion. Always
-// refresh once motion settles and on every ordinary animation frame.
-export function shouldUpdateReflection(width, cameraChanging, timestamp, lastUpdate) {
-  return width > 650 || !cameraChanging || timestamp - lastUpdate >= 100;
+// Keep the full-resolution reflection but update it at a lower cadence on
+// phones, leaving more GPU time for scrolling and the main animated scene.
+export function shouldUpdateReflection(width, dirty, timestamp, lastUpdate) {
+  return width > 650 || dirty || timestamp - lastUpdate >= 1000 / 12;
 }
 
 // Animations use elapsed time rather than slowing down when frames are sparse.
