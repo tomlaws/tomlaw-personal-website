@@ -19,7 +19,6 @@ import { nextBackgroundFrame } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
 import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
-import { shareEquivalentVertexPrograms } from './webgpu-shader-cache.mjs';
 
 export async function startWebGPU({ host = createBrowserRenderHost(), onFailure = () => {} } = {}) {
   const canvas = host.canvas;
@@ -60,7 +59,6 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     report('adapter',adapterStarted);stageAt=performance.now();
     checkAlive();
     if (!renderer.backend.isWebGPUBackend) throw new Error('A native WebGPU adapter is unavailable');
-    shareEquivalentVertexPrograms(renderer);
     const backend = 'webgpu';
     validationDevice = renderer.backend.device;
     if (validationDevice) { validationDevice.pushErrorScope('validation'); validationOpen = true; }

@@ -1,4 +1,3 @@
-import { canonicalizeNodeBuffers, shareEquivalentVertexPrograms } from '../src/harbour/webgpu-shader-cache.mjs';
 import { resizeWebGpuBuffer } from '../src/harbour/frame-resize.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -23,20 +22,6 @@ import {CompactLighting} from '../src/harbour/compact-lighting.mjs';
 import {PointLight,HemisphereLight} from 'three';
 import {createCoastalLighting} from '../src/harbour/coastal-lighting.mjs';
 import {createGpuFrameTimer} from '../src/harbour/gpu-frame-timer.mjs';
-
-// Buffer names are local WGSL identifiers; only rename their tokens, never
-// binding indices, types, or other variable names.
-const shaderA='struct NodeBuffer_348Struct {value:f32}; @binding(2) var NodeBuffer_348: NodeBuffer_348Struct;';
-const shaderB='struct NodeBuffer_891Struct {value:f32}; @binding(2) var NodeBuffer_891: NodeBuffer_891Struct;';
-assert.equal(canonicalizeNodeBuffers(shaderA),canonicalizeNodeBuffers(shaderB));
-assert.notEqual(canonicalizeNodeBuffers(shaderA),canonicalizeNodeBuffers(shaderB.replace('binding(2)','binding(3)')));
-assert.notEqual(canonicalizeNodeBuffers('NodeBuffer_1 NodeBuffer_2'),canonicalizeNodeBuffers('NodeBuffer_1 NodeBuffer_1'));
-const nodeState={_createNodeBuilderState(){return {vertexShader:shaderA,fragmentShader:shaderB};}};
-shareEquivalentVertexPrograms({_nodes:nodeState});
-const canonicalState=nodeState._createNodeBuilderState({});
-assert.equal(canonicalState.vertexShader,canonicalizeNodeBuffers(shaderA));
-assert.equal(canonicalState.fragmentShader,shaderB,'Only vertex shader identifiers are changed');
-shareEquivalentVertexPrograms({});
 
 // Reassigning canvas dimensions clears even a completed WebGPU frame.
 const sizeFixture={width:800,height:600,dpr:1.5,resizes:0,
