@@ -103,16 +103,14 @@ for(const mobile of [false,true]) {
   const start=portfolioCameraPose(cameraHome,0,mobile),end=portfolioCameraPose(cameraHome,1,mobile);
   assert.deepEqual(start.position.toArray(),cameraHome.position.toArray());
   assert.ok(start.zoom>1,'The portfolio map starts larger');
-  assert.ok(Math.abs(end.zoom/start.zoom-.9)<1e-12,'Scroll adds a gentle zoom out');
-  assert.ok(end.position.distanceTo(start.position)<4,'Scroll orbit remains subtle');
+  assert.equal(end.zoom,start.zoom,'Scroll keeps the camera zoom fixed');
+  assert.deepEqual(end.position.toArray(),start.position.toArray(),'Scroll keeps the camera heading fixed');
   assert.deepEqual(portfolioCameraPose(cameraHome,-2,mobile),start);
   assert.deepEqual(portfolioCameraPose(cameraHome,2,mobile),end);
-  const originalOffset=cameraHome.position.clone().sub(cameraHome.target);
   for(const progress of [.05,.15,.3,.5,.75,1]){
-    const pose=portfolioCameraPose(cameraHome,progress,mobile),offset=pose.position.clone().sub(cameraHome.target);
-    const rotation=(Math.atan2(offset.x,offset.z)-Math.atan2(originalOffset.x,originalOffset.z))/.14;
-    const zoomOut=(1-pose.zoom/start.zoom)/.10;
-    assert.ok(Math.abs(rotation-pose.phase)<1e-12&&Math.abs(zoomOut-pose.phase)<1e-12,'Rotation and zoom out use the exact same scroll phase');
+    const pose=portfolioCameraPose(cameraHome,progress,mobile);
+    assert.equal(pose.zoom,start.zoom);
+    assert.deepEqual(pose.position.toArray(),start.position.toArray());
   }
 }
 assert.deepEqual(cameraHome.position.toArray(),originalPosition,'Camera animation leaves the home pose unchanged');
@@ -219,8 +217,8 @@ assert.equal(shouldUpdateReflection(390,true,100,0),true,'Mobile motion refreshe
 assert.equal(shouldUpdateReflection(390,false,50,0),true,'Refresh immediately when motion settles');
 assert.equal(shouldUpdateReflection(900,true,50,0),true,'Desktop reflection remains per-frame');
 
-assert.match(mobileScrollTransform(0,50), /scale\(1\)/, 'Mobile map starts at its full home size');
-assert.match(mobileScrollTransform(1,50), /scale\(0\.9\)/, 'Mobile map zooms out at full scroll');
+assert.equal(mobileScrollTransform(0,50), 'translate3d(0, 0px, 0)');
+assert.equal(mobileScrollTransform(1,50), 'translate3d(0, -50px, 0)', 'Mobile map only moves upward');
 assert.equal(mobileScrollTransform(2,50),mobileScrollTransform(1,50),'Mobile scroll remains bounded');
 assert.equal(mobileScrollTransform(-1,50),mobileScrollTransform(0,50),'Mobile scroll does not overshoot its home pose');
 

@@ -81,7 +81,7 @@ for(const [width,height] of [[1919,1280],[1920,1280],[1280,870.4],[991,840],[760
   }
   assert.ok(poses[6]<poses[0]-20,`${width}x${height}: the map moves upward during scroll`);
   assert.ok(Math.abs(poses[7]-poses[0])<1e-9,'Scrolling back restores the original framing without accumulated drift');
-  for(let i=1;i<7;i++)assert.ok(zooms[i]<zooms[i-1],`${width}x${height}: fitted zoom out starts with the rotation and continues throughout the scroll`);
+  for(let i=1;i<7;i++)assert.ok(Math.abs(zooms[i]-zooms[0])<1e-12,`${width}x${height}: fitted zoom stays fixed throughout the scroll`);
 }
 const original=await buildOriginalWorld();indexStaticBatches(original.root);
 for(const world of [original,prepared]){

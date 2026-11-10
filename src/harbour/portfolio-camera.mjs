@@ -9,12 +9,9 @@ export function smoothScroll(current, target, frameMs) {
 
 export function portfolioCameraPose(home, progress, mobile = false) {
   const t = T.MathUtils.smoothstep(T.MathUtils.clamp(progress, 0, 1), 0, 1);
-  const offset = home.position.clone().sub(home.target);
-  offset.applyAxisAngle(new T.Vector3(0, 1, 0), t * .14);
-  offset.y -= t * 1.6;
-  const zoomFactor=1-t*.10;
+  const zoomFactor=1;
   return {
-    position: home.target.clone().add(offset),
+    position: home.position.clone(),
     zoom: (mobile ? 1.12 : 1.18) * zoomFactor,
     phase:t,
     zoomFactor,
@@ -45,11 +42,10 @@ export function fitScrollFrame(camera, points, frame, width, height, rise=0, zoo
   const spanX=frame.right-frame.left,spanY=frame.top-frame.bottom;
   const padding=Math.min(12,width*.03,height*.03);
   const lift=T.MathUtils.clamp(rise,0,Math.min(180,height*.3));
-  // Fit the base size first, then apply the shared zoom-out phase. Clamping
-  // the animated zoom first held it still until it crossed the fitting limit.
+  // Keep the fitted scale fixed while shifting the framing upward.
   camera.zoom=Math.min(camera.zoom/zoomFactor,
     spanX*(width-2*padding)/(width*size.x),
-    spanY*(height-2*padding-lift)/(height*size.y))*zoomFactor;
+    spanY*(height-2*padding)/(height*size.y))*zoomFactor;
   const visibleX=spanX/camera.zoom,visibleY=spanY/camera.zoom;
   // Desktop keeps its permanent right-tip crop. Phones show the complete,
   // centered sea plate with deliberate space on both sides.
