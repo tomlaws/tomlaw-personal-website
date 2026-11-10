@@ -1,4 +1,3 @@
-import { mobileScrollTransform } from '../src/mobile-scroll.mjs';
 import { shouldUpdateReflection } from '../src/harbour/frame-pacing.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
@@ -217,11 +216,8 @@ assert.equal(shouldUpdateReflection(390,true,100,0),true,'Mobile motion refreshe
 assert.equal(shouldUpdateReflection(390,false,50,0),true,'Refresh immediately when motion settles');
 assert.equal(shouldUpdateReflection(900,true,50,0),true,'Desktop reflection remains per-frame');
 
-assert.equal(mobileScrollTransform(0,50), 'translate3d(0, 0px, 0)');
-assert.equal(mobileScrollTransform(1,50), 'translate3d(0, -50px, 0)', 'Mobile map only moves upward');
-assert.equal(mobileScrollTransform(2,50),mobileScrollTransform(1,50),'Mobile scroll remains bounded');
-assert.equal(mobileScrollTransform(-1,50),mobileScrollTransform(0,50),'Mobile scroll does not overshoot its home pose');
-
 const portfolioCSS=readFileSync('src/portfolio.css','utf8');
-assert.match(portfolioCSS,/animation-timeline:\s*scroll\(root block\)/,'Mobile scroll animation uses the native scroll timeline');
-assert.match(portfolioCSS,/prefers-reduced-motion:\s*no-preference/,'Native scroll animation respects reduced motion');
+const portfolioJS=readFileSync('src/Portfolio.jsx','utf8');
+assert.match(portfolioCSS,/\.world-background\s*\{[^}]*position:\s*fixed/s,'The live map stays fixed behind scrolling content');
+assert.doesNotMatch(portfolioCSS,/mobile-map-scroll|animation-timeline:\s*scroll\(root block\)/,'Scrolling does not transform the map');
+assert.doesNotMatch(portfolioJS,/command:\s*["']scroll["']|mobileScrollTransform/,'Scrolling does not move the 3D camera');

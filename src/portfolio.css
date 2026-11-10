@@ -132,21 +132,7 @@ input:focus-visible {
 @keyframes map-loading-appear { to { opacity: .85; } }
 @keyframes map-loading-spin { to { transform: rotate(360deg); } }
 @media (max-width: 650px) {
-  .world-background iframe { transform-origin: 50% 70%; will-change: transform; }
   .map-loading { left: 50%; top: 70%; }
-}
-@keyframes mobile-map-scroll {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(0, calc(-1 * var(--mobile-scroll-rise, 50px)), 0); }
-}
-@supports (animation-timeline: scroll(root block)) and (animation-range: 0px 100px) {
-  @media (max-width: 650px) and (prefers-reduced-motion: no-preference) {
-    .world-background iframe {
-      animation: mobile-map-scroll 1s cubic-bezier(.42, 0, .58, 1) both;
-      animation-timeline: scroll(root block);
-      animation-range: var(--mobile-scroll-start, 0px) var(--mobile-scroll-end, 850px);
-    }
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .map-loading { animation: none; opacity: .85; }
