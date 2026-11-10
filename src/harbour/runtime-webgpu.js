@@ -19,6 +19,7 @@ import { animationDelta, nextBackgroundFrame } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
 import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
+import { applyEmbeddedView } from './embedded-viewport.mjs';
 
 export async function startWebGPU({ host = createBrowserRenderHost(), onFailure = () => {} } = {}) {
   const canvas = host.canvas;
@@ -96,21 +97,22 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     function pose() {
       const value = portfolioCameraPose(home, scrollAmount, host.width <= 650);
       camera.position.copy(value.position); camera.zoom = value.zoom; look();
-      if(portfolioFrame)fitScrollFrame(camera,world.framingPoints,portfolioFrame,host.width,host.height,riseTarget*value.phase,value.zoomFactor);
-      camera.updateProjectionMatrix();
+      if(portfolioFrame)fitScrollFrame(camera,world.framingPoints,portfolioFrame,host.width,host.height + host.topInset,riseTarget*value.phase,value.zoomFactor);
+      applyEmbeddedView(camera,host.width,host.height,host.topInset);
       cameraDirty=false;
     }
     function resize() {
       const bufferResized = resizeWebGpuBuffer(renderer, host.width, host.height, ratio());
       camera.position.copy(home.position); camera.zoom = 1; look();
-      const aspect = host.width / host.height, sideSpace = host.width > 650 ? .34 : 0;
+      const fullHeight = host.height + host.topInset;
+      const aspect = host.width / fullHeight, sideSpace = host.width > 650 ? .34 : 0;
       fitMapCamera(camera, world.framingPoints, aspect * (1 - sideSpace), 1.12);
       const halfHeight = (camera.top - camera.bottom) / 2, centerX = (camera.left + camera.right) / 2;
       camera.left = centerX - halfHeight * aspect * (1 + sideSpace);
       camera.right = centerX + halfHeight * aspect * (1 - sideSpace);
       const shift = halfHeight * (host.width <= 650 ? .55 : T.MathUtils.clamp((aspect - 1.1) * .30, 0, .20));
       camera.top += shift; camera.bottom += shift;
-      if(host.width<=650)keepMobileMapVisible(camera,world.framingPoints,host.height,portfolioCameraPose(home,0,true).zoom);
+      if(host.width<=650)keepMobileMapVisible(camera,world.framingPoints,fullHeight,portfolioCameraPose(home,0,true).zoom);
       portfolioFrame={left:camera.left,right:camera.right,top:camera.top,bottom:camera.bottom};
       pose();
       reflectionDirty = true;

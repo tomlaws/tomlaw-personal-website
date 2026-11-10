@@ -222,3 +222,4 @@ assert.match(portfolioCSS,/\.world-background\s*\{[^}]*position:\s*fixed/s,'The 
 assert.doesNotMatch(portfolioCSS,/mobile-map-scroll|animation-timeline:\s*scroll\(root block\)/,'Scrolling does not transform the map');
 assert.doesNotMatch(portfolioJS,/command:\s*["']scroll["']|mobileScrollTransform/,'Scrolling does not move the 3D camera');
 assert.doesNotMatch(portfolioJS,/createMobileGesture|IntersectionObserver|command:\s*["']active["']/,'Scrolling and leaving the intro do not pause the background scene');
+assert.match(portfolioCSS,/margin-top:\s*250px;\s*height:\s*calc\(100% - 250px\)/,'Mobile canvas leaves the unused area unrendered');

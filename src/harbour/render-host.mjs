@@ -1,5 +1,6 @@
 import { harbourTime } from '../hong-kong-time.mjs';
 import { connectPortfolio } from './portfolio-bridge.mjs';
+import { embeddedTopInset } from './embedded-viewport.mjs';
 
 // Keep browser/DOM work out of the rendering core, which also runs off-thread.
 export function createBrowserRenderHost() {
@@ -8,6 +9,7 @@ export function createBrowserRenderHost() {
     thread:'main',
     canvas: document.getElementById('world'), search: location.search,
     get width() { return innerWidth; }, get height() { return innerHeight; },
+    get topInset() { return embeddedTopInset(location.search, innerWidth); },
     get dpr() { return devicePixelRatio; }, get hidden() { return document.hidden; },
     get reducedMotion() { return preference.matches; },
     night: () => harbourTime().night,
@@ -35,6 +37,7 @@ export function createWorkerRenderHost(canvas, state, send) {
     thread:'worker',
     canvas, search: state.search,
     get width() { return state.width; }, get height() { return state.height; },
+    get topInset() { return embeddedTopInset(state.search, state.width); },
     get dpr() { return state.dpr; }, get hidden() { return state.hidden; },
     get reducedMotion() { return state.reducedMotion; },
     night: () => state.night,

@@ -22,6 +22,7 @@ import { mapPixelRatio } from './render-quality.mjs';
 import { animationDelta, nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
+import { applyEmbeddedView } from './embedded-viewport.mjs';
 
 export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
 const canvas = host.canvas;
@@ -283,7 +284,7 @@ function applyScrollCamera() {
   camera.position.copy(pose.position);
   camera.zoom = pose.zoom;
   controls.update();
-  if(portfolioFrame)fitScrollFrame(camera,world.framingPoints,portfolioFrame,host.width,host.height,riseTarget*pose.phase,pose.zoomFactor);
+  if(portfolioFrame)fitScrollFrame(camera,world.framingPoints,portfolioFrame,host.width,host.height + host.topInset,riseTarget*pose.phase,pose.zoomFactor);
   if(import.meta.env.DEV){
     const params=new URLSearchParams(host.search),peakView=params.get('qaPeak'),wheelView=params.get('qaWheel'),tramView=params.get('qaTram'),jardineView=params.get('qaJardine'),hkcecView=params.get('qaHKCEC');
     const view=tramView??wheelView??peakView??jardineView??hkcecView??params.get('qaIFC');
@@ -302,7 +303,7 @@ function applyScrollCamera() {
       camera.updateMatrixWorld(true);
     }
   }
-  camera.updateProjectionMatrix();
+  applyEmbeddedView(camera,host.width,host.height,host.topInset);
   cameraDirty=false;
 }
 
@@ -328,7 +329,8 @@ function frameMap() {
   camera.position.copy(home.position);
   camera.zoom = 1;
   controls.update();
-  const aspect = host.width / host.height;
+  const fullHeight = host.height + host.topInset;
+  const aspect = host.width / fullHeight;
   const sideSpace = host.width > 650 ? .34 : 0;
   fitMapCamera(camera, world.framingPoints, aspect * (1 - sideSpace), 1.12);
   const halfHeight = (camera.top - camera.bottom) / 2;
@@ -338,7 +340,7 @@ function frameMap() {
   if (host.width <= 650) {
     camera.top += halfHeight * .55;
     camera.bottom += halfHeight * .55;
-    keepMobileMapVisible(camera, world.framingPoints, host.height, portfolioCameraPose(home, 0, true).zoom);
+    keepMobileMapVisible(camera, world.framingPoints, fullHeight, portfolioCameraPose(home, 0, true).zoom);
   } else {
     // Wide, short windows need headroom beneath the navigation and HK clock.
     const headroom = halfHeight * T.MathUtils.clamp((aspect - 1.1) * .30, 0, .20);

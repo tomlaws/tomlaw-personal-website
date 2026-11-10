@@ -1,3 +1,4 @@
+import { applyEmbeddedView, embeddedTopInset } from '../src/harbour/embedded-viewport.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {gunzipSync,brotliDecompressSync} from 'node:zlib';
@@ -48,7 +49,7 @@ for(const [width,height] of [[360,930],[390,930],[450,930],[430,930],[650,1070]]
 }
 // Keep the sea's underside, left edge and landmark crowns inside the fixed
 // canvas. Only desktop has the deliberately small right-tip crop.
-for(const [width,height] of [[1919,1280],[1920,1280],[1280,870.4],[991,840],[760,840],[650,1070],[450,930],[390,930]]){
+for(const [width,height] of [[1919,1280],[1920,1280],[1280,870.4],[991,840],[760,840],[650,1070],[450,930],[390,930],[320,930]]){
   const mobile=width<=650,aspect=width/height,sideSpace=mobile?0:.34;
   const home=homeView([-2,-1.5]),camera=new OrthographicCamera(-10,10,8,-8,.1,80);
   camera.position.copy(home.position);camera.lookAt(home.target);camera.updateMatrixWorld(true);
@@ -75,7 +76,19 @@ for(const [width,height] of [[1919,1280],[1920,1280],[1280,870.4],[991,840],[760
     const ys=projected.map(point=>(1-point.y)*height/2),bottom=Math.max(...ys),top=Math.min(...ys);
     assert.ok(bottom<=height-Math.min(12,width*.03,height*.03)-Math.min(rise,height*.3)+1e-7,'Leave room beneath the full water tile for upward parallax');
     assert.ok(camera.zoom<=pose.zoom,'Limit zoom only when needed to fit the complete map');
-    if(mobile&&progress===0)assert.ok(bottom<=height-120+1e-7,'Retain the mobile intro framing');
+    if(mobile&&progress===0){
+      assert.ok(bottom<=height-120+1e-7,'Retain the mobile intro framing');
+      const inset=embeddedTopInset('?embedded=1',width);
+      assert.ok(top>inset,`${width}: all map geometry starts below the cropped blank area`);
+      const before=projected.map(point=>[(point.x+1)*width/2,(1-point.y)*height/2]);
+      applyEmbeddedView(camera,width,height-inset,inset);
+      for(let i=0;i<prepared.framingPoints.length;i++){
+        const point=prepared.framingPoints[i].clone().project(camera);
+        assert.ok(Math.abs((point.x+1)*width/2-before[i][0])<1e-7,'Cropping preserves horizontal framing');
+        assert.ok(Math.abs(inset+(1-point.y)*(height-inset)/2-before[i][1])<1e-7,'Cropping preserves vertical framing');
+      }
+      camera.clearViewOffset();
+    }
     poses.push((top+bottom)/2);
     zooms.push(camera.zoom);
   }

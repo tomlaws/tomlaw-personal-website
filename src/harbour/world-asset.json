@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "file": "harbour-world-c64215c85c60.bin.gz",
-  "brotliFile": "harbour-world-c64215c85c60.bin.br",
-  "sourceHash": "3d34584ead3c5c4fc732b5bd0441f41a328db45719e6b83a959d90e318724b95",
-  "sha256": "c64215c85c6009aa4544164266d52ba06847dc3f0e91aad7253ed0222a420d4b"
+  "file": "harbour-world-b4d3b098b85a.bin.gz",
+  "brotliFile": "harbour-world-b4d3b098b85a.bin.br",
+  "sourceHash": "d85dd6a6cc9a497a993b20af92aa6a6bc40f5048fb0dcddb48f7086ebfb9771d",
+  "sha256": "b4d3b098b85af13080c2fe32df5dcc872671d29c63d26c693223a0b3bed066dc"
 }

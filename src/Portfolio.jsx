@@ -7,7 +7,7 @@ const base = import.meta.env.BASE_URL;
 const profile = "https://github.com/tomlaws";
 const email = "contact@tomlaw.dev";
 const pageParams = new URLSearchParams(location.search);
-const mapParams = new URLSearchParams();
+const mapParams = new URLSearchParams([['embedded', '1']]);
 if (["webgl", "webgpu"].includes(pageParams.get("renderer")))
   mapParams.set("renderer", pageParams.get("renderer"));
 if (import.meta.env.DEV && pageParams.has("profile"))
