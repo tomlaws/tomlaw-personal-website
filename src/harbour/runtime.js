@@ -19,7 +19,7 @@ import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { mapPixelRatio } from './render-quality.mjs';
-import { nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 
@@ -440,7 +440,7 @@ const disconnectMotion = host.onMotion(() => {
 const disconnectPortfolio=host.connect({
   isReady:()=>firstFrameReady,
   setTime(value) { setTimeOfDay(value); reflectionDirty = true; },
-  setActive(value) { portfolioActive = value; reflectionDirty = true; },
+  setActive(value) { portfolioActive = value; if (value) reflectionDirty = true; },
   setScroll(value,rise=0) { scrollTarget = motionEnabled ? value : 0; riseTarget=motionEnabled?rise:0; cameraDirty=true; reflectionDirty=true; },
 });
 
@@ -487,7 +487,7 @@ renderer.setAnimationLoop(timestamp => {
   profiler?.begin(timestamp);
   gpuTimer?.begin();
   pendingResize.flush();
-  const delta = previousFrame === undefined ? 0 : Math.min((timestamp - previousFrame) / 1000, .05);
+  const delta = animationDelta(previousFrame, timestamp);
   previousFrame = timestamp; if (motionEnabled) state.time += delta;
   const cameraMoving = Math.abs(scrollAmount - scrollTarget) > .0001;
   if (cameraMoving) {

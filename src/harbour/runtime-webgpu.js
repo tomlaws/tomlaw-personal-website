@@ -15,7 +15,7 @@ import { createNodeWaterReflection } from './webgpu-reflection.mjs';
 import { createNodePostProcessing } from './webgpu-post.mjs';
 import { isolateFramebufferTextures } from './webgpu-compat.mjs';
 import { createBrowserRenderHost } from './render-host.mjs';
-import { nextBackgroundFrame } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
 import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
@@ -169,7 +169,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     const disconnectMotion = host.onMotion(onMotion), disconnectResize = host.onResize(requestResize);
     const disconnect = host.connect({
       setTime,
-      setActive(value) { active = value; reflectionDirty = true; },
+      setActive(value) { active = value; if (value) reflectionDirty = true; },
       setScroll(value,rise=0) { scrollTarget = motion ? value : 0; riseTarget=motion?rise:0; cameraDirty=true; reflectionDirty=true; },
     });
     const profiler = params.has('profile') ? createRenderProfiler(renderer, data => host.diagnostic('render-profile', data)) : null;
@@ -196,7 +196,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
       if (temporalQA && qaFrame >= 16) return;
       if (performance.now() < nextFrameAt) return;
       const started = performance.now(), frameMs = previousFrame === undefined ? 0 : timestamp - previousFrame;
-      const delta = previousFrame === undefined ? 0 : Math.min(frameMs / 1000, .05); previousFrame = timestamp;
+      const delta = animationDelta(previousFrame, timestamp); previousFrame = timestamp;
       try {
         framePending = true;
         pendingResize.flush();

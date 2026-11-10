@@ -13,3 +13,10 @@ export function nextBackgroundFrame(previousDeadline, started, completed, fps = 
 export function shouldUpdateReflection(width, cameraChanging, timestamp, lastUpdate) {
   return width > 650 || !cameraChanging || timestamp - lastUpdate >= 100;
 }
+
+// Animations use elapsed time rather than slowing down when frames are sparse.
+// Bound unusually long stalls; hidden and paused scenes reset the previous frame.
+export function animationDelta(previousTimestamp, timestamp) {
+  if (previousTimestamp === undefined || !Number.isFinite(timestamp) || !Number.isFinite(previousTimestamp)) return 0;
+  return Math.min(1, Math.max(0, (timestamp - previousTimestamp) / 1000));
+}
