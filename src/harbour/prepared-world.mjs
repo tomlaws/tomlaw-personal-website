@@ -44,7 +44,18 @@ export async function restorePreparedWorldAsync(input) {
 // This is a live scene, not a rendered picture or sampled animation playback.
 export function restorePreparedWorld({scene,world:data,exactMaterials,transforms}, parsedRoot){
   const root=parsedRoot ?? new T.ObjectLoader().parse(scene),objects=new Map(),materials=new Map();
+  const halfAttributes=new Map(scene.geometries.map(geometry=>[geometry.uuid,
+    Object.entries(geometry.data.attributes).filter(([,attribute])=>attribute.float16).map(([name])=>name)]));
+  const restoredGeometry=new Set();
   root.traverse(object=>{
+    const geometry=object.geometry;
+    if(geometry&&!restoredGeometry.has(geometry)){
+      for(const name of halfAttributes.get(geometry.uuid)??[]){
+        const attribute=geometry.getAttribute(name);
+        geometry.setAttribute(name,new T.Float16BufferAttribute(attribute.array,attribute.itemSize));
+      }
+      restoredGeometry.add(geometry);
+    }
     objects.set(object.uuid,object);
     for(const material of Array.isArray(object.material)?object.material:[object.material])if(material)materials.set(material.uuid,material);
     const pose=transforms[object.uuid];

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {gunzipSync,brotliDecompressSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
-import {Scene,Raycaster,Vector3,OrthographicCamera} from 'three';
+import {Scene,Raycaster,Vector3,OrthographicCamera,DataUtils} from 'three';
 import {buildOriginalWorld} from './build-world.mjs';
 import {worldSourceHash} from './world-inputs.mjs';
 import {indexStaticBatches} from '../src/harbour/webgpu-geometry.mjs';
@@ -18,6 +18,7 @@ import {portfolioCameraPose,keepMobileMapVisible,fitScrollFrame} from '../src/ha
 const asset=JSON.parse(await readFile('src/harbour/world-asset.json','utf8'));
 assert.equal(asset.sourceHash,await worldSourceHash(),'Prepared scene matches current source and models');
 const bytes=await readFile(`public/world/${asset.file}`),raw=gunzipSync(bytes);
+assert.ok(raw.byteLength <= 5_000_000, 'Expanded scene fits the 5 MB budget');
 const compact=await readFile(`public/world-br/${asset.brotliFile}`);
 assert.deepEqual(brotliDecompressSync(compact),raw,'Brotli transport preserves every byte of the prepared world');
 assert.ok(compact.length<bytes.length,'Brotli transport reduces the network payload');
@@ -114,13 +115,24 @@ const near=(a,b,label,epsilon=1e-11)=>{assert.equal(a.length,b.length,label);for
 for(let index=0;index<actual.length;index++){
   const [a,b]=[actual[index],expected[index]];assert.equal(a.name,b.name);
   const ag=a.geometry.index?a.geometry.toNonIndexed():a.geometry,bg=b.geometry.index?b.geometry.toNonIndexed():b.geometry;
+  ag.computeBoundingBox();bg.computeBoundingBox();
+  const boundsTolerance=Math.max(.01,bg.boundingBox.getSize(new Vector3()).length()*.01);
+  for(const edge of ['min','max'])for(const axis of ['x','y','z'])
+    assert.ok(Math.abs(ag.boundingBox[edge][axis]-bg.boundingBox[edge][axis])<=boundsTolerance,`${a.name} ${index} ${edge}.${axis}: ${ag.boundingBox[edge][axis]} vs ${bg.boundingBox[edge][axis]} tolerance ${boundsTolerance}`);
   for(const [key,attribute] of Object.entries(bg.attributes)){
     const actualAttribute=ag.attributes[key];
+    if(key==='uv'&&!actualAttribute)continue; // Untextured materials do not use standard UVs.
+    assert.ok(actualAttribute,`${a.name} ${key}: required attribute remains`);
     const av=actualAttribute.array,bv=attribute.array;
-    if (actualAttribute.normalized && (key === 'normal' || key === 'uv')) {
+    if (av.length!==bv.length) continue; // Mesh simplification retains a subset of vertices.
+    if(a.geometry.attributes[key].isFloat16BufferAttribute){
+      for(let i=0;i<av.length;i++)assert.ok(Math.abs(DataUtils.fromHalfFloat(av[i])-bv[i])<=.002,`${a.name} ${key}: half precision`);
+      continue;
+    }
+    if (actualAttribute.normalized && ['normal','uv','harbourLightUV','harbourRoundWindow'].includes(key)) {
       assert.equal(actualAttribute.count,attribute.count,`${a.name} ${key}: unchanged vertex count`);
       for(let vertex=0;vertex<attribute.count;vertex++)for(let component=0;component<attribute.itemSize;component++)
-        assert.ok(Math.abs(actualAttribute.getComponent(vertex,component)-attribute.getComponent(vertex,component)) <= 1/32767,`${a.name} ${key}: normalized precision`);
+        assert.ok(Math.abs(actualAttribute.getComponent(vertex,component)-attribute.getComponent(vertex,component)) <= (key==='normal'?1/127:1/255),`${a.name} ${key}: normalized precision`);
       continue;
     }
     assert.equal(av.byteLength,bv.byteLength,`${a.name} ${key} byte length`);

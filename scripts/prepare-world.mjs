@@ -7,6 +7,7 @@ import {worldSourceHash} from './world-inputs.mjs';
 import {indexStaticBatches} from '../src/harbour/webgpu-geometry.mjs';
 import {encodeSceneData} from '../src/harbour/scene-codec.mjs';
 import {indexGeometryExactly} from '../src/harbour/exact-geometry.mjs';
+import {MeshoptSimplifier} from 'meshoptimizer';
 
 const world=await buildOriginalWorld();indexStaticBatches(world.root);
 // The ferry keeps hidden per-part modelling helpers alongside the rendered
@@ -14,12 +15,60 @@ const world=await buildOriginalWorld();indexStaticBatches(world.root);
 world.boats.filter(boat=>boat.design==='star').forEach(({g})=>{
   for(const child of [...g.children])if(child.isMesh&&!child.visible)child.removeFromParent();
 });
+// Only textured and custom-shader materials need the standard UV attribute.
+// Most architectural batches have no textures, but carry millions of unused UVs.
+const uvRequired=new Set();
+world.root.traverse(object=>{
+  if(!object.isMesh || !object.geometry) return;
+  const materials=Array.isArray(object.material)?object.material:[object.material];
+  if(materials.some(material=>material && (material.isShaderMaterial ||
+    Object.entries(material).some(([key,value])=>value?.isTexture && key!=='envMap') ||
+    /\b(?:uv|vUv)\b/.test(material.onBeforeCompile?.toString()??''))))uvRequired.add(object.geometry);
+});
+world.root.traverse(object=>{
+  if(object.geometry && !uvRequired.has(object.geometry) && object.geometry.attributes.position?.usage!==T.DynamicDrawUsage)
+    object.geometry.deleteAttribute('uv');
+});
 const indexed=new Map();
+await MeshoptSimplifier.ready;
 world.root.traverse(object=>{
   const geometry=object.geometry;
   if(!geometry||geometry.index||geometry.attributes.position.usage===T.DynamicDrawUsage)return;
   if(!indexed.has(geometry))indexed.set(geometry,indexGeometryExactly(geometry));
   object.geometry=indexed.get(geometry);
+});
+// Simplify static triangles at a small geometric error; retain boundaries so
+// windows and separate surfaces stay closed. Dynamic geometry stays untouched.
+const simplified=new Map();
+world.root.traverse(object=>{
+  const geometry=object.geometry, position=geometry?.attributes.position;
+  if(!geometry?.index || !position || position.usage===T.DynamicDrawUsage || geometry.groups.length || geometry.index.count<300) return;
+  if(!simplified.has(geometry)){
+    const source=Uint32Array.from(geometry.index.array);
+    const locks=new Uint8Array(position.count),extremes=Array(6).fill(source[0]);
+    for(const i of source)for(let axis=0;axis<3;axis++){
+      const value=position.array[i*3+axis];
+      if(value<position.array[extremes[axis*2]*3+axis])extremes[axis*2]=i;
+      if(value>position.array[extremes[axis*2+1]*3+axis])extremes[axis*2+1]=i;
+    }
+    for(const vertex of extremes)locks[vertex]=1;
+    const [indices]=MeshoptSimplifier.simplifyWithAttributes(source, position.array, 3,
+      new Float32Array(), 0, [], locks, Math.floor(source.length*.10/3)*3, .005, ['LockBorder']);
+    const used=new Set(indices);
+    if(extremes.some(vertex=>!used.has(vertex))){simplified.set(geometry,geometry);return;}
+    const [remap,count]=MeshoptSimplifier.compactMesh(indices);
+    const sources=new Uint32Array(count);
+    for(let i=0;i<remap.length;i++)if(remap[i]!==0xffffffff)sources[remap[i]]=i;
+    const compact=geometry.clone();
+    for(const [name,attribute] of Object.entries(geometry.attributes)){
+      const values=new attribute.array.constructor(count*attribute.itemSize);
+      for(let i=0;i<count;i++)for(let c=0;c<attribute.itemSize;c++)values[i*attribute.itemSize+c]=attribute.array[sources[i]*attribute.itemSize+c];
+      compact.setAttribute(name,new T.BufferAttribute(values,attribute.itemSize,attribute.normalized));
+    }
+    compact.setIndex(new T.BufferAttribute(count>65535?indices:new Uint16Array(indices),1));
+    simplified.set(geometry,compact);
+  }
+  object.geometry=simplified.get(geometry);
 });
 const geometries=new Set(),materials=new Set();let objectIndex=0;
 const dynamicGeometries = new Set();
@@ -79,18 +128,35 @@ const replacements=new Map();
 for(const geometry of geometries){const flat=new T.BufferGeometry().copy(geometry);flat.uuid=geometry.uuid;delete flat.parameters;replacements.set(geometry,flat);}
 world.root.traverse(object=>{if(object.geometry)object.geometry=replacements.get(object.geometry);});
 const scene=world.root.toJSON();
+// Exact transforms are stored separately and restored before animation, so the
+// rounded Object3D matrices in Three's JSON are redundant.
+function removeRedundantMatrices(object){
+  delete object.matrix;
+  const pose=transforms[object.uuid];
+  if(pose && pose.position.every(value=>value===0) && pose.rotation.every((value,index)=>index===3 ? value==='XYZ' : value===0)
+    && pose.scale.every(value=>value===1))delete transforms[object.uuid];
+  for(const child of object.children??[])removeRedundantMatrices(child);
+}
+removeRedundantMatrices(scene.object);
 // Normals and UVs do not need 32-bit precision. Normalized 16-bit attributes
 // stay compact on the GPU as well as on the wire; positions remain lossless.
 for (const geometry of scene.geometries) {
   if (dynamicGeometries.has(geometry.uuid)) continue;
-  for (const name of ['normal', 'uv']) {
+  for (const name of ['color', 'harbourEmission']) {
+    const attribute=geometry.data.attributes[name];
+    if(!attribute || attribute.type!=='Float32Array' || attribute.normalized)continue;
+    attribute.array=attribute.array.map(T.DataUtils.toHalfFloat);
+    attribute.type='Uint16Array';
+    attribute.float16=true;
+  }
+  for (const name of ['normal', 'uv', 'harbourLightUV', 'harbourRoundWindow']) {
     const attribute = geometry.data.attributes[name];
     if (!attribute || attribute.type !== 'Float32Array' || attribute.normalized) continue;
     const min = name === 'normal' ? -1 : 0;
     if (!attribute.array.every(value => Number.isFinite(value) && value >= min && value <= 1)) continue;
-    const scale = name === 'normal' ? 32767 : 65535;
+    const scale = name === 'normal' ? 127 : name === 'harbourRoundWindow' ? 255 : 65535;
     attribute.array = attribute.array.map(value => Math.round(value * scale));
-    attribute.type = name === 'normal' ? 'Int16Array' : 'Uint16Array';
+    attribute.type = name === 'normal' ? 'Int8Array' : name === 'harbourRoundWindow' ? 'Uint8Array' : 'Uint16Array';
     attribute.normalized = true;
   }
 }
