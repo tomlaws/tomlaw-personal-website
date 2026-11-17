@@ -8,6 +8,7 @@ import { loadHarbourWorld } from './prepared-world-loader.mjs';
 import { CITY_LAYOUT as site } from './layout.mjs';
 import { fitMapCamera } from './camera-framing.mjs';
 import { homeView } from './camera-home.mjs';
+import { createWaterReflection } from './water-reflection.mjs';
 import {createEnvironmentBlend} from './environment-blend.mjs';
 import {createHarbourTime} from './harbour-time.mjs';
 import {createRenderProfiler} from './render-profiler.mjs';
@@ -183,9 +184,14 @@ scene.add(harbourGlint);
 // reflection read as a fault rather than as glass. Saturated blue over a blue sky is both simpler
 // and closer to what the eye expects of a waterfront tower.
 //
-// The sea keeps its own shaded surface and moving ripples. A planar mirror
-// required an additional full city render and a second set of clipped shaders,
-// which could block the page during startup on weaker devices.
+// Capture the skyline once, and only refresh on view or lighting changes.
+// This keeps reflections without re-rendering the city on every frame.
+let activeSky = DAY_SKY;
+const harbourMirror = createWaterReflection(renderer, scene, camera, {
+  level: world.ocean.level, size: world.worldSize, center: world.worldCenter,
+  waterColor: '#5fb6d6', sky: () => skyDome(activeSky),
+});
+harbourMirror.mesh.visible = false;
 const nightDistrict = null;
 // Settle the harbour into its opening pose before the tram's live clock starts.
 world.animate(0, 0);
@@ -355,11 +361,15 @@ function setNight(night) {
   scene.environment = night ? nightEnvironment : dayEnvironment;
   bloom.strength = night ? .62 : .12;
   bloom.threshold = night ? .72 : 2.2;
+  activeSky = night ? NIGHT_SKY : DAY_SKY;
+  harbourMirror.setNight(Number(night));
+  harbourMirror.updateSky();
 }
 function setTimeOfDay(value) {
   const t=T.MathUtils.clamp(value,0,1);
   state.night=t>.55;host.setNight(t);
   timeLighting.set(t);
+  harbourMirror.setNight(t);
   harbourGlint.intensity=T.MathUtils.lerp(40,5,t);
   world.materials.warm.emissiveIntensity=T.MathUtils.lerp(.55,2.4,t);
   world.materials.teal.emissiveIntensity=T.MathUtils.lerp(.60,1.3,t);
@@ -377,6 +387,13 @@ function setTimeOfDay(value) {
   scene.environmentIntensity=T.MathUtils.lerp(.82,.38,t);
   bloom.strength=T.MathUtils.lerp(.12,.62,t);bloom.threshold=T.MathUtils.lerp(2.2,.70,t);
   bloom.radius=T.MathUtils.lerp(.62,.90,haze);
+  activeSky={};
+  for(const key of Object.keys(DAY_SKY)){
+    if(typeof DAY_SKY[key]==='string')activeSky[key]=new T.Color(DAY_SKY[key]).lerp(new T.Color(NIGHT_SKY[key]),t);
+    else if(Array.isArray(DAY_SKY[key]))activeSky[key]=DAY_SKY[key].map((v,i)=>T.MathUtils.lerp(v,NIGHT_SKY[key][i],t));
+    else activeSky[key]=T.MathUtils.lerp(DAY_SKY[key],NIGHT_SKY[key],t);
+  }
+  harbourMirror.updateSky();
   const label=t<.18?'Day':t<.42?'Late afternoon':t<.70?'Dusk':t<.90?'Evening':'Midnight';
   renderer.shadowMap.needsUpdate=true;
 }
@@ -393,6 +410,7 @@ canvas.addEventListener('webglcontextlost', e => {
 
 let portfolioActive = true;
 let firstFrameReady=false;
+let reflectionReady=false, reflectionNotBefore=Infinity;
 let motionEnabled = !capturing&&!host.reducedMotion;
 const disconnectMotion = host.onMotion(() => {
   motionEnabled = !capturing&&!host.reducedMotion;
@@ -431,6 +449,7 @@ renderer.setAnimationLoop(timestamp => {
     nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted);
     if(!firstFrameReady){
       firstFrameReady=true;
+      reflectionNotBefore=performance.now()+1000;
       const readyMs=Math.round(performance.now()-startupAt);
       if(new URLSearchParams(host.search).has('profile'))host.diagnostic('startup-webgl',{readyMs,pixelRatio:renderer.getPixelRatio(),fullQuality});
       host.ready('webgl');
@@ -439,7 +458,7 @@ renderer.setAnimationLoop(timestamp => {
   // The faded background keeps its last frame. A resize or daylight update
   // may refresh that decoration without running its animation continuously.
   if (host.hidden || (!portfolioActive && !reflectionDirty && Math.abs(scrollAmount-scrollTarget)<=.0001)) { previousFrame = undefined; return; }
-  if (!motionEnabled && !reflectionDirty && firstFrameReady) { previousFrame = undefined; return; }
+  if (!motionEnabled && !reflectionDirty && reflectionReady) { previousFrame = undefined; return; }
   // The background leaves GPU headroom while keeping every display pixel.
   // Explicit throughput profiling can still lift the animation cap.
   // A second minimum-interval check rounded every 24 Hz deadline up to a
@@ -467,7 +486,11 @@ renderer.setAnimationLoop(timestamp => {
   lighting.update();
   controls.update();
   profiler?.mark('animation');
-  reflectionDirty=false;
+  if (firstFrameReady && (reflectionDirty || !reflectionReady) && performance.now() >= reflectionNotBefore) {
+    harbourMirror.update();
+    reflectionReady=true;
+    reflectionDirty=false;
+  }
   profiler?.mark('reflection');
   composer.render();
   profiler?.mark('mainAndEffects');
@@ -482,6 +505,7 @@ function dispose(){
   disconnectResize(); disconnectMotion(); disconnectDispose();
   if(frameFence){gl.deleteSync(frameFence);frameFence=null;}
   gpuTimer?.dispose();
+  harbourMirror.dispose();
   silhouetteTarget.dispose();renderer.dispose();renderer.forceContextLoss();
 }
 const disconnectDispose = host.onDispose(dispose);
