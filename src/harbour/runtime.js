@@ -6,10 +6,8 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createCoastalLighting } from './coastal-lighting.mjs';
 import { loadHarbourWorld } from './prepared-world-loader.mjs';
 import { CITY_LAYOUT as site } from './layout.mjs';
-import { CityContactPass } from './contact-shadows.mjs';
 import { fitMapCamera } from './camera-framing.mjs';
 import { homeView } from './camera-home.mjs';
-import { createWaterReflection } from './water-reflection.mjs';
 import {createEnvironmentBlend} from './environment-blend.mjs';
 import {createHarbourTime} from './harbour-time.mjs';
 import {createRenderProfiler} from './render-profiler.mjs';
@@ -19,7 +17,7 @@ import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { mapPixelRatio } from './render-quality.mjs';
-import { animationDelta, nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
@@ -43,11 +41,11 @@ try {
 } catch {
   throw new Error('WebGL initialization failed');
 }
-function pixelRatio() { return mapPixelRatio(host.dpr); }
+function pixelRatio() { return Math.min(host.width <= 650 ? 1.25 : 1.5, mapPixelRatio(host.dpr)); }
 renderer.setPixelRatio(pixelRatio());
 renderer.setSize(host.width, host.height, false);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = T.VSMShadowMap;
+renderer.shadowMap.type = T.PCFSoftShadowMap;
 renderer.shadowMap.autoUpdate = false;
 renderer.toneMapping = T.NeutralToneMapping;
 renderer.toneMappingExposure = 1.15;
@@ -185,24 +183,9 @@ scene.add(harbourGlint);
 // reflection read as a fault rather than as glass. Saturated blue over a blue sky is both simpler
 // and closer to what the eye expects of a waterfront tower.
 //
-// The island's reflection belongs on the water instead, where the surface is a plane and the
-// reflection can be exact: that is the harbour mirror below. setNight() swaps this for the night
-// sky along with the rest of the lighting.
-let activeSky = DAY_SKY;
-// The sea mirrors the island. The glass and the water want different things — the glass wants the
-// sky, the water wants an exact mirror of one plane — so they are built separately and neither is
-// faked.
-const harbourMirror = createWaterReflection(renderer, scene, camera, {
-  level: world.ocean.level,
-  // The mirror is a plane the size of the plate, and the plate is the map: a smaller one would stop
-  // reflecting the island part of the way across the harbour and leave a visible edge in the water.
-  size: world.worldSize,
-  center: world.worldCenter,
-  // The plane's own colour has to match the sea it lies on, because where there is nothing to
-  // reflect that is all the water is: a paler one washes the deep teal out of the whole harbour.
-  waterColor: '#5fb6d6',
-  sky: () => skyDome(activeSky),
-});
+// The sea keeps its own shaded surface and moving ripples. A planar mirror
+// required an additional full city render and a second set of clipped shaders,
+// which could block the page during startup on weaker devices.
 const nightDistrict = null;
 // Settle the harbour into its opening pose before the tram's live clock starts.
 world.animate(0, 0);
@@ -211,16 +194,11 @@ lighting.update(0);
 // a render target instead of the canvas, which is what left every silhouette hard
 // edged next to the offline render. The composer therefore gets a multisampled
 // target of its own, and the edges are resolved before the effect chain reads it.
-const composerTarget = new T.WebGLRenderTarget(host.width, host.height, { type: T.HalfFloatType, samples: 4 });
+const composerTarget = new T.WebGLRenderTarget(host.width, host.height, { type: T.HalfFloatType, samples: 2 });
 composerTarget.depthTexture = new T.DepthTexture(host.width, host.height);
 const composer = new EffectComposer(renderer, composerTarget);
 const beauty = new RenderPass(scene, camera);
 composer.addPass(beauty);
-const contactShadows = new CityContactPass(scene, camera, host.width, host.height);
-contactShadows.blendIntensity = .42;
-contactShadows.updateGtaoMaterial({ radius: .14, thickness: .12, distanceExponent: 1.6, distanceFallOff: 1, scale: .65, samples: 16 });
-contactShadows.updatePdMaterial({ radius: 4, lumaPhi: 8, depthPhi: 2, normalPhi: 3 });
-composer.addPass(contactShadows);
 const bloom = new UnrealBloomPass(new T.Vector2(host.width, host.height), .62, .62, .72);
 if(!cyberpunkRoute){
     // Use the same emitting-channel threshold for every window colour, without
@@ -315,7 +293,6 @@ function resize() {
   renderer.setSize(host.width, host.height, false);
   if(ratioChanged)composer.setPixelRatio(ratio);
   composer.setSize(host.width, host.height);
-  contactShadows.setSize(Math.round(host.width * .8), Math.round(host.height * .8));
   // The reflection and main image are redrawn together in this render frame.
   reflectionDirty = true;
 }
@@ -378,15 +355,11 @@ function setNight(night) {
   scene.environment = night ? nightEnvironment : dayEnvironment;
   bloom.strength = night ? .62 : .12;
   bloom.threshold = night ? .72 : 2.2;
-  contactShadows.blendIntensity = night ? .32 : .25;
-  activeSky = night ? NIGHT_SKY : DAY_SKY;
-  harbourMirror.updateSky();
 }
 function setTimeOfDay(value) {
   const t=T.MathUtils.clamp(value,0,1);
   state.night=t>.55;host.setNight(t);
   timeLighting.set(t);
-  harbourMirror.setNight(t);
   harbourGlint.intensity=T.MathUtils.lerp(40,5,t);
   world.materials.warm.emissiveIntensity=T.MathUtils.lerp(.55,2.4,t);
   world.materials.teal.emissiveIntensity=T.MathUtils.lerp(.60,1.3,t);
@@ -404,23 +377,13 @@ function setTimeOfDay(value) {
   scene.environmentIntensity=T.MathUtils.lerp(.82,.38,t);
   bloom.strength=T.MathUtils.lerp(.12,.62,t);bloom.threshold=T.MathUtils.lerp(2.2,.70,t);
   bloom.radius=T.MathUtils.lerp(.62,.90,haze);
-  contactShadows.blendIntensity=T.MathUtils.lerp(.25,.30,t);
-  activeSky={};
-  for(const key of Object.keys(DAY_SKY)){
-    if(typeof DAY_SKY[key]==='string')activeSky[key]=new T.Color(DAY_SKY[key]).lerp(new T.Color(NIGHT_SKY[key]),t);
-    else if(Array.isArray(DAY_SKY[key]))activeSky[key]=DAY_SKY[key].map((v,i)=>T.MathUtils.lerp(v,NIGHT_SKY[key][i],t));
-    else activeSky[key]=T.MathUtils.lerp(DAY_SKY[key],NIGHT_SKY[key],t);
-  }
   const label=t<.18?'Day':t<.42?'Late afternoon':t<.70?'Dusk':t<.90?'Evening':'Midnight';
-  harbourMirror.updateSky();
   renderer.shadowMap.needsUpdate=true;
 }
 setTimeOfDay(host.night());
 // Let supported drivers compile materials in parallel instead of blocking the
 // first visible frame on all landmark shaders at once.
 await renderer.compileAsync(scene, camera);
-// The first animation frame captures the reflection before composing the map.
-// Avoid submitting a duplicate full-scene capture during initialization.
 
 canvas.addEventListener('webglcontextlost', e => {
   if (disposed) return;
@@ -446,7 +409,7 @@ const disconnectPortfolio=host.connect({
   setScroll(value,rise=0) { scrollTarget = motionEnabled ? value : 0; riseTarget=motionEnabled?rise:0; cameraDirty=true; reflectionDirty=true; },
 });
 
-let previousFrame,lastRendered=-Infinity,lastShadowTime=-Infinity,lastReflectionTime=-Infinity;
+let previousFrame,lastRendered=-Infinity;
 const gl=renderer.getContext();
 let frameFence=null,frameStarted=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0;
 const profiler=new URLSearchParams(host.search).has('profile')?createRenderProfiler(renderer, data=>host.diagnostic('render-profile',data)):null;
@@ -464,7 +427,7 @@ renderer.setAnimationLoop(timestamp => {
     // A fence checked on the next RAF includes browser scheduling delay. When
     // supported, use the GPU's elapsed-time query rather than treating that
     // delay as rendering work and adding another unnecessary cooldown.
-    const workCompleted=gpuMs===undefined?completed:frameStarted+Math.max(submissionMs,gpuMs);
+    const workCompleted=estimatedWorkCompletion(frameStarted,completed,submissionMs,gpuMs);
     nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted);
     if(!firstFrameReady){
       firstFrameReady=true;
@@ -504,14 +467,7 @@ renderer.setAnimationLoop(timestamp => {
   lighting.update();
   controls.update();
   profiler?.mark('animation');
-  // Refresh the full-resolution mirror less often on phones; camera, time,
-  // and resize changes still invalidate it immediately.
-  if(timestamp-lastShadowTime>=1000/6){renderer.shadowMap.needsUpdate=true;lastShadowTime=timestamp;}
-  if (shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflectionTime)) {
-    harbourMirror.update();
-    lastReflectionTime=timestamp;
-    reflectionDirty=false;
-  }
+  reflectionDirty=false;
   profiler?.mark('reflection');
   composer.render();
   profiler?.mark('mainAndEffects');

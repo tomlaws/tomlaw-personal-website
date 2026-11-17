@@ -13,7 +13,7 @@ import { isolateFramebufferTextures } from '../src/harbour/webgpu-compat.mjs';
 import { cacheViewPass } from '../src/harbour/cached-view-pass.mjs';
 import { indexStaticBatches,indexStaticBatchesAsync } from '../src/harbour/webgpu-geometry.mjs';
 import { createRenderBudget } from '../src/harbour/render-budget.mjs';
-import { animationDelta, nextBackgroundFrame } from '../src/harbour/frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion } from '../src/harbour/frame-pacing.mjs';
 import { createWorkerRenderHost } from '../src/harbour/render-host.mjs';
 import { mapPixelRatio } from '../src/harbour/render-quality.mjs';
 import { decodeEnvironmentData,readEnvironmentResponse } from '../src/harbour/environment-data.mjs';
@@ -170,9 +170,12 @@ assert.equal(animationDelta(1000,1100),.1,'A 10 FPS animation still advances in 
 assert.equal(animationDelta(1000,1200),.2,'A 5 FPS animation still advances in real time');
 assert.equal(animationDelta(1000,4000),1,'Very long stalls remain bounded');
 assert.equal(animationDelta(1100,1000),0,'Clock changes cannot run animation backwards');
-assert.ok(Math.abs(nextBackgroundFrame(1000/24,50,60)-2000/24)<.001,'Late RAFs retain the intended average cadence');
-assert.ok(nextBackgroundFrame(0,0,80)>=80/.6,'Slow frames leave GPU headroom');
-assert.ok(Math.abs(nextBackgroundFrame(0,1000,1010)-1000-1000/24)<.001,'Resuming does not trigger a burst of catch-up frames');
+assert.ok(Math.abs(nextBackgroundFrame(1000/30,40,45)-2000/30)<.001,'Late RAFs retain the intended average cadence');
+assert.ok(nextBackgroundFrame(0,0,80)>=80/.75,'Slow frames leave GPU headroom');
+assert.ok(Math.abs(nextBackgroundFrame(0,1000,1010)-1000-1000/30)<.001,'Resuming does not trigger a burst of catch-up frames');
+assert.equal(estimatedWorkCompletion(100,116.7,3,undefined),103,'A fence polled on the next RAF does not count idle time as GPU work');
+assert.ok(Math.abs(estimatedWorkCompletion(100,150,3,undefined)-(150-1000/60))<.001,'Long GPU work still leaves time for the browser');
+assert.equal(estimatedWorkCompletion(100,120,3,8),108,'GPU timer results take precedence when available');
 
 const workerState={search:'',width:800,height:600,dpr:1,hidden:false,reducedMotion:false,night:1};
 const workerMessages=[],workerCommands=[];const workerHost=createWorkerRenderHost({},workerState,message=>workerMessages.push(message));

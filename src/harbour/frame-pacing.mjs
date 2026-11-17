@@ -1,11 +1,18 @@
 // Keep a steady average cadence despite RAF quantisation, with explicit GPU
 // headroom. Reset overdue deadlines after suspension instead of catching up.
-export function nextBackgroundFrame(previousDeadline, started, completed, fps = 24, duty = .6) {
+export function nextBackgroundFrame(previousDeadline, started, completed, fps = 30, duty = .75) {
   const interval = 1000 / fps;
   const anchor = !Number.isFinite(previousDeadline) || started - previousDeadline > interval * 2
     ? started : previousDeadline;
   const work = Math.max(0, completed - started);
   return Math.max(anchor + interval, completed + work * (1 - duty) / duty);
+}
+
+// Polling a fence on RAF includes up to one refresh of idle scheduling time.
+// Without a GPU timer (notably on Safari), don't count that wait as GPU work.
+export function estimatedWorkCompletion(started, completed, cpuMs, gpuMs) {
+  if (Number.isFinite(gpuMs)) return started + Math.max(cpuMs, gpuMs);
+  return Math.max(started + cpuMs, completed - 1000 / 60);
 }
 
 // Keep the full-resolution reflection but update it at a lower cadence on
