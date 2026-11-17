@@ -30,7 +30,9 @@ async function startLegacy(reason) {
   if (reason) console.warn('Worker renderer unavailable; using main-thread WebGL.', reason);
   freshCanvas();
   const mainFixture = import.meta.env.DEV && new URLSearchParams(location.search).get('qaThread') === 'main';
-  if (!reason && !mainFixture && matchMedia('(max-width: 650px)').matches &&
+  // The scene is also expensive to initialize on desktop. Keep parsing,
+  // shader setup and rendering off the page's UI thread wherever supported.
+  if (!reason && !mainFixture &&
       typeof Worker !== 'undefined' && 'transferControlToOffscreen' in HTMLCanvasElement.prototype) {
     try {
       const { startWorkerRenderer } = await import('./worker-controller.mjs');
