@@ -115,7 +115,14 @@ for(let index=0;index<actual.length;index++){
   const [a,b]=[actual[index],expected[index]];assert.equal(a.name,b.name);
   const ag=a.geometry.index?a.geometry.toNonIndexed():a.geometry,bg=b.geometry.index?b.geometry.toNonIndexed():b.geometry;
   for(const [key,attribute] of Object.entries(bg.attributes)){
-    const av=ag.attributes[key].array,bv=attribute.array;
+    const actualAttribute=ag.attributes[key];
+    const av=actualAttribute.array,bv=attribute.array;
+    if (actualAttribute.normalized && (key === 'normal' || key === 'uv')) {
+      assert.equal(actualAttribute.count,attribute.count,`${a.name} ${key}: unchanged vertex count`);
+      for(let vertex=0;vertex<attribute.count;vertex++)for(let component=0;component<attribute.itemSize;component++)
+        assert.ok(Math.abs(actualAttribute.getComponent(vertex,component)-attribute.getComponent(vertex,component)) <= 1/32767,`${a.name} ${key}: normalized precision`);
+      continue;
+    }
     assert.equal(av.byteLength,bv.byteLength,`${a.name} ${key} byte length`);
     assert.equal(Buffer.compare(Buffer.from(av.buffer,av.byteOffset,av.byteLength),Buffer.from(bv.buffer,bv.byteOffset,bv.byteLength)),0,`${a.name} ${key}: no vertex precision or geometry loss`);
   }
@@ -148,7 +155,7 @@ for(const night of [0,.5,1]){
     }
   }
 }
-console.log(`Prepared world: ${actual.length} meshes retain every expanded vertex/attribute; five animation phases and day/dusk/night materials match.`);
+console.log(`Prepared world: ${actual.length} meshes retain their geometry with bounded normal/UV precision; five animation phases and day/dusk/night materials match.`);
 
 const sliced = await restorePreparedWorldAsync(data);
 prepared.animate(0); sliced.animate(0);

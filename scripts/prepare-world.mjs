@@ -22,10 +22,12 @@ world.root.traverse(object=>{
   object.geometry=indexed.get(geometry);
 });
 const geometries=new Set(),materials=new Set();let objectIndex=0;
+const dynamicGeometries = new Set();
 world.root.traverse(object=>{
   object.uuid=`harbour-object-${objectIndex++}`;
   if(object.isLight&&object.shadow?.camera)object.shadow.camera.uuid=`${object.uuid}-shadow-camera`;
   if(object.geometry&&!geometries.has(object.geometry)){geometries.add(object.geometry);object.geometry.uuid=`harbour-geometry-${geometries.size}`;}
+  if(object.geometry?.attributes.position?.usage===T.DynamicDrawUsage)dynamicGeometries.add(object.geometry.uuid);
   for(const material of Array.isArray(object.material)?object.material:[object.material])if(material&&!materials.has(material)){
     materials.add(material);material.uuid=`harbour-material-${materials.size}`;
   }
@@ -77,13 +79,28 @@ const replacements=new Map();
 for(const geometry of geometries){const flat=new T.BufferGeometry().copy(geometry);flat.uuid=geometry.uuid;delete flat.parameters;replacements.set(geometry,flat);}
 world.root.traverse(object=>{if(object.geometry)object.geometry=replacements.get(object.geometry);});
 const scene=world.root.toJSON();
+// Normals and UVs do not need 32-bit precision. Normalized 16-bit attributes
+// stay compact on the GPU as well as on the wire; positions remain lossless.
+for (const geometry of scene.geometries) {
+  if (dynamicGeometries.has(geometry.uuid)) continue;
+  for (const name of ['normal', 'uv']) {
+    const attribute = geometry.data.attributes[name];
+    if (!attribute || attribute.type !== 'Float32Array' || attribute.normalized) continue;
+    const min = name === 'normal' ? -1 : 0;
+    if (!attribute.array.every(value => Number.isFinite(value) && value >= min && value <= 1)) continue;
+    const scale = name === 'normal' ? 32767 : 65535;
+    attribute.array = attribute.array.map(value => Math.round(value * scale));
+    attribute.type = name === 'normal' ? 'Int16Array' : 'Uint16Array';
+    attribute.normalized = true;
+  }
+}
 const known=new Set(scene.materials.map(material=>material.uuid));
 for(const material of materials)if(!known.has(material.uuid))scene.materials.push(material.toJSON());
 const sourceHash=await worldSourceHash();
 const raw=encodeSceneData({scene,world:metadata,exactMaterials,transforms});
 const sha256=createHash('sha256').update(new Uint8Array(raw)).digest('hex');
 const file=`harbour-world-${sha256.slice(0,12)}.bin.gz`,compressed=gzipSync(new Uint8Array(raw),{level:9});
-const brotli=brotliCompressSync(new Uint8Array(raw),{params:{[constants.BROTLI_PARAM_QUALITY]:8}});
+const brotli=brotliCompressSync(new Uint8Array(raw),{params:{[constants.BROTLI_PARAM_QUALITY]:11}});
 const brotliFile=`harbour-world-${sha256.slice(0,12)}.bin.br`;
 const old=await readFile('src/harbour/world-asset.json','utf8').then(JSON.parse).catch(()=>null);
 await mkdir('public/world',{recursive:true});await writeFile(`public/world/${file}`,compressed);
