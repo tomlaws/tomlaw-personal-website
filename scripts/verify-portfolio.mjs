@@ -212,9 +212,11 @@ assert.ok(existsSync('public/images/hong-kong-night.png'));
 console.log('Portfolio: live HK daylight, shared background theme, no map controls, public GitHub metadata and bundled models passed.');
 
 assert.equal(shouldUpdateReflection(390,false,50,0),false,'Phone reflection is reused between full-resolution updates');
-assert.equal(shouldUpdateReflection(390,false,84,0),true,'Phone reflection becomes eligible after 1/12 second');
+assert.equal(shouldUpdateReflection(390,false,125,0),true,'Phone reflection follows moving boats at a bounded rate');
 assert.equal(shouldUpdateReflection(390,true,50,0),true,'Camera or lighting changes refresh the reflection immediately');
-assert.equal(shouldUpdateReflection(900,false,50,0),true,'Desktop reflection remains per-frame');
+assert.equal(shouldUpdateReflection(900,false,50,0),false,'Desktop reflection does not redraw on every frame');
+assert.equal(shouldUpdateReflection(900,false,84,0),true,'Desktop reflection follows moving boats');
+assert.equal(shouldUpdateReflection(900,false,500,0,false),false,'Reduced motion does not trigger unnecessary reflection renders');
 
 const portfolioCSS=readFileSync('src/portfolio.css','utf8');
 const portfolioJS=readFileSync('src/Portfolio.jsx','utf8');

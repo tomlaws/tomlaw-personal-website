@@ -18,7 +18,7 @@ import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { mapPixelRatio } from './render-quality.mjs';
-import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, shouldUpdateReflection } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
@@ -410,7 +410,7 @@ canvas.addEventListener('webglcontextlost', e => {
 
 let portfolioActive = true;
 let firstFrameReady=false;
-let reflectionReady=false;
+let reflectionReady=false, lastReflectionTime=-Infinity;
 let motionEnabled = !capturing&&!host.reducedMotion;
 const disconnectMotion = host.onMotion(() => {
   motionEnabled = !capturing&&!host.reducedMotion;
@@ -485,10 +485,12 @@ renderer.setAnimationLoop(timestamp => {
   lighting.update();
   controls.update();
   profiler?.mark('animation');
-  // Capture before the first presented frame, then reuse it until invalidated.
-  if (reflectionDirty || !reflectionReady) {
+  // Capture before the first frame and periodically thereafter so moving boats
+  // remain reflected without drawing a second full scene every frame.
+  if (shouldUpdateReflection(host.width, reflectionDirty || !reflectionReady, timestamp, lastReflectionTime, motionEnabled)) {
     harbourMirror.update();
     reflectionReady=true;
+    lastReflectionTime=timestamp;
     reflectionDirty=false;
   }
   profiler?.mark('reflection');
