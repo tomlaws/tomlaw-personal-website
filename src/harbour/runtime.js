@@ -42,7 +42,7 @@ try {
 } catch {
   throw new Error('WebGL initialization failed');
 }
-function pixelRatio() { return Math.min(host.width <= 650 ? 1.25 : 1.5, mapPixelRatio(host.dpr)); }
+function pixelRatio() { return mapPixelRatio(host.dpr, host.width, host.height); }
 renderer.setPixelRatio(pixelRatio());
 renderer.setSize(host.width, host.height, false);
 renderer.shadowMap.enabled = true;
@@ -410,7 +410,7 @@ canvas.addEventListener('webglcontextlost', e => {
 
 let portfolioActive = true;
 let firstFrameReady=false;
-let reflectionReady=false, reflectionNotBefore=Infinity;
+let reflectionReady=false;
 let motionEnabled = !capturing&&!host.reducedMotion;
 const disconnectMotion = host.onMotion(() => {
   motionEnabled = !capturing&&!host.reducedMotion;
@@ -449,7 +449,6 @@ renderer.setAnimationLoop(timestamp => {
     nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted);
     if(!firstFrameReady){
       firstFrameReady=true;
-      reflectionNotBefore=performance.now()+1000;
       const readyMs=Math.round(performance.now()-startupAt);
       if(new URLSearchParams(host.search).has('profile'))host.diagnostic('startup-webgl',{readyMs,pixelRatio:renderer.getPixelRatio(),fullQuality});
       host.ready('webgl');
@@ -486,7 +485,8 @@ renderer.setAnimationLoop(timestamp => {
   lighting.update();
   controls.update();
   profiler?.mark('animation');
-  if (firstFrameReady && (reflectionDirty || !reflectionReady) && performance.now() >= reflectionNotBefore) {
+  // Capture before the first presented frame, then reuse it until invalidated.
+  if (reflectionDirty || !reflectionReady) {
     harbourMirror.update();
     reflectionReady=true;
     reflectionDirty=false;
