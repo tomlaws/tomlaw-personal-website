@@ -11,13 +11,15 @@ import { createNodePostProcessing } from '../src/harbour/webgpu-post.mjs';
 
 let viewport = {width:390,height:680,dpr:3}, resizes = 0;
 const quality = createAdaptiveRenderQuality({viewport:() => viewport,onChange:() => resizes++});
-assert.equal(quality.pixelRatio(),1);
+assert.equal(quality.pixelRatio(),2);
 for (let i=0;i<120;i++) quality.observe(50,4,12);
-assert.equal(quality.pixelRatio(),1,'Intentional frame pacing does not lower mobile quality');
+assert.equal(quality.pixelRatio(),2,'Intentional frame pacing does not lower mobile quality');
 quality.observe(90,2,70);
-assert.equal(quality.pixelRatio(),1,'One slow frame cannot resize the drawing buffer');
+assert.equal(quality.pixelRatio(),2,'One slow frame cannot resize the drawing buffer');
 for (let i=0;i<300;i++) quality.observe(80,3,40);
-assert.equal(quality.pixelRatio(),.75,'Sustained GPU overload reaches the bounded mobile floor');
+assert.equal(quality.pixelRatio(),2,'Sustained GPU overload cannot blur the city');
+assert.ok(quality.reflectionHz()>=4&&quality.reflectionHz()<8,'Overload reduces auxiliary effect work');
+assert.ok(quality.bloomInterval()<=125&&quality.bloomInterval()>1000/15);
 const settled = resizes;
 for (let i=0;i<100;i++) quality.observe(80,3,40);
 assert.equal(resizes,settled,'Reaching the floor does not keep requesting resizes');
@@ -28,17 +30,19 @@ assert.equal(resizes,settled);
 
 const throttled = createAdaptiveRenderQuality({viewport:() => ({width:390,height:680,dpr:3})});
 for (let i=0;i<120;i++) throttled.observe(1000,4,12);
-assert.equal(throttled.pixelRatio(),1,'Browser throttling alone does not lower quality');
+assert.equal(throttled.pixelRatio(),2,'Browser throttling alone does not lower quality');
+assert.equal(throttled.reflectionHz(),8);
 const severe = createAdaptiveRenderQuality({viewport:() => ({width:390,height:680,dpr:3})});
 severe.observe(300,3,200); severe.observe(300,3,200);
-assert.ok(severe.pixelRatio()<1,'Severe GPU stalls reduce work promptly without pausing');
+assert.equal(severe.pixelRatio(),2,'Severe GPU stalls preserve image resolution');
+assert.ok(severe.reflectionHz()<8,'Severe stalls adapt effect refresh without pausing animation');
 
 for (const width of [320,390,430,650,651,1440]) {
   const profile = harbourRenderProfile(width), mobile = width<=650;
   assert.equal(profile.reflectionResolution,mobile?512:1024);
   assert.equal(profile.shadowResolution,mobile?1024:2048);
   assert.equal(profile.bloomScale,mobile?.5:1);
-  assert.equal(mapPixelRatio(3,width,930),mobile?1:1.5);
+  assert.equal(mapPixelRatio(3,width,930),mobile?2:1.5);
 }
 let scale = .5;
 const bloom = new UnrealBloomPass();

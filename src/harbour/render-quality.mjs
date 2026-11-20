@@ -15,10 +15,10 @@ export function harbourRenderProfile(width) {
   };
 }
 
-// Keep desktop rendering unchanged. Phones start at one render pixel per CSS
-// pixel; sustained overload can reduce that to .75 without stopping animation.
+// Keep scene resolution fixed. High-density phones render at 2x CSS resolution;
+// overload adjusts auxiliary effect cadence rather than blurring the city.
 export function mapPixelRatio(deviceRatio = 1, width = 0, height = 0) {
-  const dpr = Math.min(harbourRenderProfile(width).mobile ? 1 : 1.5,
+  const dpr = Math.min(harbourRenderProfile(width).mobile ? 2 : 1.5,
     Math.max(1, Number.isFinite(deviceRatio) ? deviceRatio : 1));
   if (!(width > 0 && height > 0)) return dpr;
   const pixelBudget = 3_200_000;
@@ -33,9 +33,10 @@ export function createAdaptiveRenderQuality({ viewport, onChange = () => {} }) {
   return {
     pixelRatio() {
       const {width, height, dpr} = viewport();
-      const scale = harbourRenderProfile(width).mobile ? Math.sqrt(budget.pixels / 1_000_000) : 1;
-      return mapPixelRatio(dpr, width, height) * scale;
+      return mapPixelRatio(dpr, width, height);
     },
+    reflectionHz() { return harbourRenderProfile(viewport().width).mobile ? 8*budget.pixels/1_000_000 : 12; },
+    bloomInterval() { return harbourRenderProfile(viewport().width).mobile ? 1000/Math.max(8,15*budget.pixels/1_000_000) : 0; },
     observe(frameMs, cpuMs, workMs) {
       if (harbourRenderProfile(viewport().width).mobile) budget.observe(frameMs, cpuMs, workMs);
     },

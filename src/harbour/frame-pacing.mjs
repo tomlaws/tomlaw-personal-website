@@ -17,8 +17,8 @@ export function estimatedWorkCompletion(started, completed, cpuMs, gpuMs) {
 
 // Moving boats need a live reflection, but a second scene render every frame
 // competes with the main scene. Refresh at a bounded rate on all devices.
-export function shouldUpdateReflection(width, dirty, timestamp, lastUpdate, motion = true) {
-  return dirty || (motion && timestamp - lastUpdate >= 1000 / (width <= 650 ? 8 : 12));
+export function shouldUpdateReflection(width, dirty, timestamp, lastUpdate, motion = true, hz = width <= 650 ? 8 : 12) {
+  return dirty || (motion && timestamp - lastUpdate >= 1000 / hz);
 }
 
 // Animations use elapsed time rather than slowing down when frames are sparse.

@@ -12,5 +12,6 @@ export function createEnvironmentBlend(renderer,day,night){
   const scene=new T.Scene();scene.add(new T.Mesh(new T.PlaneGeometry(2,2),material));
   const camera=new T.Camera();
   function update(amount){uniforms.amount.value=amount;const previous=renderer.getRenderTarget();renderer.setRenderTarget(target);renderer.render(scene,camera);renderer.setRenderTarget(previous);}
-  update(0);return {texture:target.texture,update};
+  update(0);return {texture:target.texture,update,
+    dispose(){target.dispose();material.dispose();scene.children[0].geometry.dispose();}};
 }

@@ -8,7 +8,7 @@ import { createTemporalSampler } from './webgpu-temporal-qa.mjs';
 import { cacheViewPass } from './cached-view-pass.mjs';
 import { harbourRenderProfile, scaleEffectResolution } from './render-quality.mjs';
 
-export function createNodePostProcessing(renderer, scene, camera, {search = '', profile = harbourRenderProfile(0)} = {}) {
+export function createNodePostProcessing(renderer, scene, camera, {search = '', profile = harbourRenderProfile(0), bloomInterval = () => 1000/15} = {}) {
   let quality = profile;
   const post = new T.PostProcessing(renderer);
   // Sampleable depth is needed by GTAO and composition. Use a single-sample
@@ -46,7 +46,7 @@ export function createNodePostProcessing(renderer, scene, camera, {search = '', 
   const glow = bloom(shaded, .12, .62, 2.2);
   scaleEffectResolution(glow, () => quality.bloomScale);
   glow.smoothWidth.value = .20;
-  const invalidateBloom = cacheViewPass(glow, renderer, camera, 1000 / 15);
+  const invalidateBloom = cacheViewPass(glow, renderer, camera, bloomInterval);
   const originalBloomSetup = glow.setup.bind(glow);
   glow.setup = builder => {
     const result = originalBloomSetup(builder);

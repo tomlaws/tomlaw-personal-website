@@ -1,8 +1,5 @@
 import * as T from 'three';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { HarbourBloom, createHarbourPostProcessing } from './webgl-post.mjs';
 import { createCoastalLighting } from './coastal-lighting.mjs';
 import { loadHarbourWorld } from './prepared-world-loader.mjs';
 import { CITY_LAYOUT as site } from './layout.mjs';
@@ -15,22 +12,25 @@ import {createRenderProfiler} from './render-profiler.mjs';
 import { createBrowserRenderHost } from './render-host.mjs';
 import { harbourTime } from '../hong-kong-time.mjs';
 import { harbourTheme } from '../harbour-theme.mjs';
-import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { createAdaptiveRenderQuality, harbourRenderProfile, scaleEffectResolution, setSunShadowResolution } from './render-quality.mjs';
 import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, shouldUpdateReflection } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
+import { compactPointLightLoops } from './point-light-loop.mjs';
+import { loadWebGLEnvironments } from './webgl-environment.mjs';
+import environmentAsset from './environment-asset.json' with {type:'json'};
 
 export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
 const canvas = host.canvas;
 const startupAt=performance.now();
 const quality = createAdaptiveRenderQuality({
   viewport: () => ({width:host.width, height:host.height, dpr:host.dpr}),
-  onChange: () => requestResize(),
 });
 const preparedWorld=loadHarbourWorld({procedural:import.meta.env.DEV&&new URLSearchParams(host.search).get('qaWorld')==='procedural'}).then(world=>({world}),error=>({error}));
+const preparedEnvironment=loadWebGLEnvironments(`${import.meta.env.BASE_URL}lighting/${environmentAsset.file}`)
+  .catch(error => { console.warn('Prepared lighting unavailable; generating the original sky.',error); return null; });
 const cyberpunkRoute = false;
 
 // A capture run — `npm run capture` puts ?capture= in the url — has nobody watching the
@@ -51,9 +51,13 @@ renderer.setSize(host.width, host.height, false);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = T.PCFSoftShadowMap;
 renderer.shadowMap.autoUpdate = false;
+renderer.transmissionResolutionScale = harbourRenderProfile(host.width).mobile ? .5 : 1;
 renderer.toneMapping = T.NeutralToneMapping;
 renderer.toneMappingExposure = 1.15;
 renderer.setClearColor('#0a0c1d');
+// One plane slot in both cameras avoids a second full set of PBR shader
+// variants when the first reflection appears. The main plane cuts nothing.
+renderer.clippingPlanes = [new T.Plane(new T.Vector3(0,1,0),1e6)];
 
 const scene = new T.Scene();
 // A plain backdrop lets the map share the page's atmosphere. Glass keeps its
@@ -67,7 +71,8 @@ scene.fog = new T.Fog('#0e1128', 22, 58);
 // poles and keeps whatever hard edges it was drawn with, and a polished facade turns both into
 // artefacts — bands across the glass, and a starburst where the image pinches. Every term here is
 // a smooth function of direction, so there are no edges to reflect.
-const environmentGenerator = new T.PMREMGenerator(renderer);
+let environmentGenerator;
+const environmentTargets=[];
 // The dome is built on its own so that it can serve twice: once here, to be photographed into an
 // environment, and once at load, to stand in for the visible sky while the district itself is
 // photographed for its reflections.
@@ -115,8 +120,10 @@ function skyDome({ zenith, horizon, ground, sunColor, sunDirection, cloudColor, 
   );
 }
 function buildSkyEnvironment(options) {
+  environmentGenerator ??= new T.PMREMGenerator(renderer);
   const dome = skyDome(options);
   const target = environmentGenerator.fromScene(new T.Scene().add(dome), 0);
+  environmentTargets.push(target);
   dome.geometry.dispose(); dome.material.dispose();
   return target.texture;
 }
@@ -130,14 +137,15 @@ const NIGHT_SKY = {
   zenith: '#0d1a33', horizon: '#4b5b7c', ground: '#101520',
   sunColor: '#ffd9a8', sunDirection: [-6, 3.5, 9], cloudColor: '#28324a', cloudCover: .45, cloudScale: 5.1,
 };
-const dayEnvironment = buildSkyEnvironment(DAY_SKY);
-const nightEnvironment = buildSkyEnvironment(NIGHT_SKY);
+const preparedSkies=await preparedEnvironment;
+const dayEnvironment = preparedSkies?.[0] ?? buildSkyEnvironment(DAY_SKY);
+const nightEnvironment = preparedSkies?.[1] ?? buildSkyEnvironment(NIGHT_SKY);
 const environmentBlend=createEnvironmentBlend(renderer,dayEnvironment,nightEnvironment);
 scene.environment = environmentBlend.texture;
 // The glass carries its own reflection strength; this is the environment's share of it, and it is
 // the one number that decides whether a facade mirrors the sky or merely looks blue.
 scene.environmentIntensity = .82;
-environmentGenerator.dispose();
+environmentGenerator?.dispose();
 // The view stands at Tsim Sha Tsui, and `camera-home.mjs` owns that pose: the camera is high and out
 // over the water off the harbour's east end, looking across at Hong Kong Island, so the
 // wheel and the IFC land on the right of the picture. Nothing of Tsim Sha Tsui is in the world — the
@@ -163,6 +171,7 @@ scene.add(world.root);
 const lighting = createCoastalLighting(scene, world);
 setSunShadowResolution(lighting.sun, harbourRenderProfile(host.width).shadowResolution);
 const timeLighting=cyberpunkRoute?null:createHarbourTime(scene,world,lighting);
+compactPointLightLoops(world.root);
 // A lamp out over the harbour, low and close to the waterline. This is the light that shows up on
 // glass, and where it goes is not a matter of taste. A vertical facade reflects what is low and in
 // front of it, because the mirror image of a camera looking down arrives pointing at the ground —
@@ -201,16 +210,9 @@ const nightDistrict = null;
 // Settle the harbour into its opening pose before the tram's live clock starts.
 world.animate(0, 0);
 lighting.update(0);
-// The context's own antialiasing stops applying as soon as the scene renders into
-// a render target instead of the canvas, which is what left every silhouette hard
-// edged next to the offline render. The composer therefore gets a multisampled
-// target of its own, and the edges are resolved before the effect chain reads it.
-const composerTarget = new T.WebGLRenderTarget(host.width, host.height, { type: T.HalfFloatType, samples: 2 });
-composerTarget.depthTexture = new T.DepthTexture(host.width, host.height);
-const composer = new EffectComposer(renderer, composerTarget);
-const beauty = new RenderPass(scene, camera);
-composer.addPass(beauty);
-const bloom = new UnrealBloomPass(new T.Vector2(host.width, host.height), .62, .62, .72);
+// Preserve sharp multisampled scene colour; combine bloom, coverage and output
+// in a single pass, without full-size ping-pong buffers or a coverage copy.
+const bloom = new HarbourBloom(new T.Vector2(host.width, host.height), .62, .62, .72);
 scaleEffectResolution(bloom, () => harbourRenderProfile(host.width).bloomScale);
 if(!cyberpunkRoute){
     // Use the same emitting-channel threshold for every window colour, without
@@ -238,35 +240,8 @@ if(!cyberpunkRoute){
   bloom.highPassUniforms.smoothWidth.value=.20;
   bloom.materialHighPassFilter.needsUpdate=true;
 }
-composer.addPass(bloom);
-const output = new OutputPass();
-// Fullscreen output must not overwrite scene depth.
-output.material.depthTest = false;
-output.material.depthWrite = false;
-// Preserve the multisampled beauty alpha before later passes reuse the target.
-// It records partial silhouette coverage for composition against the page.
-const silhouetteTarget = new T.WebGLRenderTarget(1, 1, { depthBuffer: false, type: T.HalfFloatType });
-const atmosphere = createPortfolioAtmosphere();
-const renderBeauty = beauty.render.bind(beauty);
-beauty.render = (renderer, writeBuffer, readBuffer, ...args) => {
-  const background = scene.background;
-  const clearColour = renderer.getClearColor(new T.Color());
-  const clearAlpha = renderer.getClearAlpha();
-  scene.background = null;
-  renderer.setClearColor(0x000000, 0);
-  try {
-    renderBeauty(renderer, writeBuffer, readBuffer, ...args);
-  } finally {
-    scene.background = background;
-    renderer.setClearColor(clearColour, clearAlpha);
-  }
-  silhouetteTarget.setSize(readBuffer.width, readBuffer.height);
-  renderer.initRenderTarget(silhouetteTarget);
-  renderer.copyTextureToTexture(readBuffer.texture, silhouetteTarget.texture);
-  atmosphere.pass.uniforms.tCoverage.value = silhouetteTarget.texture;
-};
-composer.addPass(atmosphere.pass);
-composer.addPass(output);
+const composer = createHarbourPostProcessing(renderer,scene,camera,
+  {bloom,bloomInterval:() => quality.bloomInterval()});
 let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false;
 let reflectionDirty = false;
 function applyScrollCamera() {
@@ -299,6 +274,7 @@ function applyScrollCamera() {
 
 function resize() {
   const profile = harbourRenderProfile(host.width);
+  renderer.transmissionResolutionScale = profile.mobile ? .5 : 1;
   setSunShadowResolution(lighting.sun, profile.shadowResolution);
   renderer.shadowMap.needsUpdate = true;
   harbourMirror.setResolution(profile.reflectionResolution);
@@ -367,7 +343,7 @@ function setNight(night) {
   scene.fog.far = night ? 90 : 240;
   renderer.setClearColor(night ? (cyberpunkRoute ? '#0b1225' : '#1a1830') : '#bedfe9');
   renderer.toneMappingExposure = night ? 1.02 : .98;
-  atmosphere.setBackground(harbourTheme(Number(night))['--background'], renderer.toneMappingExposure);
+  composer.setBackground(harbourTheme(Number(night))['--background'], renderer.toneMappingExposure);
   scene.environment = night ? nightEnvironment : dayEnvironment;
   bloom.strength = night ? .62 : .12;
   bloom.threshold = night ? .72 : 2.2;
@@ -392,7 +368,7 @@ function setTimeOfDay(value) {
   // Dim the final image after bloom, preserving the soft window halos rather
   // than weakening their light source below the glow threshold.
   renderer.toneMappingExposure=T.MathUtils.lerp(.98,.72,t);
-  atmosphere.setBackground(harbourTheme(t)['--background'], renderer.toneMappingExposure);
+  composer.setBackground(harbourTheme(t)['--background'], renderer.toneMappingExposure);
   environmentBlend.update(t);scene.environment=environmentBlend.texture;
   scene.environmentIntensity=T.MathUtils.lerp(.82,.38,t);
   bloom.strength=T.MathUtils.lerp(.12,.62,t);bloom.threshold=T.MathUtils.lerp(2.2,.70,t);
@@ -491,6 +467,7 @@ renderer.setAnimationLoop(timestamp => {
   const cameraChanging = cameraMoving || cameraDirty;
   if(cameraChanging){
     applyScrollCamera();
+    composer.invalidate();
     reflectionDirty = true;
   }
   world.animate(state.time);
@@ -499,14 +476,14 @@ renderer.setAnimationLoop(timestamp => {
   profiler?.mark('animation');
   // Capture before the first frame and periodically thereafter so moving boats
   // remain reflected without drawing a second full scene every frame.
-  if (shouldUpdateReflection(host.width, reflectionDirty || !reflectionReady, timestamp, lastReflectionTime, motionEnabled)) {
+  if (shouldUpdateReflection(host.width, reflectionDirty || !reflectionReady, timestamp, lastReflectionTime, motionEnabled, quality.reflectionHz())) {
     harbourMirror.update();
     reflectionReady=true;
     lastReflectionTime=timestamp;
     reflectionDirty=false;
   }
   profiler?.mark('reflection');
-  composer.render();
+  composer.render(timestamp);
   profiler?.mark('mainAndEffects');
   gpuTimer?.end();submissionMs=performance.now()-renderStarted;frameTimestamp=timestamp;
   frameStarted=renderStarted;frameFence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
@@ -520,7 +497,10 @@ function dispose(){
   if(frameFence){gl.deleteSync(frameFence);frameFence=null;}
   gpuTimer?.dispose();
   harbourMirror.dispose();
-  silhouetteTarget.dispose();renderer.dispose();renderer.forceContextLoss();
+  environmentBlend.dispose();
+  if(preparedSkies)preparedSkies.forEach(texture=>texture.dispose());
+  else environmentTargets.forEach(target=>target.dispose());
+  composer.dispose();renderer.dispose();renderer.forceContextLoss();
 }
 const disconnectDispose = host.onDispose(dispose);
 import.meta.hot?.dispose(dispose);
