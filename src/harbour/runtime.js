@@ -18,7 +18,7 @@ import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { createAdaptiveRenderQuality, harbourRenderProfile, scaleEffectResolution, setSunShadowResolution } from './render-quality.mjs';
-import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, shouldUpdateReflection } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, shouldUpdateReflection, backgroundFrameBudget } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
@@ -220,11 +220,14 @@ lighting.update(0);
 const composerTarget = new T.WebGLRenderTarget(host.width, host.height, { type: T.HalfFloatType, samples: 2 });
 composerTarget.depthTexture = new T.DepthTexture(host.width, host.height);
 const composer = new EffectComposer(renderer, composerTarget);
+let scrolling = false, reflectionUpdated = false;
 const beauty = new RenderPass(scene, camera);
 composer.addPass(beauty);
 const bloom = new UnrealBloomPass(new T.Vector2(host.width, host.height), .62, .62, .72);
 scaleEffectResolution(bloom, () => harbourRenderProfile(host.width).bloomScale);
-cacheBloomPass(bloom, camera, () => harbourRenderProfile(host.width).mobile ? 1000 / 15 : 0);
+cacheBloomPass(bloom, camera,
+  () => harbourRenderProfile(host.width).mobile ? 1000 / (scrolling ? 10 : 15) : 0,
+  () => performance.now(), () => !harbourRenderProfile(host.width).mobile || !reflectionUpdated);
 if(!cyberpunkRoute){
     // Use the same emitting-channel threshold for every window colour, without
     // hue-specific amplification of the resulting halo.
@@ -452,6 +455,7 @@ const disconnectPortfolio=host.connect({
   isReady:()=>firstFrameReady,
   setTime(value) { setTimeOfDay(value); reflectionDirty = true; },
   setActive(value) { portfolioActive = value; if (value) reflectionDirty = true; },
+  setScrolling(value) { scrolling = value; },
   setScroll(value,rise=0) { scrollTarget = motionEnabled ? value : 0; riseTarget=motionEnabled?rise:0; cameraDirty=true; reflectionDirty=true; },
 });
 
@@ -476,7 +480,8 @@ renderer.setAnimationLoop(timestamp => {
     // delay as rendering work and adding another unnecessary cooldown.
     const workCompleted=estimatedWorkCompletion(frameStarted,completed,submissionMs,gpuMs,frameBusyUntil);
     quality.observe(frameDurationMs, submissionMs, Math.max(submissionMs, workCompleted-frameStarted));
-    nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted);
+    const budget=backgroundFrameBudget(host.width,scrolling);
+    nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted,budget.fps,budget.duty);
     if(!firstFrameReady){
       firstFrameReady=true;
       const readyMs=Math.round(performance.now()-startupAt);
@@ -518,8 +523,10 @@ renderer.setAnimationLoop(timestamp => {
   profiler?.mark('animation');
   // Capture before the first frame and periodically thereafter so moving boats
   // remain reflected without drawing a second full scene every frame.
-  if (shouldUpdateReflection(host.width, reflectionDirty || !reflectionReady, timestamp, lastReflectionTime, motionEnabled)) {
+  reflectionUpdated=false;
+  if (shouldUpdateReflection(host.width, reflectionDirty || !reflectionReady, timestamp, lastReflectionTime, motionEnabled, scrolling)) {
     harbourMirror.update();
+    reflectionUpdated=true;
     reflectionReady=true;
     lastReflectionTime=timestamp;
     reflectionDirty=false;

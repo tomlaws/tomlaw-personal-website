@@ -5,7 +5,7 @@ export function connectHarbourFrame({ frame, hero, onReady, onError,
   window: host = window, document: page = document,
   Observer = globalThis.IntersectionObserver, timeoutMs = 90_000 }) {
   let status = 'loading', disposed = false, observer;
-  let inView = true, lastActive, lastWindow;
+  let inView = true, lastActive, lastWindow, scrolling = false, lastScrolling, scrollTimer;
   const visible = () => {
     const bounds = hero.getBoundingClientRect();
     return bounds.bottom > 0 && bounds.top < host.innerHeight;
@@ -14,11 +14,23 @@ export function connectHarbourFrame({ frame, hero, onReady, onError,
     if (disposed) return;
     const target = frame.contentWindow;
     const active = status !== 'error' && inView && !page.hidden;
-    if (target && (force || target !== lastWindow || active !== lastActive)) {
+    const changedWindow = target !== lastWindow;
+    if (!active) { scrolling = false; clearTimeout(scrollTimer); }
+    if (target && (force || changedWindow || active !== lastActive)) {
       target.postMessage({type:'harbour:command', command:'active', active}, host.location.origin);
       lastWindow = target; lastActive = active;
     }
+    if (target && (force || changedWindow || scrolling !== lastScrolling)) {
+      target.postMessage({type:'harbour:command', command:'scrolling', scrolling}, host.location.origin);
+      lastScrolling = scrolling;
+    }
   }
+  const endScroll = () => { clearTimeout(scrollTimer); scrolling = false; sync(); };
+  const onScroll = () => {
+    if (disposed || status === 'error' || !inView || page.hidden || host.innerWidth > 650) return;
+    scrolling = true; sync();
+    clearTimeout(scrollTimer); scrollTimer = setTimeout(endScroll, 180);
+  };
   function fail() {
     if (disposed || status === 'error') return;
     status = 'error'; stopTimeout(); sync(); onError();
@@ -36,6 +48,9 @@ export function connectHarbourFrame({ frame, hero, onReady, onError,
   }
   const measure = () => { inView = visible(); sync(); };
   host.addEventListener('message', receive);
+  host.addEventListener('scroll', onScroll, {passive:true});
+  host.addEventListener('touchmove', onScroll, {passive:true});
+  host.addEventListener('scrollend', endScroll);
   page.addEventListener('visibilitychange', measure);
   if (Observer) {
     observer = new Observer(entries => {
@@ -53,10 +68,13 @@ export function connectHarbourFrame({ frame, hero, onReady, onError,
     sync: () => { inView = visible(); sync(true); },
     fail,
     dispose() {
-      disposed = true; stopTimeout(); observer?.disconnect();
+      disposed = true; stopTimeout(); observer?.disconnect(); clearTimeout(scrollTimer);
       host.removeEventListener('message', receive);
       host.removeEventListener('scroll', measure);
       host.removeEventListener('resize', measure);
+      host.removeEventListener('scroll', onScroll);
+      host.removeEventListener('touchmove', onScroll);
+      host.removeEventListener('scrollend', endScroll);
       page.removeEventListener('visibilitychange', measure);
     },
   };

@@ -46,6 +46,7 @@ export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu'} =
       disconnect = connectPortfolio({
         setTime:night => send({type:'time', night}),
         setActive:active => send({type:'active', active}),
+        setScrolling:scrolling => send({type:'scrolling', scrolling}),
         setScroll:(progress,rise) => send({type:'scroll', progress,rise}),
       });
       resolve({dispose, backend:data.backend});

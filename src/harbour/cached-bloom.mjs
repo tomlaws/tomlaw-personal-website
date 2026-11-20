@@ -2,7 +2,7 @@ import { Matrix4 } from 'three';
 
 // Keep Three's complete UnrealBloomPass and reuse only its finished glow.
 // The current sharp scene is still rendered and composited on every frame.
-export function cacheBloomPass(pass, camera, interval, now = () => performance.now()) {
+export function cacheBloomPass(pass, camera, interval, now = () => performance.now(), canRefresh = () => true) {
   const render = pass.render.bind(pass), resize = pass.setSize.bind(pass);
   const view = new Matrix4(), projection = new Matrix4();
   const tints = pass.bloomTintColors.map(color => color.clone());
@@ -13,7 +13,11 @@ export function cacheBloomPass(pass, camera, interval, now = () => performance.n
     const changed = !view.equals(camera.matrixWorld) || !projection.equals(camera.projectionMatrix)
       || strength !== pass.strength || radius !== pass.radius || threshold !== pass.threshold
       || tints.some((color, i) => !color.equals(pass.bloomTintColors[i]));
-    if (!valid || changed || time - refreshed >= interval() || pass.renderToScreen || maskActive) {
+    const refreshInterval = interval(), elapsed = time - refreshed;
+    // Avoid stacking a full blur chain on a reflection capture. A deadline
+    // prevents stale glow; view/lighting changes always bypass deferral.
+    const due = elapsed >= refreshInterval && (canRefresh() || elapsed >= refreshInterval * 2);
+    if (!valid || changed || due || pass.renderToScreen || maskActive) {
       render(renderer, writeBuffer, readBuffer, deltaTime, maskActive);
       valid = true; refreshed = time;
       view.copy(camera.matrixWorld); projection.copy(camera.projectionMatrix);

@@ -8,6 +8,13 @@ export function nextBackgroundFrame(previousDeadline, started, completed, fps = 
   return Math.max(anchor + interval, completed + work * (1 - duty) / duty);
 }
 
+const normalBudget = Object.freeze({fps:30,duty:.75});
+const scrollBudget = Object.freeze({fps:24,duty:.6});
+// Keep animation live while reserving more of a phone's GPU for page scrolling.
+export function backgroundFrameBudget(width, scrolling) {
+  return width > 0 && width <= 650 && scrolling ? scrollBudget : normalBudget;
+}
+
 // A completed fence gives no completion timestamp. A delayed RAF may include
 // page scheduling or scrolling time, so only count observed unfinished work
 // when GPU timestamps are unavailable. Never add a second rest for that delay.
@@ -18,8 +25,8 @@ export function estimatedWorkCompletion(started, completed, cpuMs, gpuMs, lastBu
 
 // Moving boats need a live reflection, but a second scene render every frame
 // competes with the main scene. Refresh at a bounded rate on all devices.
-export function shouldUpdateReflection(width, dirty, timestamp, lastUpdate, motion = true) {
-  return dirty || (motion && timestamp - lastUpdate >= 1000 / (width <= 650 ? 8 : 12));
+export function shouldUpdateReflection(width, dirty, timestamp, lastUpdate, motion = true, scrolling = false) {
+  return dirty || (motion && timestamp - lastUpdate >= 1000 / (width <= 650 ? scrolling ? 4 : 8 : 12));
 }
 
 // Animations use elapsed time rather than slowing down when frames are sparse.

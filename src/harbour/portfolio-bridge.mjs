@@ -2,7 +2,7 @@ import { harbourTime } from "../hong-kong-time.mjs";
 import { setHarbourBackdrop } from './backdrop.mjs';
 
 // The background has one clock and no user-selectable lighting or camera modes.
-export function connectPortfolio({ setTime, setActive, setScroll, isReady=()=>true }) {
+export function connectPortfolio({ setTime, setActive, setScroll, setScrolling, isReady=()=>true }) {
   const tell = (data) => {
     if (parent !== window)
       parent.postMessage({ type: "harbour:state", ...data }, location.origin);
@@ -21,6 +21,8 @@ export function connectPortfolio({ setTime, setActive, setScroll, isReady=()=>tr
     )
       return;
     if (event.data.command === "active") setActive(Boolean(event.data.active));
+    if (event.data.command === 'scrolling' && typeof event.data.scrolling === 'boolean')
+      setScrolling?.(event.data.scrolling);
     if (event.data.command === "scroll" && Number.isFinite(event.data.progress))
       setScroll?.(Math.min(1, Math.max(0, event.data.progress)),
         Number.isFinite(event.data.rise)?Math.min(180,Math.max(0,event.data.rise)):0);

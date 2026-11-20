@@ -57,7 +57,7 @@ function install(values) {
 }
 try {
   install({setTimeout:clock.setTimer, clearTimeout:clock.clearTimer, performance:{now:clock.now}});
-  const host = Object.assign(new Events(), {innerHeight:800,location:{origin:'https://portfolio.example'}});
+  const host = Object.assign(new Events(), {innerWidth:430,innerHeight:800,location:{origin:'https://portfolio.example'}});
   const messages = [], target = {postMessage:(data,origin) => messages.push({data,origin})};
   let bounds = {top:80,bottom:930}, ready = 0, errors = 0, observer;
   const hero = {getBoundingClientRect:() => bounds}, frame = {contentWindow:target};
@@ -69,7 +69,8 @@ try {
   const options = {frame,hero,window:host,document:page,Observer,timeoutMs:100,
     onReady:() => ready++,onError:() => errors++};
   const connection = connectHarbourFrame(options);
-  const active = () => messages.at(-1).data.active;
+  const active = () => messages.findLast(message => message.data.command === 'active').data.active;
+  const scrolling = () => messages.findLast(message => message.data.command === 'scrolling').data.scrolling;
   assert.equal(active(),true);
   assert.equal(messages[0].origin,host.location.origin);
   bounds = {top:-1000,bottom:-100};
@@ -86,8 +87,21 @@ try {
   assert.equal(active(),true,'Returning to the introduction resumes rendering');
   for (const event of ['touchstart','scroll','touchmove','touchend','scrollend']) host.emit(event);
   assert.equal(active(),true,'Touch scrolling never suspends a visible city');
+  assert.equal(scrolling(),false,'Scrollend restores the normal rendering budget');
+  host.emit('touchmove'); assert.equal(scrolling(),true);
+  assert.equal(active(),true,'A scrolling budget does not pause the city');
+  const edgeCount=messages.length;
+  clock.advance(100); host.emit('scroll'); clock.advance(100); host.emit('scroll');
+  assert.equal(messages.length,edgeCount,'Momentum updates do not flood the iframe with messages');
+  clock.advance(179); assert.equal(scrolling(),true,'The lighter budget covers momentum');
+  clock.advance(1); assert.equal(scrolling(),false,'Browsers without scrollend restore the budget after settling');
+  host.emit('scroll'); receive({type:'harbour:state',ready:true});
+  assert.equal(scrolling(),true,'Renderer fallback replays the current scrolling budget');
   page.hidden = true; page.emit('visibilitychange'); assert.equal(active(),false);
+  assert.equal(scrolling(),false,'Hiding the page clears the transient budget and timer');
   page.hidden = false; page.emit('visibilitychange'); assert.equal(active(),true);
+  host.innerWidth=1200; host.emit('scroll'); assert.equal(scrolling(),false,'Desktop scrolling retains its budget');
+  host.innerWidth=430; host.emit('scroll');
   receive({type:'harbour:error'}); assert.equal(errors,1); assert.equal(active(),false);
   receive({type:'harbour:state',ready:true}); assert.equal(ready,1,'A failed attempt cannot resurrect itself');
   connection.dispose();
@@ -118,7 +132,7 @@ try {
   const events = new Events(), workers = [];
   class Worker extends Events {
     constructor() { super(); workers.push(this); }
-    postMessage() {}
+    postMessage(data) { (this.messages ??= []).push(data); }
     terminate() { this.terminated = true; }
   }
   install({document, Worker, location:{origin:host.location.origin,search:''},
@@ -136,6 +150,9 @@ try {
   const success = startWorkerRenderer({backend:'webgl',onFailure:() => failureCount++});
   workers[1].emit('message',{data:{type:'ready',backend:'webgl'}});
   const renderer = await success;
+  events.emit('message',{origin:host.location.origin,source:owner,
+    data:{type:'harbour:command',command:'scrolling',scrolling:true}});
+  assert.deepEqual(workers[1].messages.at(-1),{type:'scrolling',scrolling:true},'The iframe relays the budget to its render worker');
   clock.advance(45_000);
   assert.equal(workers[1].terminated,undefined,'Successful startup cancels its timeout');
   workers[1].emit('messageerror');

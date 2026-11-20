@@ -63,6 +63,7 @@ export function createWorkerRenderHost(canvas, state, send) {
       if (message.type === 'motion') { state.reducedMotion = message.reducedMotion; for (const callback of motion) callback(); }
       if (message.type === 'time') { state.night = message.night; controls?.setTime(message.night); }
       if (message.type === 'active') controls?.setActive(message.active);
+      if (message.type === 'scrolling') controls?.setScrolling?.(message.scrolling);
       if (message.type === 'scroll') controls?.setScroll(message.progress,message.rise);
       if (message.type === 'dispose') for (const callback of [...dispose]) callback();
     },

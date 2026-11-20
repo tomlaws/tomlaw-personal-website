@@ -15,7 +15,7 @@ import { createNodeWaterReflection } from './webgpu-reflection.mjs';
 import { createNodePostProcessing } from './webgpu-post.mjs';
 import { isolateFramebufferTextures } from './webgpu-compat.mjs';
 import { createBrowserRenderHost } from './render-host.mjs';
-import { animationDelta, nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, shouldUpdateReflection, backgroundFrameBudget } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
 import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
@@ -99,7 +99,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     const post = createNodePostProcessing(renderer, scene, camera,
       {search:host.search, profile:harbourRenderProfile(host.width)});
     let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false, reflectionDirty = true;
-    let active = true, motion = !capturing && !temporalQA && !host.reducedMotion;
+    let active = true, scrolling = false, motion = !capturing && !temporalQA && !host.reducedMotion;
     let time = 0, previousFrame, nextFrameAt = -Infinity, lastShadow = -Infinity, lastNight, lastReflection = -Infinity;
     function pose() {
       const value = portfolioCameraPose(home, scrollAmount, host.width <= 650);
@@ -183,6 +183,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     const disconnect = host.connect({
       setTime,
       setActive(value) { active = value; if (value) reflectionDirty = true; },
+      setScrolling(value) { scrolling = value; },
       setScroll(value,rise=0) { scrollTarget = motion ? value : 0; riseTarget=motion?rise:0; cameraDirty=true; reflectionDirty=true; },
     });
     const profiler = params.has('profile') ? createRenderProfiler(renderer, data => host.diagnostic('render-profile', data)) : null;
@@ -227,7 +228,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
         // Match WebGL's live reflection cadence; camera and lighting changes
         // still refresh immediately. City animation advances on every frame.
         const updateMirror = temporalQA ? qaFrame % 2 === 0 :
-          shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflection, motion);
+          shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflection, motion, scrolling);
         if (updateMirror) {
           mirror.update(); reflectionDirty = false; lastReflection = timestamp;
         }
@@ -238,9 +239,9 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
         const completedAt = performance.now(), completeMs = completedAt - started;
         quality.observe(frameMs, submissionMs, completeMs);
         profiler?.end(timestamp,{cpuMs:submissionMs,completeMs});
-        // Keep desktop/browser headroom rather than immediately filling the
-        // GPU queue again. At most 24 FPS, and <=60% duty when GPU-bound.
-        nextFrameAt = nextBackgroundFrame(nextFrameAt, started, completedAt);
+        // Reserve additional compositor headroom during phone scrolling.
+        const budget = backgroundFrameBudget(host.width, scrolling);
+        nextFrameAt = nextBackgroundFrame(nextFrameAt, started, completedAt, budget.fps, budget.duty);
         if (temporalQA) host.diagnostic('temporal-qa', { frame: qaFrame++, mirror: updateMirror, ...await post.temporalSample() });
       } catch (error) { fail(error); }
       finally { framePending = false; }

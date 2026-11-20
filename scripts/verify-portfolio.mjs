@@ -43,7 +43,7 @@ assert.match(runtime, /nextBackgroundFrame/);
 // out-of-range commands, without creating a WebGL context in Node.
 const keys = ['location', 'window', 'parent', 'document', 'addEventListener', 'removeEventListener', 'setInterval', 'clearInterval'];
 const saved = new Map(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
-const handlers = new Map(), values = [], activity = [], scroll = [], rises=[];
+const handlers = new Map(), values = [], activity = [], scroll = [], rises=[], scrolling=[];
 let cadence, cleared = 0;
 const owner = { postMessage() {} };
 const backdropStyle={setProperty(name,value){this[name]=value;}};
@@ -56,7 +56,7 @@ try {
     removeEventListener(name) { handlers.delete(name); },
     setInterval(callback, interval) { cadence = interval; return 1; }, clearInterval() { cleared++; },
   });
-  const disconnect = connectPortfolio({setTime:value=>values.push(value),setActive:value=>activity.push(value),setScroll:(value,rise)=>{scroll.push(value);rises.push(rise);}});
+  const disconnect = connectPortfolio({setTime:value=>values.push(value),setActive:value=>activity.push(value),setScroll:(value,rise)=>{scroll.push(value);rises.push(rise);},setScrolling:value=>scrolling.push(value)});
   assert.equal(cadence, 30_000);
   assert.ok(values[0] >= 0 && values[0] <= 1);
   assert.equal(backdropStyle['--harbour-background'],harbourTheme(values[0])['--background'],'Frame backing matches the live page colour before rendering');
@@ -66,6 +66,12 @@ try {
   assert.deepEqual(activity,[]);
   send({command:'active',active:false}); send({command:'active',active:true});
   assert.deepEqual(activity,[false,true]);
+  send({command:'scrolling',scrolling:true},{origin:'https://unrelated.example'});
+  send({command:'scrolling',scrolling:true},{source:{}});
+  send({command:'scrolling',scrolling:'false'});
+  assert.deepEqual(scrolling,[],'Only validated boolean budget commands from the owner are accepted');
+  send({command:'scrolling',scrolling:true}); send({command:'scrolling',scrolling:false});
+  assert.deepEqual(scrolling,[true,false]);
   send({command:'scroll',progress:.5},{origin:'https://unrelated.example'});
   send({command:'scroll',progress:.5},{source:{}});
   send({command:'scroll',progress:NaN}); send({command:'scroll',progress:'0.5'});
