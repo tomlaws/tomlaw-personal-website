@@ -8,11 +8,12 @@ export function nextBackgroundFrame(previousDeadline, started, completed, fps = 
   return Math.max(anchor + interval, completed + work * (1 - duty) / duty);
 }
 
-// Polling a fence on RAF includes up to one refresh of idle scheduling time.
-// Without a GPU timer (notably on Safari), don't count that wait as GPU work.
-export function estimatedWorkCompletion(started, completed, cpuMs, gpuMs) {
+// A completed fence gives no completion timestamp. A delayed RAF may include
+// page scheduling or scrolling time, so only count observed unfinished work
+// when GPU timestamps are unavailable. Never add a second rest for that delay.
+export function estimatedWorkCompletion(started, completed, cpuMs, gpuMs, lastBusyAt = started) {
   if (Number.isFinite(gpuMs)) return started + Math.max(cpuMs, gpuMs);
-  return Math.max(started + cpuMs, completed - 1000 / 60);
+  return Math.max(started + cpuMs, Math.min(completed, lastBusyAt));
 }
 
 // Moving boats need a live reflection, but a second scene render every frame

@@ -13,6 +13,18 @@ export function createFrameResize(apply) {
   };
 }
 
+// Browser chrome can emit resize notifications without changing the iframe.
+// Skip those before they clear the canvas and reallocate composer buffers.
+export function createViewportChange(read, changed) {
+  let previous = {...read()};
+  return () => {
+    const next = read();
+    if (next.width === previous.width && next.height === previous.height && next.dpr === previous.dpr) return false;
+    previous = {...next}; changed(next);
+    return true;
+  };
+}
+
 // Avoid clearing the first presented frame when the viewport did not change.
 // Update all dimensions together so a DPR change does not resize twice.
 export function resizeWebGpuBuffer(renderer, width, height, pixelRatio) {

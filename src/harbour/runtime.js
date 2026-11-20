@@ -26,6 +26,7 @@ import { captureShaderErrors } from './shader-errors.mjs';
 import { loadPreparedLighting } from './prepared-lighting.mjs';
 import lightingAsset from './prepared-lighting-asset.json' with {type:'json'};
 import { compileWebGLView } from './startup-work.mjs';
+import { cacheBloomPass } from './cached-bloom.mjs';
 
 export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
 const canvas = host.canvas;
@@ -223,6 +224,7 @@ const beauty = new RenderPass(scene, camera);
 composer.addPass(beauty);
 const bloom = new UnrealBloomPass(new T.Vector2(host.width, host.height), .62, .62, .72);
 scaleEffectResolution(bloom, () => harbourRenderProfile(host.width).bloomScale);
+cacheBloomPass(bloom, camera, () => harbourRenderProfile(host.width).mobile ? 1000 / 15 : 0);
 if(!cyberpunkRoute){
     // Use the same emitting-channel threshold for every window colour, without
     // hue-specific amplification of the resulting halo.
@@ -455,7 +457,7 @@ const disconnectPortfolio=host.connect({
 
 let previousFrame,lastRendered=-Infinity;
 const gl=renderer.getContext();
-let frameFence=null,frameStarted=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0,frameDurationMs=0;
+let frameFence=null,frameStarted=0,frameBusyUntil=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0,frameDurationMs=0;
 const profiler=new URLSearchParams(host.search).has('profile')?createRenderProfiler(renderer, data=>host.diagnostic('render-profile',data)):null;
 const gpuTimer=createGpuFrameTimer(gl);
 const profilingUncapped=profiler&&new URLSearchParams(host.search).get('profile')!=='idle';
@@ -464,7 +466,7 @@ renderer.setAnimationLoop(timestamp => {
   // One completed GPU frame at a time, with the same headroom budget as WebGPU.
   // Keep native resolution rather than reacting to load by blurring the map.
   if(frameFence){
-    if(gl.clientWaitSync(frameFence,0,0)===gl.TIMEOUT_EXPIRED)return;
+    if(gl.clientWaitSync(frameFence,0,0)===gl.TIMEOUT_EXPIRED){frameBusyUntil=performance.now();return;}
     gl.deleteSync(frameFence);frameFence=null;
     const completed=performance.now();
     const gpuMs=gpuTimer.read();
@@ -472,7 +474,7 @@ renderer.setAnimationLoop(timestamp => {
     // A fence checked on the next RAF includes browser scheduling delay. When
     // supported, use the GPU's elapsed-time query rather than treating that
     // delay as rendering work and adding another unnecessary cooldown.
-    const workCompleted=estimatedWorkCompletion(frameStarted,completed,submissionMs,gpuMs);
+    const workCompleted=estimatedWorkCompletion(frameStarted,completed,submissionMs,gpuMs,frameBusyUntil);
     quality.observe(frameDurationMs, submissionMs, Math.max(submissionMs, workCompleted-frameStarted));
     nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted);
     if(!firstFrameReady){
@@ -527,7 +529,7 @@ renderer.setAnimationLoop(timestamp => {
   shaderErrors.check();
   profiler?.mark('mainAndEffects');
   gpuTimer?.end();submissionMs=performance.now()-renderStarted;frameTimestamp=timestamp;
-  frameStarted=renderStarted;frameFence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
+  frameStarted=frameBusyUntil=renderStarted;frameFence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
   } catch(error) {
     if (!disposed) { dispose(); onFailure(error); }
   }

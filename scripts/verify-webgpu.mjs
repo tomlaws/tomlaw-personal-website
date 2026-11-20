@@ -178,7 +178,8 @@ assert.ok(Math.abs(nextBackgroundFrame(1000/30,40,45)-2000/30)<.001,'Late RAFs r
 assert.ok(nextBackgroundFrame(0,0,80)>=80/.75,'Slow frames leave GPU headroom');
 assert.ok(Math.abs(nextBackgroundFrame(0,1000,1010)-1000-1000/30)<.001,'Resuming does not trigger a burst of catch-up frames');
 assert.equal(estimatedWorkCompletion(100,116.7,3,undefined),103,'A fence polled on the next RAF does not count idle time as GPU work');
-assert.ok(Math.abs(estimatedWorkCompletion(100,150,3,undefined)-(150-1000/60))<.001,'Long GPU work still leaves time for the browser');
+assert.equal(estimatedWorkCompletion(100,150,3,undefined),103,'A delayed callback is not evidence of slow GPU work');
+assert.equal(estimatedWorkCompletion(100,150,3,undefined,140),140,'Observed unfinished GPU work still leaves time for the browser');
 assert.equal(estimatedWorkCompletion(100,120,3,8),108,'GPU timer results take precedence when available');
 
 const workerState={search:'',width:800,height:600,dpr:1,hidden:false,reducedMotion:false,night:1};

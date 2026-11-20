@@ -3,6 +3,7 @@ import { harbourTime } from "./hong-kong-time.mjs";
 import { harbourTheme } from "./harbour-theme.mjs";
 import github from "./data/github-repositories.json";
 import { connectHarbourFrame } from "./harbour-frame.mjs";
+import { HongKongClock } from './HongKongClock.jsx';
 
 const base = import.meta.env.BASE_URL;
 const profile = "https://github.com/tomlaws";
@@ -64,9 +65,12 @@ const fallbackDescriptions = {
   tomlaws: "My GitHub profile README.",
   "tomlaw-personal-website": "My personal website and portfolio.",
 };
+const repos = [...github.repositories].sort(
+  (a, b) => Number(a.fork) - Number(b.fork) || a.name.localeCompare(b.name),
+);
 
 export default function Portfolio() {
-  const [now, setNow] = useState(() => harbourTime());
+  const [night, setNight] = useState(() => harbourTime().night);
   const [ready, setReady] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [mapAttempt, setMapAttempt] = useState(0);
@@ -77,8 +81,8 @@ export default function Portfolio() {
   const hero = useRef(null);
   const mapConnection = useRef(null);
   useEffect(() => {
-    const update = () => setNow(harbourTime());
-    const timer = setInterval(update, 1000);
+    const update = () => { if (!document.hidden) setNight(harbourTime().night); };
+    const timer = setInterval(update, 30_000);
     document.addEventListener("visibilitychange", update);
     return () => {
       clearInterval(timer);
@@ -111,7 +115,7 @@ export default function Portfolio() {
     setMapAttempt(attempt => attempt + 1);
   }
   useEffect(() => {
-    const style = harbourTheme(now.night);
+    const style = harbourTheme(night);
     for (const [key, value] of Object.entries(style)) {
       if (key.startsWith("--"))
         document.documentElement.style.setProperty(key, value);
@@ -120,10 +124,7 @@ export default function Portfolio() {
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute("content", style["--background"]);
-  }, [now.night]);
-  const repos = [...github.repositories].sort(
-    (a, b) => Number(a.fork) - Number(b.fork) || a.name.localeCompare(b.name),
-  );
+  }, [night]);
   const matches = repos.filter(
     (repo) =>
       (filter === "all" || (filter === "forks" ? repo.fork : !repo.fork)) &&
@@ -163,14 +164,7 @@ export default function Portfolio() {
             GitHub <Arrow />
           </a>
         </nav>
-        <div className="hk-clock">
-          <span className="live-dot" />
-          <span>HONG KONG</span>
-          <time dateTime={now.iso}>
-            {now.clock}
-            <small>HKT</small>
-          </time>
-        </div>
+        <HongKongClock />
       </header>
       <main id="main">
         <section ref={hero} className="hero" aria-labelledby="intro-title">

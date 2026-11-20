@@ -1,6 +1,7 @@
 import { harbourTime } from '../hong-kong-time.mjs';
 import { connectPortfolio } from './portfolio-bridge.mjs';
 import { startLoadingTimeout } from '../loading-timeout.mjs';
+import { createViewportChange } from './frame-resize.mjs';
 
 const liveWorkers = new Set();
 import.meta.hot?.dispose(() => { for (const dispose of [...liveWorkers]) dispose(); });
@@ -16,7 +17,7 @@ export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu'} =
     let settled = false, disposed = false, disconnect = () => {}, stopTimeout = () => {};
     const send = message => { if (!disposed) worker.postMessage(message); };
     const viewport = () => ({width:innerWidth, height:innerHeight, dpr:devicePixelRatio});
-    const resize = () => send({type:'resize', viewport:viewport()});
+    const resize = createViewportChange(viewport, value => send({type:'resize', viewport:value}));
     const visibility = () => send({type:'visibility', hidden:document.hidden});
     const motion = () => send({type:'motion', reducedMotion:preference.matches});
     function dispose() {

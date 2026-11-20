@@ -1,6 +1,7 @@
 import { harbourTime } from '../hong-kong-time.mjs';
 import { connectPortfolio } from './portfolio-bridge.mjs';
 import { embeddedTopInset } from './embedded-viewport.mjs';
+import { createViewportChange } from './frame-resize.mjs';
 
 // Keep browser/DOM work out of the rendering core, which also runs off-thread.
 export function createBrowserRenderHost() {
@@ -23,7 +24,10 @@ export function createBrowserRenderHost() {
       if (parent !== window) parent.postMessage({type:'harbour:state',ready:true,...harbourTime()},location.origin);
     },
     diagnostic(label, data) { console.info(`[${label}]`, JSON.stringify(data)); },
-    onResize(callback) { addEventListener('resize', callback); return () => removeEventListener('resize', callback); },
+    onResize(callback) {
+      const changed = createViewportChange(() => ({width:innerWidth,height:innerHeight,dpr:devicePixelRatio}), callback);
+      addEventListener('resize', changed); return () => removeEventListener('resize', changed);
+    },
     onMotion(callback) { preference.addEventListener('change', callback); return () => preference.removeEventListener('change', callback); },
     onDispose(callback) { addEventListener('pagehide', callback, {once:true}); return () => removeEventListener('pagehide', callback); },
     connect: connectPortfolio,
@@ -49,7 +53,12 @@ export function createWorkerRenderHost(canvas, state, send) {
     onDispose(callback) { dispose.add(callback); return () => dispose.delete(callback); },
     connect(value) { controls = value; return () => { controls = undefined; }; },
     receive(message) {
-      if (message.type === 'resize') { Object.assign(state, message.viewport); for (const callback of resize) callback(); }
+      if (message.type === 'resize') {
+        const next = message.viewport;
+        if (next.width !== state.width || next.height !== state.height || next.dpr !== state.dpr) {
+          Object.assign(state, next); for (const callback of resize) callback();
+        }
+      }
       if (message.type === 'visibility') state.hidden = message.hidden;
       if (message.type === 'motion') { state.reducedMotion = message.reducedMotion; for (const callback of motion) callback(); }
       if (message.type === 'time') { state.night = message.night; controls?.setTime(message.night); }
