@@ -37,7 +37,7 @@ assert.match(harbourTime(new Date('2026-12-31T16:00:00Z')).date, /01 Jan 2027/);
 const runtime = readFileSync('src/harbour/runtime.js', 'utf8');
 assert.match(runtime, /host.hidden \|\| \(!portfolioActive && !reflectionDirty && Math\.abs\(scrollAmount-scrollTarget\)<=\.0001\)/);
 assert.match(runtime, /motionEnabled/);
-assert.match(runtime, /mapPixelRatio/);
+assert.match(runtime, /createAdaptiveRenderQuality/);
 assert.match(runtime, /nextBackgroundFrame/);
 // Exercise the real frame protocol, including rejected origins/sources and
 // out-of-range commands, without creating a WebGL context in Node.

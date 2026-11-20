@@ -6,8 +6,10 @@ import { denoise } from 'three/addons/tsl/display/DenoiseNode.js';
 import { fxaa } from 'three/addons/tsl/display/FXAANode.js';
 import { createTemporalSampler } from './webgpu-temporal-qa.mjs';
 import { cacheViewPass } from './cached-view-pass.mjs';
+import { harbourRenderProfile, scaleEffectResolution } from './render-quality.mjs';
 
-export function createNodePostProcessing(renderer, scene, camera, {search = ''} = {}) {
+export function createNodePostProcessing(renderer, scene, camera, {search = '', profile = harbourRenderProfile(0)} = {}) {
+  let quality = profile;
   const post = new T.PostProcessing(renderer);
   // Sampleable depth is needed by GTAO and composition. Use a single-sample
   // G-buffer, then apply FXAA to the finished image instead of MSAA depth.
@@ -30,11 +32,11 @@ export function createNodePostProcessing(renderer, scene, camera, {search = ''} 
   const colour = texture(target.textures[0]), depth = texture(target.depthTexture);
   const occlusion = ao(depth, null, camera);
   occlusion.radius.value = .14; occlusion.thickness.value = .12;
-  occlusion.distanceFallOff.value = 1; occlusion.scale.value = .65; occlusion.samples.value = 16;
-  occlusion.resolutionScale = .75;
+  occlusion.distanceFallOff.value = 1; occlusion.scale.value = .65; occlusion.samples.value = quality.aoSamples;
+  occlusion.resolutionScale = quality.aoScale;
   const bufferSize = new T.Vector2();
   const softenedAO = denoise(occlusion.getTextureNode(), depth, null, camera);
-  softenedAO.radius.value = 4; softenedAO.lumaPhi.value = 8;
+  softenedAO.radius.value = quality.denoiseRadius; softenedAO.lumaPhi.value = 8;
   softenedAO.depthPhi.value = 2; softenedAO.normalPhi.value = 3;
   // Cache the complete AO + 16-tap bilateral denoise chain, not just raw AO.
   const invalidateAO = cacheViewPass(occlusion, renderer, camera, 100);
@@ -42,6 +44,7 @@ export function createNodePostProcessing(renderer, scene, camera, {search = ''} 
   const aoStrength = uniform(.25);
   const shaded = vec4(colour.rgb.mul(mix(float(1), softenedAO.r, aoStrength)), colour.a);
   const glow = bloom(shaded, .12, .62, 2.2);
+  scaleEffectResolution(glow, () => quality.bloomScale);
   glow.smoothWidth.value = .20;
   const invalidateBloom = cacheViewPass(glow, renderer, camera, 1000 / 15);
   const originalBloomSetup = glow.setup.bind(glow);
@@ -87,6 +90,14 @@ export function createNodePostProcessing(renderer, scene, camera, {search = ''} 
   }
   return {
     temporalSample,
+    setQuality(profile) {
+      if (profile.mobile === quality.mobile) return;
+      quality = profile;
+      occlusion.samples.value = quality.aoSamples;
+      occlusion.resolutionScale = quality.aoScale;
+      softenedAO.radius.value = quality.denoiseRadius;
+      invalidateAO(); invalidateDenoise(); invalidateBloom();
+    },
     async compileScene(){
       const restore=beginBeauty();
       try{await renderer.compileAsync(scene,camera);}finally{restore();}

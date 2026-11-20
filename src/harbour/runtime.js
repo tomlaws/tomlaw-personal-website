@@ -17,7 +17,7 @@ import { harbourTime } from '../hong-kong-time.mjs';
 import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
-import { mapPixelRatio } from './render-quality.mjs';
+import { createAdaptiveRenderQuality, harbourRenderProfile, scaleEffectResolution, setSunShadowResolution } from './render-quality.mjs';
 import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, shouldUpdateReflection } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
@@ -26,7 +26,10 @@ import { applyEmbeddedView } from './embedded-viewport.mjs';
 export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
 const canvas = host.canvas;
 const startupAt=performance.now();
-const fullQuality=true;
+const quality = createAdaptiveRenderQuality({
+  viewport: () => ({width:host.width, height:host.height, dpr:host.dpr}),
+  onChange: () => requestResize(),
+});
 const preparedWorld=loadHarbourWorld({procedural:import.meta.env.DEV&&new URLSearchParams(host.search).get('qaWorld')==='procedural'}).then(world=>({world}),error=>({error}));
 const cyberpunkRoute = false;
 
@@ -42,7 +45,7 @@ try {
 } catch {
   throw new Error('WebGL initialization failed');
 }
-function pixelRatio() { return mapPixelRatio(host.dpr, host.width, host.height); }
+function pixelRatio() { return quality.pixelRatio(); }
 renderer.setPixelRatio(pixelRatio());
 renderer.setSize(host.width, host.height, false);
 renderer.shadowMap.enabled = true;
@@ -158,6 +161,7 @@ if(prepared.error)throw prepared.error;
 const world=prepared.world;
 scene.add(world.root);
 const lighting = createCoastalLighting(scene, world);
+setSunShadowResolution(lighting.sun, harbourRenderProfile(host.width).shadowResolution);
 const timeLighting=cyberpunkRoute?null:createHarbourTime(scene,world,lighting);
 // A lamp out over the harbour, low and close to the waterline. This is the light that shows up on
 // glass, and where it goes is not a matter of taste. A vertical facade reflects what is low and in
@@ -189,6 +193,7 @@ scene.add(harbourGlint);
 let activeSky = DAY_SKY;
 const harbourMirror = createWaterReflection(renderer, scene, camera, {
   level: world.ocean.level, size: world.worldSize, center: world.worldCenter,
+  resolution: harbourRenderProfile(host.width).reflectionResolution,
   waterColor: '#5fb6d6', sky: () => skyDome(activeSky),
 });
 harbourMirror.mesh.visible = false;
@@ -206,6 +211,7 @@ const composer = new EffectComposer(renderer, composerTarget);
 const beauty = new RenderPass(scene, camera);
 composer.addPass(beauty);
 const bloom = new UnrealBloomPass(new T.Vector2(host.width, host.height), .62, .62, .72);
+scaleEffectResolution(bloom, () => harbourRenderProfile(host.width).bloomScale);
 if(!cyberpunkRoute){
     // Use the same emitting-channel threshold for every window colour, without
     // hue-specific amplification of the resulting halo.
@@ -292,6 +298,10 @@ function applyScrollCamera() {
 }
 
 function resize() {
+  const profile = harbourRenderProfile(host.width);
+  setSunShadowResolution(lighting.sun, profile.shadowResolution);
+  renderer.shadowMap.needsUpdate = true;
+  harbourMirror.setResolution(profile.reflectionResolution);
   const ratio=pixelRatio(),ratioChanged=renderer.getPixelRatio()!==ratio;
   if(ratioChanged)renderer.setPixelRatio(ratio);
   frameMap();
@@ -429,7 +439,7 @@ const disconnectPortfolio=host.connect({
 
 let previousFrame,lastRendered=-Infinity;
 const gl=renderer.getContext();
-let frameFence=null,frameStarted=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0;
+let frameFence=null,frameStarted=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0,frameDurationMs=0;
 const profiler=new URLSearchParams(host.search).has('profile')?createRenderProfiler(renderer, data=>host.diagnostic('render-profile',data)):null;
 const gpuTimer=createGpuFrameTimer(gl);
 const profilingUncapped=profiler&&new URLSearchParams(host.search).get('profile')!=='idle';
@@ -446,11 +456,12 @@ renderer.setAnimationLoop(timestamp => {
     // supported, use the GPU's elapsed-time query rather than treating that
     // delay as rendering work and adding another unnecessary cooldown.
     const workCompleted=estimatedWorkCompletion(frameStarted,completed,submissionMs,gpuMs);
+    quality.observe(frameDurationMs, submissionMs, Math.max(submissionMs, workCompleted-frameStarted));
     nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted);
     if(!firstFrameReady){
       firstFrameReady=true;
       const readyMs=Math.round(performance.now()-startupAt);
-      if(new URLSearchParams(host.search).has('profile'))host.diagnostic('startup-webgl',{readyMs,pixelRatio:renderer.getPixelRatio(),fullQuality});
+      if(new URLSearchParams(host.search).has('profile'))host.diagnostic('startup-webgl',{readyMs,pixelRatio:renderer.getPixelRatio(),profile:harbourRenderProfile(host.width)});
       host.ready('webgl');
     }
   }
@@ -467,6 +478,7 @@ renderer.setAnimationLoop(timestamp => {
   lastRendered=timestamp;
   const renderStarted=performance.now();
   const frameMs=previousFrame===undefined?0:timestamp-previousFrame;
+  frameDurationMs=frameMs;
   profiler?.begin(timestamp);
   gpuTimer?.begin();
   pendingResize.flush();

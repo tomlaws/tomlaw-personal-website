@@ -160,6 +160,7 @@ export function createWaterReflection(renderer, scene, camera, {
 
   const dayWater = new T.Color(waterColor), nightWater = new T.Color('#397b9b');
   return { mesh, update, updateSky, dispose,
+    setResolution(resolution) { target.setSize(resolution, resolution); },
     setNight(t) {
       material.uniforms.uWater.value.copy(dayWater).lerp(nightWater, t);
       material.uniforms.uAverage.value=T.MathUtils.lerp(average,.12,t);

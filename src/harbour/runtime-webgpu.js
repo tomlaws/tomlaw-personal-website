@@ -8,14 +8,14 @@ import { createHarbourTime } from './harbour-time.mjs';
 import { createRenderProfiler } from './render-profiler.mjs';
 import { harbourTheme } from '../harbour-theme.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
-import { mapPixelRatio } from './render-quality.mjs';
+import { createAdaptiveRenderQuality, harbourRenderProfile, setSunShadowResolution } from './render-quality.mjs';
 import { portHarbourMaterials } from './webgpu-materials.mjs';
 import { createNodeEnvironment, mixedSky } from './webgpu-sky.mjs';
 import { createNodeWaterReflection } from './webgpu-reflection.mjs';
 import { createNodePostProcessing } from './webgpu-post.mjs';
 import { isolateFramebufferTextures } from './webgpu-compat.mjs';
 import { createBrowserRenderHost } from './render-host.mjs';
-import { animationDelta, nextBackgroundFrame } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, shouldUpdateReflection } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
 import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
@@ -63,7 +63,11 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     const backend = 'webgpu';
     validationDevice = renderer.backend.device;
     if (validationDevice) { validationDevice.pushErrorScope('validation'); validationOpen = true; }
-    const ratio = () => mapPixelRatio(host.dpr);
+    const quality = createAdaptiveRenderQuality({
+      viewport: () => ({width:host.width, height:host.height, dpr:host.dpr}),
+      onChange: () => requestResize(),
+    });
+    const ratio = () => quality.pixelRatio();
     renderer.setPixelRatio(ratio()); renderer.setSize(host.width, host.height, false);
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.VSMShadowMap;
     renderer.toneMapping = T.NeutralToneMapping; renderer.toneMappingExposure = .98;
@@ -84,16 +88,19 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     checkAlive();
     const clippedWorld = new T.ClippingGroup(); clippedWorld.add(world.root); scene.add(clippedWorld);
     const lighting = createCoastalLighting(scene, world);
+    setSunShadowResolution(lighting.sun, harbourRenderProfile(host.width).shadowResolution);
     lighting.sun.shadow.autoUpdate = false; lighting.sun.shadow.needsUpdate = true;
     const timeLighting = createHarbourTime(scene, world, lighting);
     portHarbourMaterials(world.root, timeLighting.windowUniform);
     const glint = new T.PointLight('#fff2d2', 40, 30, 1.6);
     glint.position.set(-1.5, 2.4, 11); scene.add(glint);
-    const mirror = createNodeWaterReflection(renderer, scene, camera, world, clippedWorld);
-    const post = createNodePostProcessing(renderer, scene, camera, {search:host.search});
+    const mirror = createNodeWaterReflection(renderer, scene, camera, world, clippedWorld,
+      {resolution:harbourRenderProfile(host.width).reflectionResolution});
+    const post = createNodePostProcessing(renderer, scene, camera,
+      {search:host.search, profile:harbourRenderProfile(host.width)});
     let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false, reflectionDirty = true;
     let active = true, motion = !capturing && !temporalQA && !host.reducedMotion;
-    let time = 0, previousFrame, nextFrameAt = -Infinity, lastShadow = -Infinity, lastNight;
+    let time = 0, previousFrame, nextFrameAt = -Infinity, lastShadow = -Infinity, lastNight, lastReflection = -Infinity;
     function pose() {
       const value = portfolioCameraPose(home, scrollAmount, host.width <= 650);
       camera.position.copy(value.position); camera.zoom = value.zoom; look();
@@ -102,6 +109,10 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
       cameraDirty=false;
     }
     function resize() {
+      const profile = harbourRenderProfile(host.width);
+      setSunShadowResolution(lighting.sun, profile.shadowResolution);
+      mirror.setResolution(profile.reflectionResolution);
+      post.setQuality(profile);
       const bufferResized = resizeWebGpuBuffer(renderer, host.width, host.height, ratio());
       camera.position.copy(home.position); camera.zoom = 1; look();
       const fullHeight = host.height + host.topInset;
@@ -213,17 +224,19 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
         world.animate(time); lighting.update(); look(); profiler?.mark('animation');
         // Schedule the shared sun atlas before either camera consumes it.
         if (timestamp - lastShadow >= 1000 / 6) { lighting.sun.shadow.needsUpdate = true; lastShadow = timestamp; }
-        // The live mirror follows every presented frame. The alternating QA
-        // fixture remains useful for testing independent transmission buffers.
-        const updateMirror = !temporalQA || qaFrame % 2 === 0;
+        // Match WebGL's live reflection cadence; camera and lighting changes
+        // still refresh immediately. City animation advances on every frame.
+        const updateMirror = temporalQA ? qaFrame % 2 === 0 :
+          shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflection, motion);
         if (updateMirror) {
-          mirror.update(); reflectionDirty = false;
+          mirror.update(); reflectionDirty = false; lastReflection = timestamp;
         }
         profiler?.mark('reflection');
         post.render(); profiler?.mark('mainAndEffects');
         const submissionMs = performance.now() - started;
         if (renderer.backend.device) await renderer.backend.device.queue.onSubmittedWorkDone();
         const completedAt = performance.now(), completeMs = completedAt - started;
+        quality.observe(frameMs, submissionMs, completeMs);
         profiler?.end(timestamp,{cpuMs:submissionMs,completeMs});
         // Keep desktop/browser headroom rather than immediately filling the
         // GPU queue again. At most 24 FPS, and <=60% duty when GPU-bound.

@@ -4,10 +4,9 @@ import { createNodeSky, DAY_SKY } from './webgpu-sky.mjs';
 
 // The same complete-water orthographic capture as WebGL, implemented with node
 // materials and a scene-graph clipping group instead of GLSL/global clipping.
-export function createNodeWaterReflection(renderer, scene, camera, world, clippedWorld) {
+export function createNodeWaterReflection(renderer, scene, camera, world, clippedWorld, {resolution = 1024} = {}) {
   const level = world.ocean.level, size = world.worldSize, center = world.worldCenter;
-  // Match the original WebGL mirror's detail in both axes.
-  const target = new T.RenderTarget(1024, 1024, { type: T.HalfFloatType });
+  const target = new T.RenderTarget(resolution, resolution, { type: T.HalfFloatType });
   const virtualCamera = new T.OrthographicCamera();
   const projection = new T.Matrix4(), projectionNode = uniform(projection);
   const waterColour = uniform(new T.Color('#5fb6d6'));
@@ -74,6 +73,7 @@ export function createNodeWaterReflection(renderer, scene, camera, world, clippe
   }
   return {
     mesh, update, updateSky: sky.set,
+    setResolution(resolution) { target.setSize(resolution, resolution); },
     setNight(t) {
       waterColour.value.set('#5fb6d6').lerp(new T.Color('#397b9b'), t);
       reflectionAverage.value=T.MathUtils.lerp(.52,.12,t);

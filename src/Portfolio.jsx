@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { harbourTime } from "./hong-kong-time.mjs";
 import { harbourTheme } from "./harbour-theme.mjs";
 import github from "./data/github-repositories.json";
+import { connectHarbourFrame } from "./harbour-frame.mjs";
 
 const base = import.meta.env.BASE_URL;
 const profile = "https://github.com/tomlaws";
@@ -68,39 +69,47 @@ export default function Portfolio() {
   const [now, setNow] = useState(() => harbourTime());
   const [ready, setReady] = useState(false);
   const [mapError, setMapError] = useState(false);
+  const [mapAttempt, setMapAttempt] = useState(0);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const frame = useRef(null);
   const firstMapFrame = useRef(false);
   const hero = useRef(null);
+  const mapConnection = useRef(null);
   useEffect(() => {
     const update = () => setNow(harbourTime());
     const timer = setInterval(update, 1000);
-    const receive = (event) => {
-      if (
-        event.origin !== location.origin ||
-        event.source !== frame.current?.contentWindow
-      )
-        return;
-      if (event.data?.type === "harbour:state" && event.data.ready) {
-        setMapError(false);
+    document.addEventListener("visibilitychange", update);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", update);
+    };
+  }, []);
+  useEffect(() => {
+    const connection = connectHarbourFrame({
+      frame: frame.current,
+      hero: hero.current,
+      onReady() {
         setReady(true);
         if(!firstMapFrame.current){
           firstMapFrame.current=true;
           document.documentElement.dataset.mapReadyMs=String(Math.round(performance.now()));
           if(pageParams.has("profile"))console.info('[page-map-ready]',JSON.stringify({readyMs:Math.round(performance.now())}));
         }
-      }
-      if (event.data?.type === "harbour:error") { setReady(false); setMapError(true); }
-    };
-    addEventListener("message", receive);
-    document.addEventListener("visibilitychange", update);
+      },
+      onError() { setReady(false); setMapError(true); },
+    });
+    mapConnection.current = connection;
     return () => {
-      clearInterval(timer);
-      removeEventListener("message", receive);
-      document.removeEventListener("visibilitychange", update);
+      connection.dispose();
+      mapConnection.current = null;
     };
-  }, []);
+  }, [mapAttempt]);
+  function retryMap() {
+    setMapError(false);
+    setReady(false);
+    setMapAttempt(attempt => attempt + 1);
+  }
   useEffect(() => {
     const style = harbourTheme(now.night);
     for (const [key, value] of Object.entries(style)) {
@@ -130,18 +139,17 @@ export default function Portfolio() {
       <div
         className={`world-background ${ready ? "ready" : ""}`}
       >
-        <iframe
+        {!mapError && <iframe
+          key={mapAttempt}
           ref={frame}
+          onLoad={() => mapConnection.current?.sync()}
+          onError={() => mapConnection.current?.fail()}
           src={`${base}harbour/${mapQuery}`}
           title="Hong Kong background scene"
           tabIndex={-1}
           loading="eager"
           aria-hidden="true"
-        />
-        <div className="map-loading" role="status" aria-live="polite">
-          <span className="map-loading-orbit" aria-hidden="true"><i /></span>
-          <span>{ready ? "" : mapError ? "Map unavailable" : "Loading Hong Kong"}</span>
-        </div>
+        />}
       </div>
       <header className="site-header">
         <a className="wordmark" href="#" aria-label="Tom Law home">
@@ -166,6 +174,13 @@ export default function Portfolio() {
       </header>
       <main id="main">
         <section ref={hero} className="hero" aria-labelledby="intro-title">
+          <div className={`map-loading ${mapError ? "error" : ""}`} hidden={ready}>
+            {!mapError && <span className="map-loading-orbit" aria-hidden="true"><i /></span>}
+            <span role="status" aria-live="polite">
+              {mapError ? "Hong Kong couldn’t load" : "Loading Hong Kong"}
+            </span>
+            {mapError && <button type="button" onClick={retryMap}>Retry city</button>}
+          </div>
           <div className="intro-copy">
             <p className="eyebrow">
               <span className="location-mark" />

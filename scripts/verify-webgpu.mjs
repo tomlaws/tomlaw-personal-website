@@ -126,7 +126,7 @@ for (const ratio of [0.5, 1, 1.25, 1.5, 2, 3, NaN]) {
   assert.ok(mapPixelRatio(ratio) <= 1.5, 'Retina rendering stays bounded');
 }
 assert.equal(mapPixelRatio(1.25), 1.25, 'Retain fractional display scaling without upscaling a smaller image');
-assert.equal(mapPixelRatio(3, 390, 844), 1.25, 'Phone rendering retains the existing quality');
+assert.equal(mapPixelRatio(3, 390, 844), 1, 'Both phone renderers start at CSS-pixel resolution');
 assert.equal(mapPixelRatio(1, 1920, 1080), 1, '1080p displays remain at native resolution');
 const largeRatio = mapPixelRatio(2, 3840, 2160);
 assert.ok(Math.abs(3840 * 2160 * largeRatio * largeRatio - 3200000) < 1, 'Large windows stay within the pixel budget');

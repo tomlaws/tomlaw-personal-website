@@ -1,5 +1,6 @@
 import { harbourTime } from '../hong-kong-time.mjs';
 import { connectPortfolio } from './portfolio-bridge.mjs';
+import { startLoadingTimeout } from '../loading-timeout.mjs';
 
 const liveWorkers = new Set();
 import.meta.hot?.dispose(() => { for (const dispose of [...liveWorkers]) dispose(); });
@@ -12,7 +13,7 @@ export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu'} =
       : new Worker(new URL('./webgpu-worker.js', import.meta.url), {type:'module'});
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
     const started = performance.now();
-    let settled = false, disposed = false, disconnect = () => {};
+    let settled = false, disposed = false, disconnect = () => {}, stopTimeout = () => {};
     const send = message => { if (!disposed) worker.postMessage(message); };
     const viewport = () => ({width:innerWidth, height:innerHeight, dpr:devicePixelRatio});
     const resize = () => send({type:'resize', viewport:viewport()});
@@ -21,17 +22,19 @@ export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu'} =
     function dispose() {
       if (disposed) return; disposed = true;
       liveWorkers.delete(dispose);
-      disconnect(); worker.terminate();
+      stopTimeout(); disconnect(); worker.terminate();
       removeEventListener('resize', resize); removeEventListener('pagehide', dispose);
       document.removeEventListener('visibilitychange', visibility); preference.removeEventListener('change', motion);
     }
     liveWorkers.add(dispose);
     function fail(error) { if (disposed) return; dispose(); if (settled) onFailure(error); else reject(error); }
     worker.addEventListener('error', event => { event.preventDefault(); fail(new Error(event.message || 'Render worker failed')); });
+    worker.addEventListener('messageerror', () => fail(new Error('Render worker returned invalid data')));
     worker.addEventListener('message', ({data}) => {
       if (data.type === 'error') fail(new Error(data.message));
       if (data.type === 'diagnostic') console.info(`[${data.label}]`, JSON.stringify(data.data));
       if (data.type !== 'ready' || disposed || settled) return;
+      stopTimeout();
       settled = true;
       document.documentElement.dataset.renderer = data.backend;
       document.documentElement.dataset.renderThread = 'worker';
@@ -48,6 +51,8 @@ export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu'} =
     });
     addEventListener('resize', resize); addEventListener('pagehide', dispose, {once:true});
     document.addEventListener('visibilitychange', visibility); preference.addEventListener('change', motion);
+    stopTimeout = startLoadingTimeout(() => fail(new Error('Render worker startup timed out')),
+      {timeoutMs:45_000});
     try {
       const offscreen = canvas.transferControlToOffscreen();
       worker.postMessage({type:'init', canvas:offscreen, state:{...viewport(), search:location.search,
