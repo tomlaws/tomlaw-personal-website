@@ -1,4 +1,5 @@
 import * as T from 'three';
+import { compileWebGLView } from './startup-work.mjs';
 
 // A true planar reflection for the harbour.
 //
@@ -103,10 +104,10 @@ export function createWaterReflection(renderer, scene, camera, {
     next.geometry.dispose();next.material.dispose();
   }
 
-  function update() {
+  function prepareCamera() {
     camera.updateMatrixWorld();
     position.setFromMatrixPosition(camera.matrixWorld);
-    if (position.y <= level) return;
+    if (position.y <= level) return false;
     // Mirroring through a horizontal plane is small arithmetic: the eye goes to the same x and z
     // below the water, and the view direction and the up vector each have their y negated. The
     // Capture the entire projected water surface. Copying the main projection
@@ -133,7 +134,10 @@ export function createWaterReflection(renderer, scene, camera, {
     // Also refresh the inverse projection used by transmissive glass.
     virtualCamera.updateProjectionMatrix();
     projection.multiplyMatrices(virtualCamera.projectionMatrix, virtualCamera.matrixWorldInverse);
+    return true;
+  }
 
+  function duringReflection(callback, visibleAfter=mesh.visible) {
     // The visible sky is a screen-space panorama, which means nothing to a mirrored camera, so a
     // real dome stands in for it. Custom shader materials are not touched by clipping planes, so
     // the sky comes through whole while the island below the waterline is cut away.
@@ -144,13 +148,19 @@ export function createWaterReflection(renderer, scene, camera, {
     if (dome) scene.add(dome);
     mesh.visible = false;
     renderer.clippingPlanes = [clipPlane];
-    renderer.setRenderTarget(target);
-    renderer.render(scene, virtualCamera);
-    renderer.setRenderTarget(previousTarget);
-    renderer.clippingPlanes = planes;
-    mesh.visible = true;
-    if (dome) scene.remove(dome);
-    scene.background = background;
+    try { renderer.setRenderTarget(target); return callback(); }
+    finally {
+      renderer.setRenderTarget(previousTarget);
+      renderer.clippingPlanes = planes;
+      mesh.visible = visibleAfter;
+      if (dome) scene.remove(dome);
+      scene.background = background;
+    }
+  }
+
+  function update() {
+    if(!prepareCamera())return;
+    duringReflection(()=>renderer.render(scene,virtualCamera),true);
   }
 
   function dispose() {
@@ -160,6 +170,12 @@ export function createWaterReflection(renderer, scene, camera, {
 
   const dayWater = new T.Color(waterColor), nightWater = new T.Color('#397b9b');
   return { mesh, update, updateSky, dispose,
+    async compile() {
+      if(!prepareCamera())return;
+      // compileAsync captures its program parameters synchronously. Restore
+      // scene state immediately while the driver finishes compilation.
+      await duringReflection(()=>compileWebGLView(renderer,scene,virtualCamera,target));
+    },
     setResolution(resolution) { target.setSize(resolution, resolution); },
     setNight(t) {
       material.uniforms.uWater.value.copy(dayWater).lerp(nightWater, t);

@@ -1,6 +1,7 @@
 import "./map.css";
 import { harbourTime } from '../hong-kong-time.mjs';
 import { setHarbourBackdrop } from './backdrop.mjs';
+import { startWorkerRenderer } from './worker-controller.mjs';
 
 setHarbourBackdrop(harbourTime().night);
 function showError(error) {
@@ -35,7 +36,6 @@ async function startLegacy(reason) {
   if (!reason && !mainFixture &&
       typeof Worker !== 'undefined' && 'transferControlToOffscreen' in HTMLCanvasElement.prototype) {
     try {
-      const { startWorkerRenderer } = await import('./worker-controller.mjs');
       currentRenderer = await startWorkerRenderer({backend:'webgl', onFailure: error => startMainWebGL(error).catch(showError)});
       return;
     } catch (error) { console.warn('Offscreen WebGL unavailable; using the main thread.', error); freshCanvas(); }
@@ -66,7 +66,6 @@ try {
   } else {
     const mainFixture = import.meta.env.DEV && new URLSearchParams(location.search).get('qaThread') === 'main';
     if (!mainFixture && typeof Worker !== 'undefined' && 'transferControlToOffscreen' in HTMLCanvasElement.prototype) {
-      const { startWorkerRenderer } = await import('./worker-controller.mjs');
       try { currentRenderer = await startWorkerRenderer({onFailure:error=>startNativeOnMain(error).catch(showError)}); }
       catch (error) { await startNativeOnMain(error); }
     } else await startNativeOnMain();

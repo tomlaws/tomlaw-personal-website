@@ -23,6 +23,9 @@ import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
 import { captureShaderErrors } from './shader-errors.mjs';
+import { loadPreparedLighting } from './prepared-lighting.mjs';
+import lightingAsset from './prepared-lighting-asset.json' with {type:'json'};
+import { compileWebGLView } from './startup-work.mjs';
 
 export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
 const canvas = host.canvas;
@@ -32,6 +35,8 @@ const quality = createAdaptiveRenderQuality({
   onChange: () => requestResize(),
 });
 const preparedWorld=loadHarbourWorld({procedural:import.meta.env.DEV&&new URLSearchParams(host.search).get('qaWorld')==='procedural'}).then(world=>({world}),error=>({error}));
+const preparedLighting=loadPreparedLighting(`${import.meta.env.BASE_URL}lighting/${lightingAsset.file}`)
+  .catch(error=>{console.warn('Prepared WebGL lighting unavailable; using the original sky.',error);return null;});
 const cyberpunkRoute = false;
 
 // A capture run — `npm run capture` puts ?capture= in the url — has nobody watching the
@@ -69,7 +74,8 @@ scene.fog = new T.Fog('#0e1128', 22, 58);
 // poles and keeps whatever hard edges it was drawn with, and a polished facade turns both into
 // artefacts — bands across the glass, and a starburst where the image pinches. Every term here is
 // a smooth function of direction, so there are no edges to reflect.
-const environmentGenerator = new T.PMREMGenerator(renderer);
+let environmentGenerator;
+const environmentTargets=[];
 // The dome is built on its own so that it can serve twice: once here, to be photographed into an
 // environment, and once at load, to stand in for the visible sky while the district itself is
 // photographed for its reflections.
@@ -117,8 +123,10 @@ function skyDome({ zenith, horizon, ground, sunColor, sunDirection, cloudColor, 
   );
 }
 function buildSkyEnvironment(options) {
+  environmentGenerator ??= new T.PMREMGenerator(renderer);
   const dome = skyDome(options);
   const target = environmentGenerator.fromScene(new T.Scene().add(dome), 0);
+  environmentTargets.push(target);
   dome.geometry.dispose(); dome.material.dispose();
   return target.texture;
 }
@@ -132,14 +140,15 @@ const NIGHT_SKY = {
   zenith: '#0d1a33', horizon: '#4b5b7c', ground: '#101520',
   sunColor: '#ffd9a8', sunDirection: [-6, 3.5, 9], cloudColor: '#28324a', cloudCover: .45, cloudScale: 5.1,
 };
-const dayEnvironment = buildSkyEnvironment(DAY_SKY);
-const nightEnvironment = buildSkyEnvironment(NIGHT_SKY);
+const loadedLighting=await preparedLighting;
+const dayEnvironment = loadedLighting?.[0] ?? buildSkyEnvironment(DAY_SKY);
+const nightEnvironment = loadedLighting?.[1] ?? buildSkyEnvironment(NIGHT_SKY);
 const environmentBlend=createEnvironmentBlend(renderer,dayEnvironment,nightEnvironment);
 scene.environment = environmentBlend.texture;
 // The glass carries its own reflection strength; this is the environment's share of it, and it is
 // the one number that decides whether a facade mirrors the sky or merely looks blue.
 scene.environmentIntensity = .82;
-environmentGenerator.dispose();
+environmentGenerator?.dispose();
 // The view stands at Tsim Sha Tsui, and `camera-home.mjs` owns that pose: the camera is high and out
 // over the water off the harbour's east end, looking across at Hong Kong Island, so the
 // wheel and the IFC land on the right of the picture. Nothing of Tsim Sha Tsui is in the world — the
@@ -412,7 +421,10 @@ function setTimeOfDay(value) {
 setTimeOfDay(host.night());
 // Let supported drivers compile materials in parallel instead of blocking the
 // first visible frame on all landmark shaders at once.
-await renderer.compileAsync(scene, camera);
+// Warm the actual linear HDR and clipped reflection variants. Compiling for
+// the canvas would prepare unused tone-mapped/sRGB material programs instead.
+await compileWebGLView(renderer,scene,camera,composer.readBuffer);
+await harbourMirror.compile();
 try { shaderErrors.check(); }
 catch(error) { renderer.dispose(); renderer.forceContextLoss(); throw error; }
 
@@ -529,6 +541,9 @@ function dispose(){
   if(frameFence){gl.deleteSync(frameFence);frameFence=null;}
   gpuTimer?.dispose();
   harbourMirror.dispose();
+  environmentBlend.dispose();
+  if(loadedLighting)loadedLighting.forEach(texture=>texture.dispose());
+  else environmentTargets.forEach(target=>target.dispose());
   silhouetteTarget.dispose();renderer.dispose();renderer.forceContextLoss();
 }
 const disconnectDispose = host.onDispose(dispose);

@@ -1,3 +1,5 @@
+import { Scene } from 'three';
+
 // Bound expensive driver compilation rather than asking it to build dozens of
 // PBR pipelines concurrently. This only changes preparation, never render quality.
 export function createWorkQueue(concurrency=2) {
@@ -10,6 +12,19 @@ export function createWorkQueue(concurrency=2) {
     }
   }
   return task=>new Promise((resolve,reject)=>{waiting.push({task,resolve,reject});pump();});
+}
+
+// WebGL shader keys include render-target colour space and tone mapping.
+// Compile against the real target, preserving the caller's render state.
+export function compileWebGLView(renderer,scene,camera,target) {
+  const previous=renderer.getRenderTarget(),autoClear=renderer.autoClear;
+  try {
+    renderer.setRenderTarget(target);renderer.autoClear=false;
+    // compileAsync does not initialise WebGLClipping. An empty render sets
+    // the requested plane count without clearing or drawing any geometry.
+    renderer.render(new Scene(),camera);
+    return renderer.compileAsync(scene,camera);
+  } finally { renderer.setRenderTarget(previous);renderer.autoClear=autoClear; }
 }
 
 export async function warmScenePipelines(renderer,compile) {

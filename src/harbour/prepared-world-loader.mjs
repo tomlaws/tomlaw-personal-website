@@ -1,42 +1,7 @@
 import asset from './world-asset.json' with {type:'json'};
 import sourceHash from 'virtual:harbour-world-version';
-import {readSceneData} from './scene-codec.mjs';
 import {restorePreparedWorldAsync} from './prepared-world.mjs';
-import {startLoadingTimeout} from '../loading-timeout.mjs';
-
-async function fetchPreparedData(url) {
-  const controller = new AbortController();
-  const stopTimeout = startLoadingTimeout(() => controller.abort(), {timeoutMs:20_000});
-  try { return await readSceneData(await fetch(url, {signal:controller.signal})); }
-  finally { stopTimeout(); }
-}
-
-// Use a worker for decompression and binary decoding so a cold load does not
-// monopolise the page's main thread. Browsers without workers retain the same
-// lossless scene and can still initialize using the original path.
-async function loadPreparedData(url) {
-  if (typeof Worker === 'undefined') return fetchPreparedData(url);
-  let worker;
-  let stopTimeout = () => {};
-  try {
-    worker = new Worker(new URL('./scene-decode-worker.js', import.meta.url), {type:'module'});
-    return await new Promise((resolve, reject) => {
-      stopTimeout = startLoadingTimeout(() => reject(new Error('Scene decode worker timed out')),
-        {timeoutMs:20_000});
-      worker.onmessage = ({data}) => data.error ? reject(new Error(data.error)) : resolve(data.scene);
-      worker.onerror = event => reject(new Error(event.message || 'Scene decode worker failed'));
-      worker.onmessageerror = () => reject(new Error('Scene decode worker returned invalid data'));
-      worker.postMessage({url});
-    });
-  } catch (error) {
-    stopTimeout(); worker?.terminate(); worker = undefined;
-    console.warn('Scene decode worker unavailable; decoding on the main thread.', error);
-    return fetchPreparedData(url);
-  } finally {
-    stopTimeout();
-    worker?.terminate();
-  }
-}
+import {loadPreparedData} from './prepared-data.mjs';
 
 export async function loadHarbourWorld({procedural=false,diagnostic=()=>{}}={}){
   if(!procedural&&asset.sourceHash===sourceHash){

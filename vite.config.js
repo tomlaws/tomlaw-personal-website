@@ -34,7 +34,16 @@ const worldPreload = {
   async transformIndexHtml(html, context) {
     if (context.server || !context.filename.endsWith('index.html') || context.filename.includes('harbour')) return;
     const asset = JSON.parse(await readFile('src/harbour/world-asset.json', 'utf8'));
-    return [{ tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: `world-br/${asset.brotliFile}`, crossorigin: 'anonymous' }, injectTo: 'head-prepend' }];
+    const lighting = JSON.parse(await readFile('src/harbour/prepared-lighting-asset.json', 'utf8'));
+    const tags = [
+      { tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: `world-br/${asset.brotliFile}`, crossorigin: 'anonymous' }, injectTo: 'head-prepend' },
+      { tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: `lighting/${lighting.file}`, crossorigin: 'anonymous' }, injectTo: 'head-prepend' },
+    ];
+    const entry = Object.values(context.bundle ?? {}).find(item => item.type === 'chunk' && item.isEntry && item.name === 'harbour');
+    if (entry) for (const file of new Set([entry.fileName,...entry.imports])) {
+      tags.push({ tag: 'link', attrs: { rel: 'modulepreload', href: `/${file}`, crossorigin: 'anonymous' }, injectTo: 'head' });
+    }
+    return tags;
   },
 };
 
