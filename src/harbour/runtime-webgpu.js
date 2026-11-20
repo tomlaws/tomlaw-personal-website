@@ -65,6 +65,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     if (validationDevice) { validationDevice.pushErrorScope('validation'); validationOpen = true; }
     const quality = createAdaptiveRenderQuality({
       viewport: () => ({width:host.width, height:host.height, dpr:host.dpr}),
+      onChange: () => requestResize(),
     });
     const ratio = () => quality.pixelRatio();
     renderer.setPixelRatio(ratio()); renderer.setSize(host.width, host.height, false);
@@ -96,8 +97,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     const mirror = createNodeWaterReflection(renderer, scene, camera, world, clippedWorld,
       {resolution:harbourRenderProfile(host.width).reflectionResolution});
     const post = createNodePostProcessing(renderer, scene, camera,
-      {search:host.search, profile:harbourRenderProfile(host.width),
-        bloomInterval:() => Math.max(1000/15,quality.bloomInterval())});
+      {search:host.search, profile:harbourRenderProfile(host.width)});
     let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false, reflectionDirty = true;
     let active = true, motion = !capturing && !temporalQA && !host.reducedMotion;
     let time = 0, previousFrame, nextFrameAt = -Infinity, lastShadow = -Infinity, lastNight, lastReflection = -Infinity;
@@ -227,7 +227,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
         // Match WebGL's live reflection cadence; camera and lighting changes
         // still refresh immediately. City animation advances on every frame.
         const updateMirror = temporalQA ? qaFrame % 2 === 0 :
-          shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflection, motion, quality.reflectionHz());
+          shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflection, motion);
         if (updateMirror) {
           mirror.update(); reflectionDirty = false; lastReflection = timestamp;
         }

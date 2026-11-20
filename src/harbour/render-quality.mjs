@@ -1,5 +1,3 @@
-import { createRenderBudget } from './render-budget.mjs';
-
 // Share phone settings across backends. Geometry, lighting and animation stay
 // intact; smaller effect buffers leave room for Safari's page compositor.
 export function harbourRenderProfile(width) {
@@ -15,8 +13,8 @@ export function harbourRenderProfile(width) {
   };
 }
 
-// Keep scene resolution fixed. High-density phones render at 2x CSS resolution;
-// overload adjusts auxiliary effect cadence rather than blurring the city.
+// Keep the phone's image sharp at a fixed 2x pixel ratio. Rendering load must
+// not lower the resolution of the scene after it has appeared.
 export function mapPixelRatio(deviceRatio = 1, width = 0, height = 0) {
   const dpr = Math.min(harbourRenderProfile(width).mobile ? 2 : 1.5,
     Math.max(1, Number.isFinite(deviceRatio) ? deviceRatio : 1));
@@ -25,21 +23,14 @@ export function mapPixelRatio(deviceRatio = 1, width = 0, height = 0) {
   return Math.min(dpr, Math.sqrt(pixelBudget / (width * height)));
 }
 
-export function createAdaptiveRenderQuality({ viewport, onChange = () => {} }) {
-  const budget = createRenderBudget(onChange, {
-    initialPixels: 1_000_000, minimumPixels: 562_500,
-    sampleCount: 45, targetFrameMs: 55, gpuBudgetMs: 28,
-  });
+export function createAdaptiveRenderQuality({ viewport }) {
   return {
     pixelRatio() {
       const {width, height, dpr} = viewport();
       return mapPixelRatio(dpr, width, height);
     },
-    reflectionHz() { return harbourRenderProfile(viewport().width).mobile ? 8*budget.pixels/1_000_000 : 12; },
-    bloomInterval() { return harbourRenderProfile(viewport().width).mobile ? 1000/Math.max(8,15*budget.pixels/1_000_000) : 0; },
-    observe(frameMs, cpuMs, workMs) {
-      if (harbourRenderProfile(viewport().width).mobile) budget.observe(frameMs, cpuMs, workMs);
-    },
+    // Preserve the renderer interface without resizing buffers during load.
+    observe() {},
   };
 }
 

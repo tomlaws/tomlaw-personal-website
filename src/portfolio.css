@@ -78,7 +78,6 @@ input:focus-visible {
   background: var(--background);
   z-index: 0;
   pointer-events: none;
-  contain: layout paint;
 }
 .world-background iframe {
   width: 100%;

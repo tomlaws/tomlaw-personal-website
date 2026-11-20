@@ -126,7 +126,7 @@ for (const ratio of [0.5, 1, 1.25, 1.5, 2, 3, NaN]) {
   assert.ok(mapPixelRatio(ratio) <= 1.5, 'Retina rendering stays bounded');
 }
 assert.equal(mapPixelRatio(1.25), 1.25, 'Retain fractional display scaling without upscaling a smaller image');
-assert.equal(mapPixelRatio(3, 390, 844), 2, 'Both phone renderers retain a sharp fixed 2x pixel ratio');
+assert.equal(mapPixelRatio(3, 390, 844), 2, 'Both phone renderers retain a fixed sharp pixel ratio');
 assert.equal(mapPixelRatio(1, 1920, 1080), 1, '1080p displays remain at native resolution');
 const largeRatio = mapPixelRatio(2, 3840, 2160);
 assert.ok(Math.abs(3840 * 2160 * largeRatio * largeRatio - 3200000) < 1, 'Large windows stay within the pixel budget');
@@ -160,11 +160,6 @@ cacheTime=120;cachedPass.updateBefore();assert.equal(passes,3,'Scene motion rece
 cacheSize.x=900;cachedPass.updateBefore();assert.equal(passes,4,'Viewport resize invalidates effects');
 cacheDpr=.8;cachedPass.updateBefore();assert.equal(passes,5,'Adaptive DPR invalidates effects');
 invalidate();cachedPass.updateBefore();assert.equal(passes,6,'Lighting changes invalidate effects');
-let effectInterval=100,dynamicTime=0,dynamicPasses=0;
-const dynamicPass={updateBefore(){dynamicPasses++;}};
-cacheViewPass(dynamicPass,{getSize:out=>out.copy(cacheSize),getPixelRatio:()=>1},cacheCamera,()=>effectInterval,()=>dynamicTime);
-dynamicPass.updateBefore();dynamicTime=50;dynamicPass.updateBefore();assert.equal(dynamicPasses,1);
-effectInterval=40;dynamicPass.updateBefore();assert.equal(dynamicPasses,2,'Effect adaptation changes cadence without resizing the sharp scene');
 const gpuBudget=createRenderBudget(()=>{}, {initialPixels:750_000,minimumPixels:350_000,sampleCount:24,gpuBudgetMs:20,targetFrameMs:60});
 for(let i=0;i<60;i++)gpuBudget.observe(1000,5,8);
 assert.equal(gpuBudget.pixels,750_000,'Browser throttling alone does not lower quality');

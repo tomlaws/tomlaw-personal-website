@@ -18,8 +18,6 @@ quality.observe(90,2,70);
 assert.equal(quality.pixelRatio(),2,'One slow frame cannot resize the drawing buffer');
 for (let i=0;i<300;i++) quality.observe(80,3,40);
 assert.equal(quality.pixelRatio(),2,'Sustained GPU overload cannot blur the city');
-assert.ok(quality.reflectionHz()>=4&&quality.reflectionHz()<8,'Overload reduces auxiliary effect work');
-assert.ok(quality.bloomInterval()<=125&&quality.bloomInterval()>1000/15);
 const settled = resizes;
 for (let i=0;i<100;i++) quality.observe(80,3,40);
 assert.equal(resizes,settled,'Reaching the floor does not keep requesting resizes');
@@ -31,11 +29,9 @@ assert.equal(resizes,settled);
 const throttled = createAdaptiveRenderQuality({viewport:() => ({width:390,height:680,dpr:3})});
 for (let i=0;i<120;i++) throttled.observe(1000,4,12);
 assert.equal(throttled.pixelRatio(),2,'Browser throttling alone does not lower quality');
-assert.equal(throttled.reflectionHz(),8);
 const severe = createAdaptiveRenderQuality({viewport:() => ({width:390,height:680,dpr:3})});
 severe.observe(300,3,200); severe.observe(300,3,200);
-assert.equal(severe.pixelRatio(),2,'Severe GPU stalls preserve image resolution');
-assert.ok(severe.reflectionHz()<8,'Severe stalls adapt effect refresh without pausing animation');
+assert.equal(severe.pixelRatio(),2,'Severe GPU stalls cannot lower the scene resolution');
 
 for (const width of [320,390,430,650,651,1440]) {
   const profile = harbourRenderProfile(width), mobile = width<=650;
@@ -98,4 +94,5 @@ for (let frame=0;frame<120;frame++) {
 assert.ok(Math.abs(time-119/60)<1e-10,'Animations advance in real time while reflection frames are reused');
 assert.ok(reflections>=14&&reflections<=17,'Phone reflections run near 8 Hz independently of animation');
 assert.equal(shouldUpdateReflection(390,true,1,0),true,'Camera and lighting changes refresh immediately');
-console.log('Mobile rendering: bounded adaptation, matching backend budgets, smaller live effects and continuous animation passed.');
+assert.equal(resizes,0,'GPU load never causes drawing-buffer resizing');
+console.log('Mobile rendering: fixed sharp resolution, matching backend budgets, live effects and continuous animation passed.');

@@ -7,8 +7,7 @@ export function cacheViewPass(pass, renderer, camera, interval, now = () => perf
   let refreshed = -Infinity, width = 0, height = 0, dpr = 0;
   pass.updateBefore = frame => {
     const time = now(); renderer.getSize(size);
-    const cadence = typeof interval === 'function' ? interval() : interval;
-    if (time - refreshed < cadence && view.equals(camera.matrixWorld) && projection.equals(camera.projectionMatrix)
+    if (time - refreshed < interval && view.equals(camera.matrixWorld) && projection.equals(camera.projectionMatrix)
       && width === size.x && height === size.y && dpr === renderer.getPixelRatio()) return;
     update(frame); refreshed = time; view.copy(camera.matrixWorld); projection.copy(camera.projectionMatrix);
     width = size.x; height = size.y; dpr = renderer.getPixelRatio();
