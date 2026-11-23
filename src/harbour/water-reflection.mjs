@@ -17,7 +17,7 @@ import { compileWebGLView } from './startup-work.mjs';
 // its colour and shows the island's foundations). A render target costs one pass and needs nothing
 // from the water.
 //
-// Captured with each presented animation/camera frame. Its
+// Captured repeatedly from the live scene, including the moving ferry. Its
 // frustum covers the water plate independently of the main camera's zoom/crop.
 export function createWaterReflection(renderer, scene, camera, {
   level, waterColor = '#5fb6d6', strength = .9, opacity = .52, average = .52, resolution = 1024, size = 24, center = [0, 0], sky = null,

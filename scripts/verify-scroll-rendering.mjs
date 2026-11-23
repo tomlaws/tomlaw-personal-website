@@ -113,8 +113,8 @@ const normal = backgroundFrameBudget(430, false), busy = backgroundFrameBudget(4
 assert.deepEqual(normal,{fps:30,duty:.75}); assert.deepEqual(busy,{fps:24,duty:.6});
 assert.deepEqual(backgroundFrameBudget(1440,true),normal,'Desktop does not inherit the phone gesture budget');
 assert.equal(nextBackgroundFrame(0,0,30,busy.fps,busy.duty),50,'A busy phone reserves 40% GPU rest');
-assert.equal(shouldUpdateReflection(430,false,200,0,true,true),false);
-assert.equal(shouldUpdateReflection(430,false,250,0,true,true),true,'Moving reflections remain live at 4 Hz while scrolling');
+assert.equal(shouldUpdateReflection(430,false,124,0,true,true),false);
+assert.equal(shouldUpdateReflection(430,false,125,0,true,true),true,'Moving ferry reflections retain the 8 Hz budget while scrolling');
 assert.equal(shouldUpdateReflection(430,true,1,0,true,true),true,'Important reflection changes still refresh immediately');
 let previous=0, elapsed=0;
 for(let frame=1;frame<=48;frame++){

@@ -18,7 +18,7 @@ import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { createAdaptiveRenderQuality, harbourRenderProfile, scaleEffectResolution, setSunShadowResolution } from './render-quality.mjs';
-import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, shouldUpdateReflection, backgroundFrameBudget } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, createReflectionSchedule, backgroundFrameBudget } from './frame-pacing.mjs';
 import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
@@ -27,6 +27,7 @@ import { loadPreparedLighting } from './prepared-lighting.mjs';
 import lightingAsset from './prepared-lighting-asset.json' with {type:'json'};
 import { compileWebGLView } from './startup-work.mjs';
 import { cacheBloomPass } from './cached-bloom.mjs';
+import { createMobileGlazing } from './mobile-glazing.mjs';
 
 export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
 const canvas = host.canvas;
@@ -175,6 +176,7 @@ scene.add(world.root);
 const lighting = createCoastalLighting(scene, world);
 setSunShadowResolution(lighting.sun, harbourRenderProfile(host.width).shadowResolution);
 const timeLighting=cyberpunkRoute?null:createHarbourTime(scene,world,lighting);
+const glazing = createMobileGlazing(world.root);
 // A lamp out over the harbour, low and close to the waterline. This is the light that shows up on
 // glass, and where it goes is not a matter of taste. A vertical facade reflects what is low and in
 // front of it, because the mirror image of a camera looking down arrives pointing at the ground —
@@ -315,6 +317,7 @@ function applyScrollCamera() {
 
 function resize() {
   const profile = harbourRenderProfile(host.width);
+  glazing.setWidth(host.width);
   setSunShadowResolution(lighting.sun, profile.shadowResolution);
   renderer.shadowMap.needsUpdate = true;
   harbourMirror.setResolution(profile.reflectionResolution);
@@ -441,7 +444,8 @@ canvas.addEventListener('webglcontextlost', e => {
 
 let portfolioActive = true;
 let firstFrameReady=false;
-let reflectionReady=false, lastReflectionTime=-Infinity;
+let reflectionReady=false;
+const updateReflection = createReflectionSchedule();
 let motionEnabled = !capturing&&!host.reducedMotion;
 const disconnectMotion = host.onMotion(() => {
   motionEnabled = !capturing&&!host.reducedMotion;
@@ -524,11 +528,10 @@ renderer.setAnimationLoop(timestamp => {
   // Capture before the first frame and periodically thereafter so moving boats
   // remain reflected without drawing a second full scene every frame.
   reflectionUpdated=false;
-  if (shouldUpdateReflection(host.width, reflectionDirty || !reflectionReady, timestamp, lastReflectionTime, motionEnabled, scrolling)) {
+  if (updateReflection(host.width, reflectionDirty || !reflectionReady, timestamp, motionEnabled)) {
     harbourMirror.update();
     reflectionUpdated=true;
     reflectionReady=true;
-    lastReflectionTime=timestamp;
     reflectionDirty=false;
   }
   profiler?.mark('reflection');

@@ -26,7 +26,21 @@ export function estimatedWorkCompletion(started, completed, cpuMs, gpuMs, lastBu
 // Moving boats need a live reflection, but a second scene render every frame
 // competes with the main scene. Refresh at a bounded rate on all devices.
 export function shouldUpdateReflection(width, dirty, timestamp, lastUpdate, motion = true, scrolling = false) {
-  return dirty || (motion && timestamp - lastUpdate >= 1000 / (width <= 650 ? scrolling ? 4 : 8 : 12));
+  return dirty || (motion && timestamp - lastUpdate >= 1000 / (width <= 650 ? 8 : 12));
+}
+
+// A wall-time limit alone recaptures the whole city on every slow frame.
+// Leave at least one ordinary scene frame between routine mirror captures;
+// ferry/boat animation still refreshes near 8 Hz on phones, including scrolling.
+export function createReflectionSchedule() {
+  let frame = 0, lastFrame = -Infinity, lastUpdate = -Infinity;
+  return (width, dirty, timestamp, motion = true) => {
+    frame++;
+    if (!dirty && (frame - lastFrame < 2 || !shouldUpdateReflection(width, false, timestamp, lastUpdate, motion))) return false;
+    lastFrame = frame;
+    lastUpdate = timestamp;
+    return true;
+  };
 }
 
 // Animations use elapsed time rather than slowing down when frames are sparse.

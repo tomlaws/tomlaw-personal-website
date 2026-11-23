@@ -15,10 +15,11 @@ import { createNodeWaterReflection } from './webgpu-reflection.mjs';
 import { createNodePostProcessing } from './webgpu-post.mjs';
 import { isolateFramebufferTextures } from './webgpu-compat.mjs';
 import { createBrowserRenderHost } from './render-host.mjs';
-import { animationDelta, nextBackgroundFrame, shouldUpdateReflection, backgroundFrameBudget } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, createReflectionSchedule, backgroundFrameBudget } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
 import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
+import { createMobileGlazing } from './mobile-glazing.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
 
 export async function startWebGPU({ host = createBrowserRenderHost(), onFailure = () => {} } = {}) {
@@ -92,6 +93,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     lighting.sun.shadow.autoUpdate = false; lighting.sun.shadow.needsUpdate = true;
     const timeLighting = createHarbourTime(scene, world, lighting);
     portHarbourMaterials(world.root, timeLighting.windowUniform);
+    const glazing = createMobileGlazing(world.root);
     const glint = new T.PointLight('#fff2d2', 40, 30, 1.6);
     glint.position.set(-1.5, 2.4, 11); scene.add(glint);
     const mirror = createNodeWaterReflection(renderer, scene, camera, world, clippedWorld,
@@ -100,7 +102,8 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
       {search:host.search, profile:harbourRenderProfile(host.width)});
     let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false, reflectionDirty = true;
     let active = true, scrolling = false, motion = !capturing && !temporalQA && !host.reducedMotion;
-    let time = 0, previousFrame, nextFrameAt = -Infinity, lastShadow = -Infinity, lastNight, lastReflection = -Infinity;
+    let time = 0, previousFrame, nextFrameAt = -Infinity, lastShadow = -Infinity, lastNight;
+    const updateReflection = createReflectionSchedule();
     function pose() {
       const value = portfolioCameraPose(home, scrollAmount, host.width <= 650);
       camera.position.copy(value.position); camera.zoom = value.zoom; look();
@@ -110,6 +113,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
     }
     function resize() {
       const profile = harbourRenderProfile(host.width);
+      glazing.setWidth(host.width);
       setSunShadowResolution(lighting.sun, profile.shadowResolution);
       mirror.setResolution(profile.reflectionResolution);
       post.setQuality(profile);
@@ -228,9 +232,9 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
         // Match WebGL's live reflection cadence; camera and lighting changes
         // still refresh immediately. City animation advances on every frame.
         const updateMirror = temporalQA ? qaFrame % 2 === 0 :
-          shouldUpdateReflection(host.width, reflectionDirty, timestamp, lastReflection, motion, scrolling);
+          updateReflection(host.width, reflectionDirty, timestamp, motion);
         if (updateMirror) {
-          mirror.update(); reflectionDirty = false; lastReflection = timestamp;
+          mirror.update(); reflectionDirty = false;
         }
         profiler?.mark('reflection');
         post.render(); profiler?.mark('mainAndEffects');
