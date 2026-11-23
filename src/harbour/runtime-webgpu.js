@@ -15,7 +15,7 @@ import { createNodeWaterReflection } from './webgpu-reflection.mjs';
 import { createNodePostProcessing } from './webgpu-post.mjs';
 import { isolateFramebufferTextures } from './webgpu-compat.mjs';
 import { createBrowserRenderHost } from './render-host.mjs';
-import { animationDelta, nextBackgroundFrame, createReflectionSchedule, backgroundFrameBudget } from './frame-pacing.mjs';
+import { animationDelta, nextBackgroundFrame, createReflectionSchedule, backgroundFrameBudget, backgroundFrameDue } from './frame-pacing.mjs';
 import { warmScenePipelines } from './startup-work.mjs';
 import { CompactLighting } from './compact-lighting.mjs';
 import { createFrameResize, resizeWebGpuBuffer } from './frame-resize.mjs';
@@ -212,7 +212,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
       if (failed || host.hidden || (!active && !reflectionDirty && Math.abs(scrollAmount-scrollTarget)<=.0001)) { previousFrame = undefined; return; }
       if (!motion && !reflectionDirty && !temporalQA) { previousFrame = undefined; return; }
       if (temporalQA && qaFrame >= 16) return;
-      if (performance.now() < nextFrameAt) return;
+      if (!backgroundFrameDue(performance.now(),nextFrameAt)) return;
       const started = performance.now(), frameMs = previousFrame === undefined ? 0 : timestamp - previousFrame;
       const delta = animationDelta(previousFrame, timestamp); previousFrame = timestamp;
       try {

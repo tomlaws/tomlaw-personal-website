@@ -18,8 +18,8 @@ import { harbourTheme } from '../harbour-theme.mjs';
 import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { createAdaptiveRenderQuality, harbourRenderProfile, scaleEffectResolution, setSunShadowResolution } from './render-quality.mjs';
-import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, createReflectionSchedule, backgroundFrameBudget } from './frame-pacing.mjs';
-import {createGpuFrameTimer} from './gpu-frame-timer.mjs';
+import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, createReflectionSchedule, backgroundFrameBudget, backgroundFrameDue } from './frame-pacing.mjs';
+import {createGpuFrameQueue} from './gpu-frame-queue.mjs';
 import {createFrameResize} from './frame-resize.mjs';
 import { applyEmbeddedView } from './embedded-viewport.mjs';
 import { captureShaderErrors } from './shader-errors.mjs';
@@ -465,27 +465,24 @@ const disconnectPortfolio=host.connect({
 
 let previousFrame,lastRendered=-Infinity;
 const gl=renderer.getContext();
-let frameFence=null,frameStarted=0,frameBusyUntil=0,nextFrameAt=-Infinity,frameTimestamp=0,submissionMs=0,frameDurationMs=0;
+let nextFrameAt=-Infinity, lastGpuMs;
 const profiler=new URLSearchParams(host.search).has('profile')?createRenderProfiler(renderer, data=>host.diagnostic('render-profile',data)):null;
-const gpuTimer=createGpuFrameTimer(gl);
+const frameQueue=createGpuFrameQueue(gl);
 const profilingUncapped=profiler&&new URLSearchParams(host.search).get('profile')!=='idle';
 renderer.setAnimationLoop(timestamp => {
   try {
-  // One completed GPU frame at a time, with the same headroom budget as WebGPU.
-  // Keep native resolution rather than reacting to load by blurring the map.
-  if(frameFence){
-    if(gl.clientWaitSync(frameFence,0,0)===gl.TIMEOUT_EXPIRED){frameBusyUntil=performance.now();return;}
-    gl.deleteSync(frameFence);frameFence=null;
-    const completed=performance.now();
-    const gpuMs=gpuTimer.read();
-    profiler?.end(frameTimestamp,{cpuMs:submissionMs,completeMs:completed-frameStarted,gpuMs});
-    // A fence checked on the next RAF includes browser scheduling delay. When
-    // supported, use the GPU's elapsed-time query rather than treating that
-    // delay as rendering work and adding another unnecessary cooldown.
-    const workCompleted=estimatedWorkCompletion(frameStarted,completed,submissionMs,gpuMs,frameBusyUntil);
-    quality.observe(frameDurationMs, submissionMs, Math.max(submissionMs, workCompleted-frameStarted));
-    const budget=backgroundFrameBudget(host.width,scrolling);
-    nextFrameAt=nextBackgroundFrame(nextFrameAt,frameStarted,workCompleted,budget.fps,budget.duty);
+  // Mobile worker fences include a cross-process round trip. Overlap at most
+  // two frames at the 30 Hz cap; main-thread/desktop rendering stays serial.
+  const pipelined=host.thread==='worker'&&harbourRenderProfile(host.width).mobile;
+  for(const frame of frameQueue.poll()){
+    profiler?.end(frame.timestamp,{...frame.stats,cpuMs:frame.cpuMs,completeMs:frame.completed-frame.started,gpuMs:frame.gpuMs});
+    if(Number.isFinite(frame.gpuMs))lastGpuMs=frame.gpuMs;
+    const workCompleted=estimatedWorkCompletion(frame.started,frame.completed,frame.cpuMs,frame.gpuMs,frame.lastBusyAt);
+    quality.observe(frame.duration,frame.cpuMs,Math.max(frame.cpuMs,workCompleted-frame.started));
+    if(!pipelined){
+      const budget=backgroundFrameBudget(host.width,scrolling);
+      nextFrameAt=nextBackgroundFrame(nextFrameAt,frame.started,workCompleted,budget.fps,budget.duty);
+    }
     if(!firstFrameReady){
       firstFrameReady=true;
       const readyMs=Math.round(performance.now()-startupAt);
@@ -493,22 +490,21 @@ renderer.setAnimationLoop(timestamp => {
       host.ready('webgl');
     }
   }
+  if(frameQueue.pending>=(pipelined?2:1))return;
   // The faded background keeps its last frame. A resize or daylight update
   // may refresh that decoration without running its animation continuously.
   if (host.hidden || (!portfolioActive && !reflectionDirty && Math.abs(scrollAmount-scrollTarget)<=.0001)) { previousFrame = undefined; return; }
   if (!motionEnabled && !reflectionDirty && reflectionReady) { previousFrame = undefined; return; }
   // The background leaves GPU headroom while keeping every display pixel.
   // Explicit throughput profiling can still lift the animation cap.
-  // A second minimum-interval check rounded every 24 Hz deadline up to a
-  // third 60 Hz RAF, imposing 20 FPS and irregular stalls on otherwise fast
-  // frames. The shared deadline already enforces both cadence and GPU rest.
-  if(profilingUncapped ? timestamp-lastRendered<1000/60-.5 : performance.now()<nextFrameAt)return;
+  // Use one deadline, tolerating rounded Safari timestamps. A second minimum
+  // interval check can turn a fractional deadline miss into a lost refresh.
+  if(profilingUncapped ? timestamp-lastRendered<1000/60-.5 : !backgroundFrameDue(performance.now(),nextFrameAt))return;
   lastRendered=timestamp;
   const renderStarted=performance.now();
   const frameMs=previousFrame===undefined?0:timestamp-previousFrame;
-  frameDurationMs=frameMs;
   profiler?.begin(timestamp);
-  gpuTimer?.begin();
+  const frame=frameQueue.begin({started:renderStarted,timestamp,duration:frameMs});
   pendingResize.flush();
   const delta = animationDelta(previousFrame, timestamp);
   previousFrame = timestamp; if (motionEnabled) state.time += delta;
@@ -538,8 +534,13 @@ renderer.setAnimationLoop(timestamp => {
   composer.render();
   shaderErrors.check();
   profiler?.mark('mainAndEffects');
-  gpuTimer?.end();submissionMs=performance.now()-renderStarted;frameTimestamp=timestamp;
-  frameStarted=frameBusyUntil=renderStarted;frameFence=gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE,0);gl.flush();
+  const cpuMs=performance.now()-renderStarted;
+  frameQueue.submit(frame,{cpuMs,stats:profiler?.snapshot()});
+  if(pipelined){
+    const budget=backgroundFrameBudget(host.width,scrolling);
+    const work=Math.max(cpuMs,lastGpuMs??0);
+    nextFrameAt=nextBackgroundFrame(nextFrameAt,renderStarted,renderStarted+work,budget.fps,budget.duty);
+  }
   } catch(error) {
     if (!disposed) { dispose(); onFailure(error); }
   }
@@ -550,8 +551,7 @@ function dispose(){
   if(disposed)return;disposed=true;
   renderer.setAnimationLoop(null);disconnectPortfolio();
   disconnectResize(); disconnectMotion(); disconnectDispose();
-  if(frameFence){gl.deleteSync(frameFence);frameFence=null;}
-  gpuTimer?.dispose();
+  frameQueue.dispose();
   harbourMirror.dispose();
   environmentBlend.dispose();
   if(loadedLighting)loadedLighting.forEach(texture=>texture.dispose());

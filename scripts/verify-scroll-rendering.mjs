@@ -110,21 +110,21 @@ assert.equal(estimatedWorkCompletion(100, 160, 3, undefined, 145), 145);
 assert.equal(estimatedWorkCompletion(100, 160, 3, 48, 145), 148);
 assert.ok(nextBackgroundFrame(100, 100, 148) >= 164, 'Expensive measured frames still reserve compositor headroom');
 const normal = backgroundFrameBudget(430, false), busy = backgroundFrameBudget(430, true);
-assert.deepEqual(normal,{fps:30,duty:.75}); assert.deepEqual(busy,{fps:24,duty:.6});
-assert.deepEqual(backgroundFrameBudget(1440,true),normal,'Desktop does not inherit the phone gesture budget');
-assert.equal(nextBackgroundFrame(0,0,30,busy.fps,busy.duty),50,'A busy phone reserves 40% GPU rest');
+assert.deepEqual(normal,{fps:30,duty:.85}); assert.deepEqual(busy,normal,'Scrolling keeps the same smooth phone cadence');
+assert.deepEqual(backgroundFrameBudget(1440,true),{fps:30,duty:.75},'Desktop retains its original budget');
+assert.ok(nextBackgroundFrame(0,0,30,busy.fps,busy.duty)<1000/24,'A 30 ms phone frame must not be throttled below 24 FPS');
 assert.equal(shouldUpdateReflection(430,false,124,0,true,true),false);
 assert.equal(shouldUpdateReflection(430,false,125,0,true,true),true,'Moving ferry reflections retain the 8 Hz budget while scrolling');
 assert.equal(shouldUpdateReflection(430,true,1,0,true,true),true,'Important reflection changes still refresh immediately');
 let previous=0, elapsed=0;
-for(let frame=1;frame<=48;frame++){
+for(let frame=1;frame<=60;frame++){
   const timestamp=frame*1000/busy.fps;
   elapsed+=animationDelta(previous,timestamp);previous=timestamp;
 }
-assert.equal(elapsed,2,'The city clock keeps real speed at the gesture frame rate');
+assert.ok(Math.abs(elapsed-2)<1e-10,'The city clock keeps real speed at the gesture frame rate');
 let scrolling;
 const detach = worker.connect({setScrolling:value => {scrolling=value;}});
 worker.receive({type:'scrolling',scrolling:true});assert.equal(scrolling,true);
 worker.receive({type:'scrolling',scrolling:false});assert.equal(scrolling,false);
 detach();
-console.log('Scroll rendering: cached/staggered bloom, live 24/30 FPS budgets, reflections, real-time animation, resize suppression and callback-safe GPU pacing passed.');
+console.log('Scroll rendering: cached/staggered bloom, steady 30 FPS budgets, reflections, real-time animation, resize suppression and callback-safe GPU pacing passed.');

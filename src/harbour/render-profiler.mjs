@@ -19,12 +19,13 @@ export function createRenderProfiler(renderer,emit=data=>console.info('[render-p
       if(draws>stageCalls)stage.updates++;
       stageStart=now;stageCalls=draws;stageTriangles=render.triangles;
     },
+    snapshot(){return {calls:renderer.info.render.drawCalls??renderer.info.render.calls,triangles:renderer.info.render.triangles};},
     end(timestamp,timing={}){
       const frameCpu=timing.cpuMs??performance.now()-started;
       cpu+=frameCpu;cpuFrames.push(frameCpu);completion+=timing.completeMs??0;
       if(timing.completeMs!==undefined)completions.push(timing.completeMs);
       if(timing.gpuMs!==undefined)gpu.push(timing.gpuMs);
-      calls+=renderer.info.render.drawCalls??renderer.info.render.calls;triangles+=renderer.info.render.triangles;frames++;
+      calls+=timing.calls??renderer.info.render.drawCalls??renderer.info.render.calls;triangles+=timing.triangles??renderer.info.render.triangles;frames++;
       if(timestamp-windowStart<2500)return;
       emit({frames,fps:+(frames*1000/Math.max(gaps,1)).toFixed(1),cpuMs:+(cpu/frames).toFixed(1),completeMs:completion?+(completion/frames).toFixed(1):undefined,gpuMs:gpu.length?+(gpu.reduce((a,b)=>a+b,0)/gpu.length).toFixed(1):undefined,p95:{frameMs:p95(frameGaps),cpuMs:p95(cpuFrames),gpuMs:p95(gpu),completeMs:p95(completions)},programs:renderer.info.programs?.length,calls:Math.round(calls/frames),triangles:Math.round(triangles/frames),pixelRatio:renderer.getPixelRatio(),stages:Object.fromEntries(Object.entries(stages).map(([name,value])=>[name,{updates:value.updates,cpuMs:+(value.cpuMs/frames).toFixed(1),calls:Math.round(value.calls/frames),triangles:Math.round(value.triangles/frames)}]))});
       windowStart=timestamp;frames=0;gaps=0;cpu=0;completion=0;calls=0;triangles=0;stages={};gpu=[];cpuFrames=[];frameGaps=[];completions=[];

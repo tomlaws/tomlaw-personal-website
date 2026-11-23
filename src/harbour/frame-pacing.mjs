@@ -9,11 +9,16 @@ export function nextBackgroundFrame(previousDeadline, started, completed, fps = 
 }
 
 const normalBudget = Object.freeze({fps:30,duty:.75});
-const scrollBudget = Object.freeze({fps:24,duty:.6});
-// Keep animation live while reserving more of a phone's GPU for page scrolling.
+const mobileBudget = Object.freeze({fps:30,duty:.85});
+// A 30 Hz target divides evenly into 60/120 Hz displays. Do not deliberately
+// lower the city cadence during a gesture; cheaper rendering leaves headroom.
 export function backgroundFrameBudget(width, scrolling) {
-  return width > 0 && width <= 650 && scrolling ? scrollBudget : normalBudget;
+  return width > 0 && width <= 650 ? mobileBudget : normalBudget;
 }
+
+// Safari rounds performance timestamps. Missing a deadline by a fraction of
+// a millisecond must not cost a complete extra display refresh.
+export function backgroundFrameDue(now, deadline) { return now + 1 >= deadline; }
 
 // A completed fence gives no completion timestamp. A delayed RAF may include
 // page scheduling or scrolling time, so only count observed unfinished work
