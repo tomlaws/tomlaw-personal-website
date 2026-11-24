@@ -9,7 +9,12 @@ const base = import.meta.env.BASE_URL;
 const profile = "https://github.com/tomlaws";
 const email = "contact@tomlaw.dev";
 const pageParams = new URLSearchParams(location.search);
+const scrollDiagnostics = pageParams.get('diagnostics')==='scroll'?{observe:()=>{}}:null;
 const mapParams = new URLSearchParams([['embedded', '1']]);
+if(scrollDiagnostics){
+  mapParams.set('diagnostics','scroll');mapParams.set('profile','idle');
+  if(pageParams.get('thread')==='main')mapParams.set('thread','main');
+}
 if (["webgl", "webgpu"].includes(pageParams.get("renderer")))
   mapParams.set("renderer", pageParams.get("renderer"));
 if (import.meta.env.DEV && pageParams.has("profile"))
@@ -79,6 +84,15 @@ export default function Portfolio() {
   const citySurface = useRef(null);
   const firstMapFrame = useRef(false);
   const hero = useRef(null);
+  useEffect(()=>{
+    if(!scrollDiagnostics)return;
+    let disposed=false,tool;
+    import('./scroll-diagnostics.mjs').then(({createScrollDiagnostics})=>{
+      if(disposed)return;
+      tool=createScrollDiagnostics({hero:hero.current});scrollDiagnostics.observe=tool.observe;
+    });
+    return ()=>{disposed=true;scrollDiagnostics.observe=()=>{};tool?.dispose();};
+  },[]);
   useEffect(() => {
     const update = () => { if (!document.hidden) setNight(harbourTime().night); };
     const timer = setInterval(update, 30_000);
@@ -102,6 +116,7 @@ export default function Portfolio() {
       onError() { setReady(false); setMapError(true); },
     };
     const connection = startInlineHarbour({...options,surface:citySurface.current,search:mapQuery,
+      onDiagnostic:scrollDiagnostics?(label,data)=>scrollDiagnostics.observe(label,data):undefined,
       onRecovering(){setReady(false);}});
     return () => connection.dispose();
   }, [mapAttempt]);

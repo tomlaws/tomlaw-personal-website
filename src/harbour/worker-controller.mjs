@@ -9,7 +9,7 @@ import.meta.hot?.dispose(() => { for (const dispose of [...liveWorkers]) dispose
 export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu',
   canvas = document.getElementById('world'), search = location.search,
   viewport = () => ({width:innerWidth, height:innerHeight, dpr:devicePixelRatio}),
-  connect = connectRenderClock, signal} = {}) {
+  connect = connectRenderClock, signal, onDiagnostic} = {}) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) { reject(new DOMException('Renderer disposed','AbortError')); return; }
     const worker = backend === 'webgl'
@@ -39,13 +39,17 @@ export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu',
     worker.addEventListener('message', ({data}) => {
       if (disposed) return;
       if (data.type === 'error') fail(new Error(data.message));
-      if (data.type === 'diagnostic') console.info(`[${data.label}]`, JSON.stringify(data.data));
+      if (data.type === 'diagnostic') {
+        console.info(`[${data.label}]`, JSON.stringify(data.data));
+        onDiagnostic?.(data.label,data.data);
+      }
       if (data.type !== 'ready' || disposed || settled) return;
       stopTimeout();
       settled = true;
       document.documentElement.dataset.renderer = data.backend;
       document.documentElement.dataset.renderThread = 'worker';
       canvas.dataset.renderer = data.backend;
+      onDiagnostic?.('render-surface',{backend:data.backend,thread:'worker',drawingBuffer:data.drawingBuffer});
       const loading = document.getElementById('loading');
       if (loading) { loading.classList.add('ready'); loading.hidden = true; }
       console.info(`[harbour-renderer] ${data.backend} (worker)`);

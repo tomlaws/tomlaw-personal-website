@@ -6,7 +6,7 @@ import { createViewportChange } from './frame-resize.mjs';
 // Keep browser/DOM work out of the rendering core, which also runs off-thread.
 export function createBrowserRenderHost({canvas=document.getElementById('world'),search=location.search,
   viewport=()=>({width:innerWidth,height:innerHeight,dpr:devicePixelRatio}),
-  connect=connectRenderClock,onReady=()=>{},signal}={}) {
+  connect=connectRenderClock,onReady=()=>{},signal,onDiagnostic}={}) {
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
   return {
     thread:'main',
@@ -24,9 +24,10 @@ export function createBrowserRenderHost({canvas=document.getElementById('world')
       const loading = document.getElementById('loading');
       if(loading){loading.classList.add('ready');loading.hidden=true;}
       console.info(`[harbour-renderer] ${backend}`);
+      onDiagnostic?.('render-surface',{backend,thread:'main',drawingBuffer:[canvas.width,canvas.height]});
       onReady(backend);
     },
-    diagnostic(label, data) { console.info(`[${label}]`, JSON.stringify(data)); },
+    diagnostic(label, data) { console.info(`[${label}]`, JSON.stringify(data));onDiagnostic?.(label,data); },
     onResize(callback) {
       const changed = createViewportChange(viewport, callback);
       addEventListener('resize', changed); return () => removeEventListener('resize', changed);
@@ -53,7 +54,7 @@ export function createWorkerRenderHost(canvas, state, send) {
     get reducedMotion() { return state.reducedMotion; },
     night: () => state.night,
     setNight() {},
-    ready(backend) { send({type:'ready', backend}); },
+    ready(backend) { send({type:'ready', backend,drawingBuffer:[canvas.width,canvas.height]}); },
     diagnostic(label, data) { send({type:'diagnostic', label, data}); },
     onResize(callback) { resize.add(callback); return () => resize.delete(callback); },
     onMotion(callback) { motion.add(callback); return () => motion.delete(callback); },

@@ -183,7 +183,7 @@ assert.equal(estimatedWorkCompletion(100,150,3,undefined,140),140,'Observed unfi
 assert.equal(estimatedWorkCompletion(100,120,3,8),108,'GPU timer results take precedence when available');
 
 const workerState={search:'',width:800,height:600,dpr:1,hidden:false,reducedMotion:false,night:1};
-const workerMessages=[],workerCommands=[];const workerHost=createWorkerRenderHost({},workerState,message=>workerMessages.push(message));
+const workerMessages=[],workerCommands=[];const workerHost=createWorkerRenderHost({width:720,height:560},workerState,message=>workerMessages.push(message));
 const detach=workerHost.connect({setTime:value=>workerCommands.push(['time',value]),setActive:value=>workerCommands.push(['active',value]),setScroll:value=>workerCommands.push(['scroll',value])});
 let resizes=0,motions=0,disposals=0;
 workerHost.onResize(()=>resizes++);workerHost.onMotion(()=>motions++);workerHost.onDispose(()=>disposals++);
@@ -192,7 +192,7 @@ workerHost.receive({type:'visibility',hidden:true});workerHost.receive({type:'mo
 workerHost.receive({type:'active',active:false});workerHost.receive({type:'scroll',progress:.5});workerHost.receive({type:'time',night:.7});
 assert.deepEqual([workerHost.width,workerHost.height,workerHost.dpr,workerHost.hidden,workerHost.reducedMotion],[900,700,.8,true,true]);
 assert.deepEqual(workerCommands,[['active',false],['scroll',.5],['time',.7]]);
-assert.deepEqual([resizes,motions],[1,1]);workerHost.ready('webgpu');assert.deepEqual(workerMessages,[{type:'ready',backend:'webgpu'}]);
+assert.deepEqual([resizes,motions],[1,1]);workerHost.ready('webgpu');assert.deepEqual(workerMessages,[{type:'ready',backend:'webgpu',drawingBuffer:[720,560]}]);
 detach();workerHost.receive({type:'scroll',progress:1});assert.equal(workerCommands.length,3);
 workerHost.receive({type:'dispose'});assert.equal(disposals,1);
 

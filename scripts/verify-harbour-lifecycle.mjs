@@ -122,10 +122,14 @@ try {
   const pending=startWorkerRenderer({canvas:new Canvas(),backend:'webgl'});
   const rejected=assert.rejects(pending,/startup timed out/);clock.advance(45_000);await rejected;
   assert.equal(workers.at(-1).terminated,true);
-  const success=startWorkerRenderer({canvas:new Canvas(),backend:'webgl',connect:value=>{workerControls=value;return ()=>{};}});
+  const diagnostics=[];
+  const success=startWorkerRenderer({canvas:new Canvas(),backend:'webgl',onDiagnostic:(label,data)=>diagnostics.push({label,data}),connect:value=>{workerControls=value;return ()=>{};}});
   workers.at(-1).emit('message',{data:{type:'ready',backend:'webgl'}});
   const renderer=await success;workerControls.setScrolling(true);
-  assert.deepEqual(workers.at(-1).messages.at(-1),{type:'scrolling',scrolling:true});renderer.dispose();
+  assert.deepEqual(workers.at(-1).messages.at(-1),{type:'scrolling',scrolling:true});
+  workers.at(-1).emit('message',{data:{type:'diagnostic',label:'render-profile',data:{fps:30}}});
+  assert.equal(diagnostics.find(v=>v.label==='render-profile').data.fps,30,'The actual worker report reaches the same-document diagnostic consumer');renderer.dispose();const diagCount=diagnostics.length;
+  workers.at(-1).emit('message',{data:{type:'diagnostic',label:'render-profile',data:{fps:10}}});assert.equal(diagnostics.length,diagCount,'Disposed workers cannot pollute a capture');
   assert.equal(events.count(),0);assert.equal(document.count(),0);assert.equal(preference.count(),0);
 
   assert.deepEqual(harbourRenderAttempts({backend:'webgpu',webgpu:true}),[
@@ -176,6 +180,12 @@ try {
   const directMain=startInlineHarbour(inlineOptions);await flush();
   assert.equal(mainAttempts.length,2);assert.equal(mainAttempts.at(-1).settings.canvas,surface.canvas);
   directMain.dispose();assert.equal(clock.timers.size,0);assert.equal(events.count(),0);assert.equal(document.count(),0);
+
+  install({Worker});
+  const beforeDiagnostic=workers.length;
+  const diagnosticMain=startInlineHarbour({...inlineOptions,search:'?embedded=1&diagnostics=scroll&thread=main'});await flush();
+  assert.equal(workers.length,beforeDiagnostic,'The explicit diagnostic comparison runs on the main thread even when workers exist');
+  assert.equal(mainAttempts.at(-1).settings.backend,'webgl');diagnosticMain.dispose();
 
   install({Worker,navigator:{gpu:{}}});
   const sequence=[],oldFailures=[];

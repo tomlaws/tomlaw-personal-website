@@ -11,18 +11,21 @@ export function harbourRenderAttempts({backend='webgl',worker=true,webgpu=false,
 
 // Every attempt owns a fresh canvas in this document. Backend/thread recovery
 // never changes page structure or introduces a second document.
-export function startInlineHarbour({surface,hero,search,onReady,onRecovering=()=>{},onError,
+export function startInlineHarbour({surface,hero,search,onReady,onRecovering=()=>{},onError,onDiagnostic,
   drivers={worker:startWorkerRenderer,main:startMainHarbour}}) {
   const params=new URLSearchParams(search);
   const attempts=harbourRenderAttempts({backend:params.get('renderer')??'webgl',webgpu:Boolean(globalThis.navigator?.gpu),
     worker:typeof Worker!=='undefined'&&typeof HTMLCanvasElement!=='undefined'&&'transferControlToOffscreen' in HTMLCanvasElement.prototype,
-    mainOnly:import.meta.env?.DEV&&params.get('qaThread')==='main'});
+    mainOnly:(import.meta.env?.DEV&&params.get('qaThread')==='main')
+      ||(params.get('diagnostics')==='scroll'&&params.get('thread')==='main')});
   let disposed=false,terminal=false,index=0,generation=0,current,abort,controls,stopTimeout=()=>{};
   const activity=connectHarbourActivity({hero,onError(){terminal=true;generation++;stopAttempt();onError();},
-    setActive:value=>controls?.setActive(value),setScrolling:value=>controls?.setScrolling(value)});
+    setActive(value){controls?.setActive(value);onDiagnostic?.('activity',{active:value});},
+    setScrolling:value=>controls?.setScrolling(value)});
   function stopAttempt(){stopTimeout();abort?.abort();current?.dispose();current=undefined;controls=undefined;}
   function fail(error,token){
     if(disposed||terminal||token!==generation)return;
+    onDiagnostic?.('renderer-error',{message:error.message});
     stopAttempt();
     if(index===attempts.length){terminal=true;activity.fail();return;}
     onRecovering(error);launch();
@@ -30,11 +33,12 @@ export function startInlineHarbour({surface,hero,search,onReady,onRecovering=()=
   function launch(){
     if(disposed||terminal)return;
     const token=++generation,attempt=attempts[index++];
+    onDiagnostic?.('renderer-start',attempt);
     abort=new AbortController();
     const signal=abort.signal,canvas=document.createElement('canvas');
     canvas.className='city-canvas';canvas.setAttribute('aria-hidden','true');surface.replaceChildren(canvas);
     const alive=()=>!disposed&&!terminal&&token===generation;
-    const ready=()=>{if(!alive())return;stopTimeout();activity.ready();onReady();};
+    const ready=()=>{if(!alive())return;stopTimeout();activity.ready();onReady();onDiagnostic?.('renderer-ready',attempt);};
     const connect=value=>{
       if(!alive())return ()=>{};
       controls=value;
@@ -47,7 +51,7 @@ export function startInlineHarbour({surface,hero,search,onReady,onRecovering=()=
     stopTimeout=startLoadingTimeout(()=>fail(new Error('City renderer startup timed out'),token),{timeoutMs:90_000});
     Promise.resolve().then(()=>{
       if(!alive())return;
-      return drivers[attempt.thread]({backend:attempt.backend,canvas,search,signal,connect,onReady:ready,
+      return drivers[attempt.thread]({backend:attempt.backend,canvas,search,signal,connect,onReady:ready,onDiagnostic,
         viewport:()=>({width:canvas.clientWidth,height:canvas.clientHeight,dpr:devicePixelRatio}),
         onFailure:error=>fail(error,token)});
     }).then(renderer=>{if(!renderer)return;if(!alive())renderer.dispose();else current=renderer;})
