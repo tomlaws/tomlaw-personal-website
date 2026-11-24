@@ -2,7 +2,6 @@ import * as T from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { createCoastalLighting } from './coastal-lighting.mjs';
 import { loadHarbourWorld } from './prepared-world-loader.mjs';
 import { CITY_LAYOUT as site } from './layout.mjs';
@@ -15,7 +14,7 @@ import {createRenderProfiler} from './render-profiler.mjs';
 import { createBrowserRenderHost } from './render-host.mjs';
 import { harbourTime } from '../hong-kong-time.mjs';
 import { harbourTheme } from '../harbour-theme.mjs';
-import { createPortfolioAtmosphere } from './portfolio-atmosphere.mjs';
+import { createPortfolioOutput, preserveBloomCoverage } from './portfolio-output.mjs';
 import { portfolioCameraPose, keepMobileMapVisible, fitScrollFrame, smoothScroll } from './portfolio-camera.mjs';
 import { createAdaptiveRenderQuality, harbourRenderProfile, scaleEffectResolution, setSunShadowResolution } from './render-quality.mjs';
 import { animationDelta, nextBackgroundFrame, estimatedWorkCompletion, createReflectionSchedule, backgroundFrameBudget, backgroundFrameDue } from './frame-pacing.mjs';
@@ -226,9 +225,12 @@ lighting.update(0);
 // a render target instead of the canvas, which is what left every silhouette hard
 // edged next to the offline render. The composer therefore gets a multisampled
 // target of its own, and the edges are resolved before the effect chain reads it.
-const composerTarget = new T.WebGLRenderTarget(host.width, host.height, { type: T.HalfFloatType, samples: 2 });
-composerTarget.depthTexture = new T.DepthTexture(host.width, host.height);
+const composerTarget = new T.WebGLRenderTarget(host.width, host.height, { type: T.HalfFloatType, samples: 2, resolveDepthBuffer: false });
 const composer = new EffectComposer(renderer, composerTarget);
+// This chain ends directly on the canvas and never swaps its beauty buffer.
+// Keep multisampling/depth for geometry only; the spare composer target is unused.
+composer.renderTarget1.samples = 0;
+composer.renderTarget1.depthBuffer = false;
 let scrolling = false, reflectionUpdated = false;
 const beauty = new RenderPass(scene, camera);
 composer.addPass(beauty);
@@ -264,34 +266,25 @@ if(!cyberpunkRoute){
   bloom.materialHighPassFilter.needsUpdate=true;
 }
 composer.addPass(bloom);
-const output = new OutputPass();
-// Fullscreen output must not overwrite scene depth.
-output.material.depthTest = false;
-output.material.depthWrite = false;
-// Preserve the multisampled beauty alpha before later passes reuse the target.
-// It records partial silhouette coverage for composition against the page.
-const silhouetteTarget = new T.WebGLRenderTarget(1, 1, { depthBuffer: false, type: T.HalfFloatType });
-const atmosphere = createPortfolioAtmosphere();
+// Retain beauty coverage in alpha while the original bloom adds RGB. The
+// final output can then blend the page background without a silhouette copy
+// or an intermediate full-resolution atmosphere render target/pass.
+preserveBloomCoverage(bloom);
+const atmosphere = createPortfolioOutput();
 const renderBeauty = beauty.render.bind(beauty);
-beauty.render = (renderer, writeBuffer, readBuffer, ...args) => {
+beauty.render = (renderer, ...args) => {
   const background = scene.background;
   const clearColour = renderer.getClearColor(new T.Color());
   const clearAlpha = renderer.getClearAlpha();
   scene.background = null;
   renderer.setClearColor(0x000000, 0);
-  try {
-    renderBeauty(renderer, writeBuffer, readBuffer, ...args);
-  } finally {
+  try { renderBeauty(renderer, ...args); }
+  finally {
     scene.background = background;
     renderer.setClearColor(clearColour, clearAlpha);
   }
-  silhouetteTarget.setSize(readBuffer.width, readBuffer.height);
-  renderer.initRenderTarget(silhouetteTarget);
-  renderer.copyTextureToTexture(readBuffer.texture, silhouetteTarget.texture);
-  atmosphere.pass.uniforms.tCoverage.value = silhouetteTarget.texture;
 };
 composer.addPass(atmosphere.pass);
-composer.addPass(output);
 let scrollTarget = 0, scrollAmount = 0, riseTarget=0, portfolioFrame, cameraDirty=false;
 let reflectionDirty = false;
 function applyScrollCamera() {
@@ -563,7 +556,8 @@ function dispose(){
   environmentBlend.dispose();
   if(loadedLighting)loadedLighting.forEach(texture=>texture.dispose());
   else environmentTargets.forEach(target=>target.dispose());
-  silhouetteTarget.dispose();renderer.dispose();renderer.forceContextLoss();
+  for(const pass of composer.passes)pass.dispose();
+  composer.dispose();renderer.dispose();renderer.forceContextLoss();
 }
 setupDone=true;disconnectStartup();
 disconnectDispose = host.onDispose(dispose);

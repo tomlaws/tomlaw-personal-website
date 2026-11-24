@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { Color, OrthographicCamera, WebGLRenderTarget, AdditiveBlending } from 'three';
+import { Color, OrthographicCamera, WebGLRenderTarget, AdditiveBlending, CustomBlending, AddEquation, SrcAlphaFactor, OneFactor, ZeroFactor } from 'three';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { createPortfolioOutput, preserveBloomCoverage } from '../src/harbour/portfolio-output.mjs';
 import { cacheBloomPass } from '../src/harbour/cached-bloom.mjs';
 import { createViewportChange } from '../src/harbour/frame-resize.mjs';
 import { createWorkerRenderHost, createBrowserRenderHost } from '../src/harbour/render-host.mjs';
@@ -60,6 +61,27 @@ time++;
 assert.throws(draw, /Fixture draw failed/);
 assert.equal(renderer.autoClear, true, 'A failed cached draw restores state for renderer fallback');
 renderer.render = render;
+// Keep precisely the old additive RGB while retaining the scene's coverage.
+// The same blend material is used on full refreshes and cached-glow frames.
+preserveBloomCoverage(bloom);
+assert.equal(bloom.blendMaterial.blending,CustomBlending);
+assert.equal(bloom.blendMaterial.blendEquation,AddEquation);
+assert.equal(bloom.blendMaterial.blendSrc,SrcAlphaFactor);
+assert.equal(bloom.blendMaterial.blendDst,OneFactor);
+assert.equal(bloom.blendMaterial.blendSrcAlpha,ZeroFactor);
+assert.equal(bloom.blendMaterial.blendDstAlpha,OneFactor);
+time+=100;assert.equal(draw(),13);time++;assert.equal(draw(),1);
+assert.equal(draws[0].material,bloom.blendMaterial);
+const finalOutput=createPortfolioOutput();
+assert.equal(finalOutput.pass.needsSwap,false,'A final canvas pass must not alternate MSAA/depth buffers');
+assert.equal(finalOutput.pass.material.depthWrite,false);
+const shader=finalOutput.pass.material.fragmentShader;
+assert.ok(shader.indexOf('uBackground * (1. - gl_FragColor.a)')<shader.indexOf('// tone mapping'));
+assert.ok(shader.includes('NeutralToneMapping')&&shader.includes('sRGBTransferOETF'),'Keep Three tone and colour transforms');
+assert.ok(shader.includes('gl_FragColor.a = 1.'),'The final page-owned canvas remains opaque');
+finalOutput.setBackground('#123456',1.1);
+assert.ok(finalOutput.pass.uniforms.uBackground.value.r>0);
+finalOutput.pass.dispose();
 bloom.dispose(); input.dispose(); output.dispose();
 
 // Chrome/toolbar notifications must not trigger expensive identical resizes.
