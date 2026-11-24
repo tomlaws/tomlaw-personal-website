@@ -151,8 +151,7 @@ input:focus-visible {
 @keyframes map-loading-appear { to { opacity: .85; } }
 @keyframes map-loading-spin { to { transform: rotate(360deg); } }
 @media (max-width: 650px) {
-  /* Let Safari scroll the intro and city together as one page composition. */
-  .world-background { position: absolute; }
+  /* Keep the live GPU surface stationary while Safari scrolls the document. */
   .world-background .city-surface { top: 250px; height: calc(100% - 250px); }
   .map-loading { left: 50%; top: 70%; }
 }
