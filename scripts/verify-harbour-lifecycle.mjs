@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { startLoadingTimeout } from '../src/loading-timeout.mjs';
 import { connectHarbourFrame } from '../src/harbour-frame.mjs';
 import { startWorkerRenderer } from '../src/harbour/worker-controller.mjs';
+import { startInlineHarbour } from '../src/inline-harbour.mjs';
 
 class Events {
   listeners = new Map();
@@ -160,6 +161,56 @@ try {
   renderer.dispose();
   assert.equal(events.count(),0); assert.equal(document.count(),0); assert.equal(preference.count(),0);
   assert.equal(clock.timers.size,0,'Retries and disposal leave no watchdogs or daylight timers');
+
+  // Exercise the direct page canvas, including React's setup/cleanup/setup
+  // cycle, independent canvas dimensions and a failed worker's iframe fallback.
+  install({window:Object.assign(events,{innerWidth:390,innerHeight:800,location}),parent:events});
+  document.getElementById=()=>null;
+  bounds={top:80,bottom:930};
+  let inlineReady=0,fallbacks=0;
+  const directCanvas={dataset:{},clientWidth:390,clientHeight:680,
+    transferControlToOffscreen:()=>({})};
+  const inlineOptions={canvas:directCanvas,hero,search:'?embedded=1',
+    onReady:()=>inlineReady++,onFallback:()=>fallbacks++};
+  const before=workers.length;
+  const cancelled=startInlineHarbour(inlineOptions);cancelled.dispose();
+  await Promise.resolve();
+  assert.equal(workers.length,before,'StrictMode cleanup cancels startup before transferring its canvas');
+  const unfinished=startInlineHarbour(inlineOptions);await Promise.resolve();
+  const unfinishedWorker=workers.at(-1);unfinished.dispose();await new Promise(setImmediate);
+  assert.equal(unfinishedWorker.terminated,true,'Unmounting a starting city terminates its worker immediately');
+  assert.equal(fallbacks,0,'Intentional cancellation cannot launch a fallback');
+  assert.equal(clock.timers.size,0);
+  const inline=startInlineHarbour(inlineOptions);
+  await Promise.resolve();
+  const directWorker=workers.at(-1),init=directWorker.messages[0];
+  assert.equal(init.state.height,680,'The city uses canvas height rather than Safari chrome height');
+  assert.equal(init.state.search,'?embedded=1','Embedded projection retains its original screen framing');
+  directWorker.emit('message',{data:{type:'ready',backend:'webgl'}});
+  await Promise.resolve();
+  assert.equal(inlineReady,1);
+  assert.equal(directWorker.messages.findLast(message=>message.type==='active').active,true);
+  const messageCount=directWorker.messages.length;
+  events.innerHeight=600;events.emit('resize');
+  assert.equal(directWorker.messages.length,messageCount,'Safari chrome changes do not clear an unchanged canvas');
+  directCanvas.clientHeight=700;events.emit('resize');
+  assert.equal(directWorker.messages.at(-1).viewport.height,700,'Actual canvas size changes still reach the worker');
+  events.emit('scroll');
+  assert.equal(directWorker.messages.findLast(message=>message.type==='active').active,true,'Scrolling never pauses the direct canvas');
+  bounds={top:-1000,bottom:-10};events.emit('scroll');
+  assert.equal(directWorker.messages.findLast(message=>message.type==='active').active,false,'The direct canvas sleeps after leaving the hero');
+  inline.dispose();inline.dispose();
+  assert.equal(directWorker.terminated,true);
+  assert.equal(events.count(),0);assert.equal(document.count(),0);assert.equal(preference.count(),0);
+  assert.equal(clock.timers.size,0,'Inline disposal clears visibility/scroll/daylight/startup timers');
+  bounds={top:80,bottom:930};
+  const broken=startInlineHarbour(inlineOptions);await Promise.resolve();
+  workers.at(-1).emit('error',{message:'Injected failure',preventDefault(){}});
+  await new Promise(setImmediate);
+  assert.equal(fallbacks,1,'A failed direct worker requests the existing iframe fallback once');
+  broken.dispose();
+  assert.equal(events.count(),0);assert.equal(document.count(),0);assert.equal(preference.count(),0);
+  assert.equal(clock.timers.size,0);
 } finally {
   for (const [key,descriptor] of saved) {
     if (descriptor) Object.defineProperty(globalThis,key,descriptor); else delete globalThis[key];

@@ -90,6 +90,17 @@ input:focus-visible {
   opacity: 0;
   transition: opacity 0.6s ease;
 }
+.world-background .city-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .6s ease;
+}
+.world-background.ready .city-canvas { opacity: 1; }
 .world-background.ready iframe {
   opacity: 1;
 }
@@ -157,6 +168,7 @@ input:focus-visible {
   /* Let Safari scroll the intro and city together as one page composition. */
   .world-background { position: absolute; }
   .world-background iframe { margin-top: 250px; height: calc(100% - 250px); }
+  .world-background .city-canvas { top: 250px; height: calc(100% - 250px); }
   .map-loading { left: 50%; top: 70%; }
 }
 @media (prefers-reduced-motion: reduce) {

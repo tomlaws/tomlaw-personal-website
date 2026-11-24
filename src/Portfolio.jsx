@@ -4,6 +4,7 @@ import { harbourTheme } from "./harbour-theme.mjs";
 import github from "./data/github-repositories.json";
 import { connectHarbourFrame } from "./harbour-frame.mjs";
 import { HongKongClock } from './HongKongClock.jsx';
+import { startInlineHarbour } from './inline-harbour.mjs';
 
 const base = import.meta.env.BASE_URL;
 const profile = "https://github.com/tomlaws";
@@ -74,9 +75,12 @@ export default function Portfolio() {
   const [ready, setReady] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [mapAttempt, setMapAttempt] = useState(0);
+  const [inlineMap,setInlineMap] = useState(() => pageParams.get('renderer')!=='webgpu'
+    &&typeof Worker!=='undefined'&&'transferControlToOffscreen' in HTMLCanvasElement.prototype);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const frame = useRef(null);
+  const cityCanvas = useRef(null);
   const firstMapFrame = useRef(false);
   const hero = useRef(null);
   const mapConnection = useRef(null);
@@ -90,8 +94,7 @@ export default function Portfolio() {
     };
   }, []);
   useEffect(() => {
-    const connection = connectHarbourFrame({
-      frame: frame.current,
+    const options = {
       hero: hero.current,
       onReady() {
         setReady(true);
@@ -102,13 +105,17 @@ export default function Portfolio() {
         }
       },
       onError() { setReady(false); setMapError(true); },
-    });
+    };
+    const connection = inlineMap
+      ?startInlineHarbour({...options,canvas:cityCanvas.current,search:mapQuery,
+        onFallback(){setReady(false);setInlineMap(false);}})
+      :connectHarbourFrame({...options,frame:frame.current});
     mapConnection.current = connection;
     return () => {
       connection.dispose();
       mapConnection.current = null;
     };
-  }, [mapAttempt]);
+  }, [mapAttempt,inlineMap]);
   function retryMap() {
     setMapError(false);
     setReady(false);
@@ -140,7 +147,9 @@ export default function Portfolio() {
       <div
         className={`world-background ${ready ? "ready" : ""}`}
       >
-        {!mapError && <iframe
+        {!mapError && inlineMap && <canvas key={mapAttempt} ref={cityCanvas}
+          className="city-canvas" aria-hidden="true" />}
+        {!mapError && !inlineMap && <iframe
           key={mapAttempt}
           ref={frame}
           onLoad={() => mapConnection.current?.sync()}

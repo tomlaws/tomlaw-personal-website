@@ -1,7 +1,7 @@
 import { startLoadingTimeout } from './loading-timeout.mjs';
 
 // Observe the scrolling introduction, not the fixed background iframe.
-export function connectHarbourFrame({ frame, hero, onReady, onError,
+export function connectHarbourFrame({ frame, channel, hero, onReady, onError,
   window: host = window, document: page = document,
   Observer = globalThis.IntersectionObserver, timeoutMs = 90_000 }) {
   let status = 'loading', disposed = false, observer;
@@ -12,7 +12,7 @@ export function connectHarbourFrame({ frame, hero, onReady, onError,
   };
   function sync(force = false) {
     if (disposed) return;
-    const target = frame.contentWindow;
+    const target = frame?.contentWindow ?? channel;
     const active = status !== 'error' && inView && !page.hidden;
     const changedWindow = target !== lastWindow;
     if (!active) { scrolling = false; clearTimeout(scrollTimer); }
@@ -36,18 +36,22 @@ export function connectHarbourFrame({ frame, hero, onReady, onError,
     status = 'error'; stopTimeout(); sync(); onError();
   }
   const stopTimeout = startLoadingTimeout(fail, {timeoutMs, document:page});
+  function ready() {
+    if (disposed || status === 'error') return;
+    stopTimeout();
+    if (status !== 'ready') { status = 'ready'; onReady(); }
+    sync(true);
+  }
   function receive(event) {
     if (disposed || status === 'error' || event.origin !== host.location.origin ||
         event.source !== frame.contentWindow) return;
     if (event.data?.type === 'harbour:error') { fail(); return; }
     if (event.data?.type !== 'harbour:state' || event.data.ready !== true) return;
-    stopTimeout();
-    if (status !== 'ready') { status = 'ready'; onReady(); }
     // Renderer fallback reconnects its listeners. Replay the current visibility.
-    sync(true);
+    ready();
   }
   const measure = () => { inView = visible(); sync(); };
-  host.addEventListener('message', receive);
+  if (frame) host.addEventListener('message', receive);
   host.addEventListener('scroll', onScroll, {passive:true});
   host.addEventListener('touchmove', onScroll, {passive:true});
   host.addEventListener('scrollend', endScroll);
@@ -65,6 +69,7 @@ export function connectHarbourFrame({ frame, hero, onReady, onError,
   }
   measure();
   return {
+    ready,
     sync: () => { inView = visible(); sync(true); },
     fail,
     dispose() {
