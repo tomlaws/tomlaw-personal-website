@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { harbourTime } from "./hong-kong-time.mjs";
 import { harbourTheme } from "./harbour-theme.mjs";
 import github from "./data/github-repositories.json";
-import { connectHarbourFrame } from "./harbour-frame.mjs";
 import { HongKongClock } from './HongKongClock.jsx';
 import { startInlineHarbour } from './inline-harbour.mjs';
 
@@ -75,15 +74,11 @@ export default function Portfolio() {
   const [ready, setReady] = useState(false);
   const [mapError, setMapError] = useState(false);
   const [mapAttempt, setMapAttempt] = useState(0);
-  const [inlineMap,setInlineMap] = useState(() => pageParams.get('renderer')!=='webgpu'
-    &&typeof Worker!=='undefined'&&'transferControlToOffscreen' in HTMLCanvasElement.prototype);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
-  const frame = useRef(null);
-  const cityCanvas = useRef(null);
+  const citySurface = useRef(null);
   const firstMapFrame = useRef(false);
   const hero = useRef(null);
-  const mapConnection = useRef(null);
   useEffect(() => {
     const update = () => { if (!document.hidden) setNight(harbourTime().night); };
     const timer = setInterval(update, 30_000);
@@ -106,16 +101,10 @@ export default function Portfolio() {
       },
       onError() { setReady(false); setMapError(true); },
     };
-    const connection = inlineMap
-      ?startInlineHarbour({...options,canvas:cityCanvas.current,search:mapQuery,
-        onFallback(){setReady(false);setInlineMap(false);}})
-      :connectHarbourFrame({...options,frame:frame.current});
-    mapConnection.current = connection;
-    return () => {
-      connection.dispose();
-      mapConnection.current = null;
-    };
-  }, [mapAttempt,inlineMap]);
+    const connection = startInlineHarbour({...options,surface:citySurface.current,search:mapQuery,
+      onRecovering(){setReady(false);}});
+    return () => connection.dispose();
+  }, [mapAttempt]);
   function retryMap() {
     setMapError(false);
     setReady(false);
@@ -147,19 +136,8 @@ export default function Portfolio() {
       <div
         className={`world-background ${ready ? "ready" : ""}`}
       >
-        {!mapError && inlineMap && <canvas key={mapAttempt} ref={cityCanvas}
-          className="city-canvas" aria-hidden="true" />}
-        {!mapError && !inlineMap && <iframe
-          key={mapAttempt}
-          ref={frame}
-          onLoad={() => mapConnection.current?.sync()}
-          onError={() => mapConnection.current?.fail()}
-          src={`${base}harbour/${mapQuery}`}
-          title="Hong Kong background scene"
-          tabIndex={-1}
-          loading="eager"
-          aria-hidden="true"
-        />}
+        {!mapError && <div key={mapAttempt} ref={citySurface}
+          className="city-surface" aria-hidden="true" />}
       </div>
       <header className="site-header">
         <a className="wordmark" href="#" aria-label="Tom Law home">

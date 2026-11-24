@@ -2,7 +2,7 @@ import { shouldUpdateReflection } from '../src/harbour/frame-pacing.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { harbourTime } from '../src/hong-kong-time.mjs';
-import { connectPortfolio } from '../src/harbour/portfolio-bridge.mjs';
+import { connectRenderClock } from '../src/harbour/render-clock.mjs';
 import { harbourTheme } from '../src/harbour-theme.mjs';
 import { portfolioCameraPose, smoothScroll } from '../src/harbour/portfolio-camera.mjs';
 import { homeView } from '../src/harbour/camera-home.mjs';
@@ -39,61 +39,26 @@ assert.match(runtime, /host.hidden \|\| \(!portfolioActive && !reflectionDirty &
 assert.match(runtime, /motionEnabled/);
 assert.match(runtime, /createAdaptiveRenderQuality/);
 assert.match(runtime, /nextBackgroundFrame/);
-// Exercise the real frame protocol, including rejected origins/sources and
-// out-of-range commands, without creating a WebGL context in Node.
-const keys = ['location', 'window', 'parent', 'document', 'addEventListener', 'removeEventListener', 'setInterval', 'clearInterval'];
-const saved = new Map(keys.map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
-const handlers = new Map(), values = [], activity = [], scroll = [], rises=[], scrolling=[];
-let cadence, cleared = 0;
-const owner = { postMessage() {} };
+// The standalone clock stays in its own document and cleans up on recovery.
+const keys=['document','addEventListener','removeEventListener','setInterval','clearInterval'];
+const saved=new Map(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+const handlers=new Map(),values=[];
+let cadence,cleared=0;
 const backdropStyle={setProperty(name,value){this[name]=value;}};
-try {
-  Object.assign(globalThis, {
-    location: { origin: 'https://tomlaw.dev', search: '' },
-    window: {}, parent: owner,
-    document: { hidden: false, documentElement:{style:backdropStyle}, addEventListener(name, callback) { handlers.set(name, callback); }, removeEventListener(name) { handlers.delete(name); } },
-    addEventListener(name, callback) { handlers.set(name, callback); },
-    removeEventListener(name) { handlers.delete(name); },
-    setInterval(callback, interval) { cadence = interval; return 1; }, clearInterval() { cleared++; },
+try{
+  Object.assign(globalThis,{
+    document:{hidden:false,documentElement:{style:backdropStyle},addEventListener(name,callback){handlers.set(name,callback);},removeEventListener(name){handlers.delete(name);}},
+    addEventListener(name,callback){handlers.set(name,callback);},removeEventListener(name){handlers.delete(name);},
+    setInterval(callback,interval){cadence=interval;return 1;},clearInterval(){cleared++;},
   });
-  const disconnect = connectPortfolio({setTime:value=>values.push(value),setActive:value=>activity.push(value),setScroll:(value,rise)=>{scroll.push(value);rises.push(rise);},setScrolling:value=>scrolling.push(value)});
-  assert.equal(cadence, 30_000);
-  assert.ok(values[0] >= 0 && values[0] <= 1);
-  assert.equal(backdropStyle['--harbour-background'],harbourTheme(values[0])['--background'],'Frame backing matches the live page colour before rendering');
-  const send = (data, override = {}) => handlers.get('message')({origin:location.origin,source:owner,data:{type:'harbour:command',...data},...override});
-  send({command:'active',active:false},{origin:'https://unrelated.example'});
-  send({command:'active',active:false},{source:{}});
-  assert.deepEqual(activity,[]);
-  send({command:'active',active:false}); send({command:'active',active:true});
-  assert.deepEqual(activity,[false,true]);
-  send({command:'scrolling',scrolling:true},{origin:'https://unrelated.example'});
-  send({command:'scrolling',scrolling:true},{source:{}});
-  send({command:'scrolling',scrolling:'false'});
-  assert.deepEqual(scrolling,[],'Only validated boolean budget commands from the owner are accepted');
-  send({command:'scrolling',scrolling:true}); send({command:'scrolling',scrolling:false});
-  assert.deepEqual(scrolling,[true,false]);
-  send({command:'scroll',progress:.5},{origin:'https://unrelated.example'});
-  send({command:'scroll',progress:.5},{source:{}});
-  send({command:'scroll',progress:NaN}); send({command:'scroll',progress:'0.5'});
-  assert.deepEqual(scroll,[]);
-  send({command:'scroll',progress:-1}); send({command:'scroll',progress:.5}); send({command:'scroll',progress:3});
-  assert.deepEqual(scroll,[0,.5,1]);
-  assert.deepEqual(rises,[0,0,0],'Older scroll messages have no parallax offset');
-  send({command:'scroll',progress:.5,rise:90});
-  send({command:'scroll',progress:1,rise:10000});
-  send({command:'scroll',progress:1,rise:NaN});
-  assert.deepEqual(rises.slice(-3),[90,180,0],'Camera parallax accepts only finite, bounded pixel offsets');
-  const initial = values.length;
-  send({command:'mode',mode:'day'}); send({command:'mode',mode:'night'});
-  assert.equal(values.length,initial,'No manual time override on the background');
-  disconnect();
-  assert.equal(cleared,1,'Renderer fallback stops the previous daylight timer');
-  assert.equal(handlers.size,0,'Renderer fallback disconnects previous frame/visibility listeners');
-} finally {
-  for (const [key, descriptor] of saved) {
-    if (descriptor) Object.defineProperty(globalThis,key,descriptor); else delete globalThis[key];
-  }
-}
+  const disconnect=connectRenderClock({setTime:value=>values.push(value)});
+  assert.equal(cadence,30_000);assert.ok(values[0]>=0&&values[0]<=1);
+  assert.equal(backdropStyle['--harbour-background'],harbourTheme(values[0])['--background']);
+  assert.equal(handlers.has('message'),false,'The renderer has no cross-window control protocol');
+  document.hidden=true;handlers.get('visibilitychange')();assert.equal(values.length,1);
+  document.hidden=false;handlers.get('visibilitychange')();assert.equal(values.length,2);
+  disconnect();assert.equal(cleared,1);assert.equal(handlers.size,0);
+}finally{for(const[key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}}
 const cameraHome=homeView([-2,-1.5]);
 const originalPosition=cameraHome.position.toArray();
 // Scroll motion should advance by elapsed time rather than frame count, and
@@ -123,7 +88,7 @@ for(const night of [0,.5,1]){
   const style={setProperty(name,value){this[name]=value;}};
   setHarbourBackdrop(night,{style});
   assert.equal(style['--harbour-background'],harbourTheme(night)['--background']);
-  assert.equal(style.colorScheme,harbourTheme(night).colorScheme,'The iframe browser backing follows daylight and night');
+  assert.equal(style.colorScheme,harbourTheme(night).colorScheme,'The browser backing follows daylight and night');
 }
 let viewport={width:390,height:844};const appliedSizes=[];
 const queuedResize=createFrameResize(()=>appliedSizes.push({...viewport}));
@@ -230,4 +195,4 @@ assert.match(portfolioCSS,/\.world-background\s*\{[^}]*position:\s*fixed/s,'The 
 assert.doesNotMatch(portfolioCSS,/mobile-map-scroll|animation-timeline:\s*scroll\(root block\)/,'Scrolling does not transform the map');
 assert.doesNotMatch(portfolioJS,/command:\s*["']scroll["']|mobileScrollTransform/,'Scrolling does not move the 3D camera');
 assert.doesNotMatch(portfolioJS,/createMobileGesture|IntersectionObserver|command:\s*["']active["']/,'Scrolling and leaving the intro do not pause the background scene');
-assert.match(portfolioCSS,/margin-top:\s*250px;\s*height:\s*calc\(100% - 250px\)/,'Mobile canvas leaves the unused area unrendered');
+assert.match(portfolioCSS,/\.city-surface\s*\{\s*top:\s*250px;\s*height:\s*calc\(100% - 250px\)/,'Mobile canvas leaves the unused area unrendered');

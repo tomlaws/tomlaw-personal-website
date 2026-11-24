@@ -1,17 +1,19 @@
 import { harbourTime } from '../hong-kong-time.mjs';
-import { connectPortfolio } from './portfolio-bridge.mjs';
+import { connectRenderClock } from './render-clock.mjs';
 import { embeddedTopInset } from './embedded-viewport.mjs';
 import { createViewportChange } from './frame-resize.mjs';
 
 // Keep browser/DOM work out of the rendering core, which also runs off-thread.
-export function createBrowserRenderHost() {
+export function createBrowserRenderHost({canvas=document.getElementById('world'),search=location.search,
+  viewport=()=>({width:innerWidth,height:innerHeight,dpr:devicePixelRatio}),
+  connect=connectRenderClock,onReady=()=>{},signal}={}) {
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
   return {
     thread:'main',
-    canvas: document.getElementById('world'), search: location.search,
-    get width() { return innerWidth; }, get height() { return innerHeight; },
-    get topInset() { return embeddedTopInset(location.search, innerWidth); },
-    get dpr() { return devicePixelRatio; }, get hidden() { return document.hidden; },
+    canvas,search,
+    get width() { return viewport().width; }, get height() { return viewport().height; },
+    get topInset() { return embeddedTopInset(search, viewport().width); },
+    get dpr() { return viewport().dpr; }, get hidden() { return document.hidden||Boolean(signal?.aborted); },
     get reducedMotion() { return preference.matches; },
     night: () => harbourTime().night,
     setNight(value) { document.body.classList.toggle('night', value > .55); },
@@ -19,18 +21,23 @@ export function createBrowserRenderHost() {
       document.documentElement.dataset.renderer = backend;
       document.documentElement.dataset.renderThread = 'main';
       this.canvas.dataset.renderer = backend;
-      const loading = document.getElementById('loading'); loading.classList.add('ready'); loading.hidden = true;
+      const loading = document.getElementById('loading');
+      if(loading){loading.classList.add('ready');loading.hidden=true;}
       console.info(`[harbour-renderer] ${backend}`);
-      if (parent !== window) parent.postMessage({type:'harbour:state',ready:true,...harbourTime()},location.origin);
+      onReady(backend);
     },
     diagnostic(label, data) { console.info(`[${label}]`, JSON.stringify(data)); },
     onResize(callback) {
-      const changed = createViewportChange(() => ({width:innerWidth,height:innerHeight,dpr:devicePixelRatio}), callback);
+      const changed = createViewportChange(viewport, callback);
       addEventListener('resize', changed); return () => removeEventListener('resize', changed);
     },
     onMotion(callback) { preference.addEventListener('change', callback); return () => preference.removeEventListener('change', callback); },
-    onDispose(callback) { addEventListener('pagehide', callback, {once:true}); return () => removeEventListener('pagehide', callback); },
-    connect: connectPortfolio,
+    onDispose(callback) {
+      if(signal?.aborted){callback();return ()=>{};}
+      addEventListener('pagehide',callback,{once:true});signal?.addEventListener('abort',callback,{once:true});
+      return ()=>{removeEventListener('pagehide',callback);signal?.removeEventListener('abort',callback);};
+    },
+    connect,
   };
 }
 

@@ -19,7 +19,7 @@ const worldVersion={
 };
 
 // Begin downloading the lossless world as soon as production HTML arrives,
-// rather than waiting for React, the iframe and the renderer module graph.
+// rather than waiting for React and the renderer module graph.
 const encodedWorldHeaders = (req, res, next) => {
   if (/^\/world-br\/.*\.bin\.br(?:\?|$)/.test(req.url || '')) {
     res.setHeader('Content-Encoding', 'br');
@@ -39,10 +39,6 @@ const worldPreload = {
       { tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: `world-br/${asset.brotliFile}`, crossorigin: 'anonymous' }, injectTo: 'head-prepend' },
       { tag: 'link', attrs: { rel: 'preload', as: 'fetch', href: `lighting/${lighting.file}`, crossorigin: 'anonymous' }, injectTo: 'head-prepend' },
     ];
-    const entry = Object.values(context.bundle ?? {}).find(item => item.type === 'chunk' && item.isEntry && item.name === 'harbour');
-    if (entry) for (const file of new Set([entry.fileName,...entry.imports])) {
-      tags.push({ tag: 'link', attrs: { rel: 'modulepreload', href: `/${file}`, crossorigin: 'anonymous' }, injectTo: 'head' });
-    }
     return tags;
   },
 };

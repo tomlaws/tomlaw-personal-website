@@ -80,30 +80,16 @@ input:focus-visible {
   pointer-events: none;
   contain: layout paint;
 }
-.world-background iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-  display: block;
-  background: var(--background);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-}
-.world-background .city-canvas {
+.world-background .city-surface {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  display: block;
-  pointer-events: none;
   opacity: 0;
   transition: opacity .6s ease;
 }
-.world-background.ready .city-canvas { opacity: 1; }
-.world-background.ready iframe {
-  opacity: 1;
-}
+.world-background.ready .city-surface { opacity: 1; }
+.city-canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
 .map-loading {
   position: absolute;
   left: 72%;
@@ -167,8 +153,7 @@ input:focus-visible {
 @media (max-width: 650px) {
   /* Let Safari scroll the intro and city together as one page composition. */
   .world-background { position: absolute; }
-  .world-background iframe { margin-top: 250px; height: calc(100% - 250px); }
-  .world-background .city-canvas { top: 250px; height: calc(100% - 250px); }
+  .world-background .city-surface { top: 250px; height: calc(100% - 250px); }
   .map-loading { left: 50%; top: 70%; }
 }
 @media (prefers-reduced-motion: reduce) {

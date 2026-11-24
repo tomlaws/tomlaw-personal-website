@@ -53,6 +53,13 @@ try {
 } catch {
   throw new Error('WebGL initialization failed');
 }
+let startupCancelled=false,setupDone=false;
+const disconnectStartup=host.onDispose(()=>{
+  startupCancelled=true;
+  if(!setupDone){renderer.setAnimationLoop(null);renderer.dispose();renderer.forceContextLoss();}
+});
+const checkStartup=()=>{if(startupCancelled)throw new DOMException('Renderer disposed','AbortError');};
+try {
 const shaderErrors = captureShaderErrors(renderer);
 function pixelRatio() { return quality.pixelRatio(); }
 renderer.setPixelRatio(pixelRatio());
@@ -142,7 +149,7 @@ const NIGHT_SKY = {
   zenith: '#0d1a33', horizon: '#4b5b7c', ground: '#101520',
   sunColor: '#ffd9a8', sunDirection: [-6, 3.5, 9], cloudColor: '#28324a', cloudCover: .45, cloudScale: 5.1,
 };
-const loadedLighting=await preparedLighting;
+const loadedLighting=await preparedLighting;checkStartup();
 const dayEnvironment = loadedLighting?.[0] ?? buildSkyEnvironment(DAY_SKY);
 const nightEnvironment = loadedLighting?.[1] ?? buildSkyEnvironment(NIGHT_SKY);
 const environmentBlend=createEnvironmentBlend(renderer,dayEnvironment,nightEnvironment);
@@ -169,7 +176,7 @@ controls.update();
 // The modelled buildings arrive over the network, so the world waits for them. That wait is
 // what the loading card is already covering; everything else on the map is built in code and
 // needs no fetching at all.
-const prepared=await preparedWorld;
+const prepared=await preparedWorld;checkStartup();
 if(prepared.error)throw prepared.error;
 const world=prepared.world;
 scene.add(world.root);
@@ -431,8 +438,8 @@ setTimeOfDay(host.night());
 // first visible frame on all landmark shaders at once.
 // Warm the actual linear HDR and clipped reflection variants. Compiling for
 // the canvas would prepare unused tone-mapped/sRGB material programs instead.
-await compileWebGLView(renderer,scene,camera,composer.readBuffer);
-await harbourMirror.compile();
+await compileWebGLView(renderer,scene,camera,composer.readBuffer);checkStartup();
+await harbourMirror.compile();checkStartup();
 try { shaderErrors.check(); }
 catch(error) { renderer.dispose(); renderer.forceContextLoss(); throw error; }
 
@@ -455,7 +462,7 @@ const disconnectMotion = host.onMotion(() => {
   }
   reflectionDirty = true;
 });
-const disconnectPortfolio=host.connect({
+const disconnectControls=host.connect({
   isReady:()=>firstFrameReady,
   setTime(value) { setTimeOfDay(value); reflectionDirty = true; },
   setActive(value) { portfolioActive = value; if (value) reflectionDirty = true; },
@@ -546,10 +553,10 @@ renderer.setAnimationLoop(timestamp => {
   }
 });
 
-let disposed=false;
+let disposed=false,disconnectDispose=()=>{};
 function dispose(){
   if(disposed)return;disposed=true;
-  renderer.setAnimationLoop(null);disconnectPortfolio();
+  renderer.setAnimationLoop(null);disconnectControls();
   disconnectResize(); disconnectMotion(); disconnectDispose();
   frameQueue.dispose();
   harbourMirror.dispose();
@@ -558,7 +565,13 @@ function dispose(){
   else environmentTargets.forEach(target=>target.dispose());
   silhouetteTarget.dispose();renderer.dispose();renderer.forceContextLoss();
 }
-const disconnectDispose = host.onDispose(dispose);
+setupDone=true;disconnectStartup();
+disconnectDispose = host.onDispose(dispose);
 import.meta.hot?.dispose(dispose);
 return {dispose, backend:'webgl'};
+} catch(error) {
+  disconnectStartup();
+  if(!setupDone){renderer.setAnimationLoop(null);renderer.dispose();renderer.forceContextLoss();}
+  throw error;
+}
 }

@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
 import { startLoadingTimeout } from '../src/loading-timeout.mjs';
-import { connectHarbourFrame } from '../src/harbour-frame.mjs';
+import { connectHarbourActivity } from '../src/harbour-activity.mjs';
 import { startWorkerRenderer } from '../src/harbour/worker-controller.mjs';
-import { startInlineHarbour } from '../src/inline-harbour.mjs';
+import { createBrowserRenderHost } from '../src/harbour/render-host.mjs';
+import { harbourRenderAttempts, startInlineHarbour } from '../src/inline-harbour.mjs';
 
 class Events {
   listeners = new Map();
@@ -57,163 +58,147 @@ function install(values) {
   }
 }
 try {
-  install({setTimeout:clock.setTimer, clearTimeout:clock.clearTimer, performance:{now:clock.now}});
-  const host = Object.assign(new Events(), {innerWidth:430,innerHeight:800,location:{origin:'https://portfolio.example'}});
-  const messages = [], target = {postMessage:(data,origin) => messages.push({data,origin})};
-  let bounds = {top:80,bottom:930}, ready = 0, errors = 0, observer;
-  const hero = {getBoundingClientRect:() => bounds}, frame = {contentWindow:target};
+  install({setTimeout:clock.setTimer,clearTimeout:clock.clearTimer,performance:{now:clock.now}});
+  const host=Object.assign(new Events(),{innerWidth:390,innerHeight:800,location:{origin:'https://portfolio.example'}});
+  const active=[],scrolling=[];
+  let bounds={top:80,bottom:930},ready=0,errors=0,observer;
+  const hero={getBoundingClientRect:()=>bounds};
   class Observer {
-    constructor(callback) { this.callback = callback; observer = this; }
-    observe(element) { assert.equal(element,hero); }
-    disconnect() { this.disconnected = true; }
+    constructor(callback){this.callback=callback;observer=this;}
+    observe(element){assert.equal(element,hero);}
+    disconnect(){this.disconnected=true;}
   }
-  const options = {frame,hero,window:host,document:page,Observer,timeoutMs:100,
-    onReady:() => ready++,onError:() => errors++};
-  const connection = connectHarbourFrame(options);
-  const active = () => messages.findLast(message => message.data.command === 'active').data.active;
-  const scrolling = () => messages.findLast(message => message.data.command === 'scrolling').data.scrolling;
-  assert.equal(active(),true);
-  assert.equal(messages[0].origin,host.location.origin);
-  bounds = {top:-1000,bottom:-100};
-  observer.callback([{target:hero,isIntersecting:false}]);
-  assert.equal(active(),false,'The scrolling hero pauses the fixed iframe');
-  const receive = (data, extra = {}) => host.emit('message',{data,origin:host.location.origin,source:target,...extra});
-  receive({type:'harbour:state',ready:true},{origin:'https://unrelated.example'});
-  receive({type:'harbour:state',ready:true},{source:{}});
-  assert.equal(ready,0,'Other origins and windows cannot mark the city ready');
-  receive({type:'harbour:state',ready:true});
-  assert.equal(ready,1); assert.equal(active(),false,'Readiness replays a pause lost during startup');
-  clock.advance(200); assert.equal(errors,0,'A ready scene has no startup deadline');
-  bounds = {top:80,bottom:930}; observer.callback([{target:hero,isIntersecting:true}]);
-  assert.equal(active(),true,'Returning to the introduction resumes rendering');
-  for (const event of ['touchstart','scroll','touchmove','touchend','scrollend']) host.emit(event);
-  assert.equal(active(),true,'Touch scrolling never suspends a visible city');
-  assert.equal(scrolling(),false,'Scrollend restores the normal rendering budget');
-  host.emit('touchmove'); assert.equal(scrolling(),true);
-  assert.equal(active(),true,'A scrolling budget does not pause the city');
-  const edgeCount=messages.length;
-  clock.advance(100); host.emit('scroll'); clock.advance(100); host.emit('scroll');
-  assert.equal(messages.length,edgeCount,'Momentum updates do not flood the iframe with messages');
-  clock.advance(179); assert.equal(scrolling(),true,'The lighter budget covers momentum');
-  clock.advance(1); assert.equal(scrolling(),false,'Browsers without scrollend restore the budget after settling');
-  host.emit('scroll'); receive({type:'harbour:state',ready:true});
-  assert.equal(scrolling(),true,'Renderer fallback replays the current scrolling budget');
-  page.hidden = true; page.emit('visibilitychange'); assert.equal(active(),false);
-  assert.equal(scrolling(),false,'Hiding the page clears the transient budget and timer');
-  page.hidden = false; page.emit('visibilitychange'); assert.equal(active(),true);
-  host.innerWidth=1200; host.emit('scroll'); assert.equal(scrolling(),false,'Desktop scrolling retains its budget');
-  host.innerWidth=430; host.emit('scroll');
-  receive({type:'harbour:error'}); assert.equal(errors,1); assert.equal(active(),false);
-  receive({type:'harbour:state',ready:true}); assert.equal(ready,1,'A failed attempt cannot resurrect itself');
-  connection.dispose();
-  assert.equal(observer.disconnected,true); assert.equal(host.count(),0); assert.equal(page.count(),0);
+  const options={hero,window:host,document:page,Observer,timeoutMs:100,
+    setActive:value=>active.push(value),setScrolling:value=>scrolling.push(value),
+    onReady:()=>ready++,onError:()=>errors++};
+  const activity=connectHarbourActivity(options);
+  assert.equal(active.at(-1),true);
+  bounds={top:-1000,bottom:-100};observer.callback([{target:hero,isIntersecting:false}]);
+  assert.equal(active.at(-1),false);
+  activity.ready();activity.ready();assert.equal(ready,1);
+  clock.advance(200);assert.equal(errors,0);
+  bounds={top:80,bottom:930};observer.callback([{target:hero,isIntersecting:true}]);
+  for(const event of ['touchstart','scroll','touchmove','touchend'])host.emit(event);
+  assert.equal(active.at(-1),true,'Touch/momentum scrolling never suspends a visible city');
+  assert.equal(scrolling.at(-1),true);
+  const edgeCount=scrolling.length;
+  clock.advance(100);host.emit('scroll');clock.advance(100);host.emit('scroll');
+  assert.equal(scrolling.length,edgeCount,'Repeated scrolling does not flood renderer controls');
+  clock.advance(180);assert.equal(scrolling.at(-1),false);
+  host.emit('scroll');activity.sync();assert.equal(scrolling.at(-1),true,'Recovery replays activity without a page bridge');
+  page.hidden=true;page.emit('visibilitychange');assert.equal(active.at(-1),false);assert.equal(scrolling.at(-1),false);
+  page.hidden=false;page.emit('visibilitychange');assert.equal(active.at(-1),true);
+  activity.fail();activity.ready();assert.equal(errors,1);assert.equal(ready,1);
+  activity.dispose();activity.dispose();assert.equal(host.count(),0);assert.equal(page.count(),0);
+  assert.equal(observer.disconnected,true);
+  const stalled=connectHarbourActivity({...options,Observer:undefined});
+  bounds={top:-1000,bottom:-10};host.emit('scroll');assert.equal(active.at(-1),false);
+  bounds={top:80,bottom:930};host.emit('resize');assert.equal(active.at(-1),true);
+  clock.advance(100);assert.equal(errors,2);stalled.dispose();
+  assert.equal(host.count(),0);assert.equal(page.count(),0);
 
-  const replacement = {postMessage:(data,origin) => messages.push({data,origin})};
-  frame.contentWindow = replacement;
-  const retry = connectHarbourFrame(options);
-  receive({type:'harbour:state',ready:true});
-  assert.equal(ready,1,'A late message from the old iframe cannot finish a retry');
-  host.emit('message',{data:{type:'harbour:state',ready:true},origin:host.location.origin,source:replacement});
-  assert.equal(ready,2,'The replacement iframe can become ready independently');
-  retry.dispose();
-
-  const stalled = connectHarbourFrame({...options,Observer:undefined});
-  bounds = {top:-1000,bottom:-10}; host.emit('scroll'); assert.equal(active(),false);
-  bounds = {top:80,bottom:930}; host.emit('resize'); assert.equal(active(),true);
-  clock.advance(100); assert.equal(errors,2,'A never-ready iframe exposes the retry state');
-  stalled.dispose(); assert.equal(host.count(),0); assert.equal(page.count(),0);
-
-  // Exercise the production worker controller without opening a browser/GPU.
-  const document = Object.assign(new Events(), {hidden:false,
-    documentElement:{dataset:{},style:{setProperty(){}}}});
-  const canvas = {dataset:{},transferControlToOffscreen:() => ({})};
-  const loading = {hidden:false,classList:{add(){}}};
-  document.getElementById = id => id === 'world' ? canvas : loading;
-  const preference = Object.assign(new Events(),{matches:false}), owner = {postMessage(){}};
-  const events = new Events(), workers = [];
-  class Worker extends Events {
-    constructor() { super(); workers.push(this); }
-    postMessage(data) { (this.messages ??= []).push(data); }
-    terminate() { this.terminated = true; }
+  const document=Object.assign(new Events(),{hidden:false,documentElement:{dataset:{},style:{setProperty(){}}},
+    body:{classList:{toggle(){}}},getElementById:()=>null});
+  const events=Object.assign(new Events(),{innerWidth:390,innerHeight:800,location:host.location});
+  const preference=Object.assign(new Events(),{matches:false}),workers=[];
+  class Worker extends Events{
+    constructor(){super();workers.push(this);}
+    postMessage(data){(this.messages??=[]).push(data);}
+    terminate(){this.terminated=true;}
   }
-  install({document, Worker, location:{origin:host.location.origin,search:''},
-    window:{},parent:owner,matchMedia:() => preference,innerWidth:390,innerHeight:844,devicePixelRatio:2,
+  class Canvas extends Events{
+    dataset={};clientWidth=390;clientHeight=680;
+    setAttribute(){}
+    transferControlToOffscreen(){return {};}
+  }
+  document.createElement=tag=>{assert.equal(tag,'canvas','Renderer recovery may only create a canvas');return new Canvas();};
+  const surface={history:[],replaceChildren(...nodes){assert.ok(nodes.length<=1);this.canvas=nodes[0];if(nodes[0])this.history.push(nodes[0]);}};
+  install({document,Worker,HTMLCanvasElement:Canvas,window:events,location:{origin:host.location.origin,search:''},
+    matchMedia:()=>preference,innerWidth:390,innerHeight:844,devicePixelRatio:2,
     addEventListener:events.addEventListener.bind(events),removeEventListener:events.removeEventListener.bind(events),
     setInterval:clock.setTimer,clearInterval:clock.clearTimer});
-  let failureCount = 0;
-  const pending = startWorkerRenderer({backend:'webgl',onFailure:() => failureCount++});
-  const rejected = assert.rejects(pending,/startup timed out/);
-  clock.advance(45_000); await rejected;
-  assert.equal(workers[0].terminated,true,'A stuck worker is terminated before renderer fallback');
-  assert.equal(failureCount,0,'Startup rejection uses the caller’s normal fallback');
-  assert.equal(events.count(),0); assert.equal(document.count(),0); assert.equal(preference.count(),0);
+  const flush=()=>new Promise(setImmediate);
+  let workerControls;
+  const pending=startWorkerRenderer({canvas:new Canvas(),backend:'webgl'});
+  const rejected=assert.rejects(pending,/startup timed out/);clock.advance(45_000);await rejected;
+  assert.equal(workers.at(-1).terminated,true);
+  const success=startWorkerRenderer({canvas:new Canvas(),backend:'webgl',connect:value=>{workerControls=value;return ()=>{};}});
+  workers.at(-1).emit('message',{data:{type:'ready',backend:'webgl'}});
+  const renderer=await success;workerControls.setScrolling(true);
+  assert.deepEqual(workers.at(-1).messages.at(-1),{type:'scrolling',scrolling:true});renderer.dispose();
+  assert.equal(events.count(),0);assert.equal(document.count(),0);assert.equal(preference.count(),0);
 
-  const success = startWorkerRenderer({backend:'webgl',onFailure:() => failureCount++});
-  workers[1].emit('message',{data:{type:'ready',backend:'webgl'}});
-  const renderer = await success;
-  events.emit('message',{origin:host.location.origin,source:owner,
-    data:{type:'harbour:command',command:'scrolling',scrolling:true}});
-  assert.deepEqual(workers[1].messages.at(-1),{type:'scrolling',scrolling:true},'The iframe relays the budget to its render worker');
-  clock.advance(45_000);
-  assert.equal(workers[1].terminated,undefined,'Successful startup cancels its timeout');
-  workers[1].emit('messageerror');
-  assert.equal(workers[1].terminated,true); assert.equal(failureCount,1);
-  renderer.dispose();
-  assert.equal(events.count(),0); assert.equal(document.count(),0); assert.equal(preference.count(),0);
-  assert.equal(clock.timers.size,0,'Retries and disposal leave no watchdogs or daylight timers');
-
-  // Exercise the direct page canvas, including React's setup/cleanup/setup
-  // cycle, independent canvas dimensions and a failed worker's iframe fallback.
-  install({window:Object.assign(events,{innerWidth:390,innerHeight:800,location}),parent:events});
-  document.getElementById=()=>null;
-  bounds={top:80,bottom:930};
-  let inlineReady=0,fallbacks=0;
-  const directCanvas={dataset:{},clientWidth:390,clientHeight:680,
-    transferControlToOffscreen:()=>({})};
-  const inlineOptions={canvas:directCanvas,hero,search:'?embedded=1',
-    onReady:()=>inlineReady++,onFallback:()=>fallbacks++};
+  assert.deepEqual(harbourRenderAttempts({backend:'webgpu',webgpu:true}),[
+    {backend:'webgpu',thread:'worker'},{backend:'webgpu',thread:'main'},
+    {backend:'webgl',thread:'worker'},{backend:'webgl',thread:'main'}]);
+  assert.deepEqual(harbourRenderAttempts({worker:false}),[{backend:'webgl',thread:'main'}]);
+  assert.deepEqual(harbourRenderAttempts({backend:'webgpu',webgpu:false,mainOnly:true}),[{backend:'webgl',thread:'main'}]);
+  let inlineReady=0,recoveries=0,inlineErrors=0;
+  const mainAttempts=[];
+  const drivers={worker:startWorkerRenderer,async main(settings){
+    const host=createBrowserRenderHost(settings);let disposed=false;
+    const disconnect=settings.connect({setTime(){},setActive(){},setScrolling(){}});
+    const off=host.onDispose(()=>{});
+    const result={settings,host,dispose(){if(disposed)return;disposed=true;disconnect();off();}};
+    mainAttempts.push(result);host.ready(settings.backend);return result;
+  }};
+  const inlineOptions={surface,hero,search:'?embedded=1',drivers,
+    onReady:()=>inlineReady++,onRecovering:()=>recoveries++,onError:()=>inlineErrors++};
   const before=workers.length;
-  const cancelled=startInlineHarbour(inlineOptions);cancelled.dispose();
-  await Promise.resolve();
-  assert.equal(workers.length,before,'StrictMode cleanup cancels startup before transferring its canvas');
-  const unfinished=startInlineHarbour(inlineOptions);await Promise.resolve();
-  const unfinishedWorker=workers.at(-1);unfinished.dispose();await new Promise(setImmediate);
-  assert.equal(unfinishedWorker.terminated,true,'Unmounting a starting city terminates its worker immediately');
-  assert.equal(fallbacks,0,'Intentional cancellation cannot launch a fallback');
-  assert.equal(clock.timers.size,0);
-  const inline=startInlineHarbour(inlineOptions);
-  await Promise.resolve();
-  const directWorker=workers.at(-1),init=directWorker.messages[0];
-  assert.equal(init.state.height,680,'The city uses canvas height rather than Safari chrome height');
-  assert.equal(init.state.search,'?embedded=1','Embedded projection retains its original screen framing');
-  directWorker.emit('message',{data:{type:'ready',backend:'webgl'}});
-  await Promise.resolve();
-  assert.equal(inlineReady,1);
-  assert.equal(directWorker.messages.findLast(message=>message.type==='active').active,true);
-  const messageCount=directWorker.messages.length;
-  events.innerHeight=600;events.emit('resize');
-  assert.equal(directWorker.messages.length,messageCount,'Safari chrome changes do not clear an unchanged canvas');
-  directCanvas.clientHeight=700;events.emit('resize');
-  assert.equal(directWorker.messages.at(-1).viewport.height,700,'Actual canvas size changes still reach the worker');
-  events.emit('scroll');
-  assert.equal(directWorker.messages.findLast(message=>message.type==='active').active,true,'Scrolling never pauses the direct canvas');
-  bounds={top:-1000,bottom:-10};events.emit('scroll');
-  assert.equal(directWorker.messages.findLast(message=>message.type==='active').active,false,'The direct canvas sleeps after leaving the hero');
+  const cancelled=startInlineHarbour(inlineOptions);cancelled.dispose();await flush();
+  assert.equal(workers.length,before,'StrictMode cancels startup before transferring a canvas');
+  const unfinished=startInlineHarbour(inlineOptions);await flush();const unfinishedWorker=workers.at(-1);
+  unfinished.dispose();await flush();assert.equal(unfinishedWorker.terminated,true);assert.equal(recoveries,0);
+  const inline=startInlineHarbour(inlineOptions);await flush();
+  const originalCanvas=surface.canvas,directWorker=workers.at(-1);
+  assert.equal(directWorker.messages[0].state.height,680);
+  directWorker.emit('message',{data:{type:'ready',backend:'webgl'}});await flush();
+  assert.equal(inlineReady,1);assert.equal(directWorker.messages.findLast(m=>m.type==='active').active,true);
+  const count=directWorker.messages.length;events.innerHeight=600;events.emit('resize');
+  assert.equal(directWorker.messages.length,count,'Browser chrome cannot resize an unchanged canvas');
+  originalCanvas.clientHeight=700;events.emit('resize');assert.equal(directWorker.messages.at(-1).viewport.height,700);
+  events.emit('scroll');assert.equal(directWorker.messages.findLast(m=>m.type==='active').active,true);
+  bounds={top:-1000,bottom:-10};events.emit('scroll');assert.equal(directWorker.messages.findLast(m=>m.type==='active').active,false);
+  directWorker.emit('error',{message:'Injected worker failure',preventDefault(){}});await flush();
+  assert.equal(recoveries,1);assert.equal(inlineReady,2);
+  assert.equal(mainAttempts.length,1);assert.notEqual(surface.canvas,originalCanvas,'A transferred canvas is replaced before main-thread recovery');
+  assert.equal(mainAttempts[0].settings.canvas,surface.canvas);assert.equal(mainAttempts[0].host.height,680);
+  assert.equal(mainAttempts[0].host.topInset,250);
+  mainAttempts[0].settings.onFailure(new Error('Injected terminal failure'));await flush();
+  assert.equal(inlineErrors,1);assert.equal(mainAttempts[0].settings.signal.aborted,true);
+  directWorker.emit('message',{data:{type:'ready',backend:'webgl'}});await flush();assert.equal(inlineReady,2,'A stale worker cannot resurrect a failed attempt');
   inline.dispose();inline.dispose();
-  assert.equal(directWorker.terminated,true);
-  assert.equal(events.count(),0);assert.equal(document.count(),0);assert.equal(preference.count(),0);
-  assert.equal(clock.timers.size,0,'Inline disposal clears visibility/scroll/daylight/startup timers');
-  bounds={top:80,bottom:930};
-  const broken=startInlineHarbour(inlineOptions);await Promise.resolve();
-  workers.at(-1).emit('error',{message:'Injected failure',preventDefault(){}});
-  await new Promise(setImmediate);
-  assert.equal(fallbacks,1,'A failed direct worker requests the existing iframe fallback once');
-  broken.dispose();
-  assert.equal(events.count(),0);assert.equal(document.count(),0);assert.equal(preference.count(),0);
+  assert.equal(surface.canvas,undefined);assert.equal(events.count(),0);assert.equal(document.count(),0);assert.equal(preference.count(),0);
   assert.equal(clock.timers.size,0);
-} finally {
-  for (const [key,descriptor] of saved) {
-    if (descriptor) Object.defineProperty(globalThis,key,descriptor); else delete globalThis[key];
-  }
+
+  // No Worker/OffscreenCanvas support still renders directly in the page.
+  install({Worker:undefined});bounds={top:80,bottom:930};
+  const directMain=startInlineHarbour(inlineOptions);await flush();
+  assert.equal(mainAttempts.length,2);assert.equal(mainAttempts.at(-1).settings.canvas,surface.canvas);
+  directMain.dispose();assert.equal(clock.timers.size,0);assert.equal(events.count(),0);assert.equal(document.count(),0);
+
+  install({Worker,navigator:{gpu:{}}});
+  const sequence=[],oldFailures=[];
+  const sequenced=thread=>async settings=>{
+    sequence.push(`${settings.backend}:${thread}`);oldFailures.push(settings.onFailure);
+    if(settings.backend==='webgpu')throw new Error('Injected unsupported GPU backend');
+    const disconnect=settings.connect({setTime(){},setActive(){},setScrolling(){}});
+    return {dispose:disconnect};
+  };
+  const native=startInlineHarbour({...inlineOptions,search:'?embedded=1&renderer=webgpu',
+    drivers:{worker:sequenced('worker'),main:sequenced('main')}});
+  await flush();
+  assert.deepEqual(sequence,['webgpu:worker','webgpu:main','webgl:worker'],'Every backend/thread recovery stays in the same surface');
+  const settledCount=sequence.length;oldFailures[0](new Error('Late GPU failure'));await flush();
+  assert.equal(sequence.length,settledCount,'Obsolete backends cannot restart recovery');native.dispose();
+
+  install({Worker:undefined});
+  let finishPending,lateDisposed=0;
+  const pendingMain=startInlineHarbour({...inlineOptions,drivers:{main:()=>new Promise(resolve=>{finishPending=resolve;})}});
+  await flush();pendingMain.dispose();finishPending({dispose(){lateDisposed++;}});await flush();
+  assert.equal(lateDisposed,1,'A renderer that finishes after unmount is immediately disposed');
+  assert.equal(clock.timers.size,0);assert.equal(events.count(),0);assert.equal(document.count(),0);
+}finally{
+  for(const[key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
 }
-console.log('Harbour lifecycle: offscreen/tab pausing, replay after startup, retry isolation, stalled worker fallback and timer cleanup passed.');
+console.log('Harbour lifecycle: direct controls, visibility/scroll continuity, StrictMode cancellation, fresh-canvas recovery, no-worker startup and cleanup passed.');

@@ -13,7 +13,7 @@ export function createFrameResize(apply) {
   };
 }
 
-// Browser chrome can emit resize notifications without changing the iframe.
+// Browser chrome can emit resize notifications without changing the canvas.
 // Skip those before they clear the canvas and reallocate composer buffers.
 export function createViewportChange(read, changed) {
   let previous = {...read()};

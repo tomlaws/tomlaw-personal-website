@@ -1,3 +1,12 @@
+# Site architecture and performance
+
+- Keep site-owned features in the current document using React components, JavaScript modules and native canvases. Do not embed our own routes through iframe, frame, object or embed elements.
+- The city must use one page-owned canvas. Worker, main-thread, WebGL and WebGPU recovery must replace that canvas in the same container, with complete cleanup and cancellation. Do not retain an embedded-page fallback or window-to-window control bridge.
+- Reuse renderer modules directly. Keep expensive parsing and rendering in workers where supported; load main-thread recovery only when needed. Avoid unnecessary document/layer boundaries and assess their compositing cost on mobile Safari before introducing them.
+- Preserve sharp resolution, continuous animation during scrolling and the moving ferry's live water reflection. Distinguish renderer throughput from native page-scroll presentation when reporting performance; simulator RAF averages do not prove physical-device smoothness.
+- Keep development in the background. Do not open browser windows or the Simulator app. Headless simulator checks are allowed.
+- Run the page-integration architecture guard and lifecycle/fallback checks for integration changes. These rules apply to recovery paths as well as normal startup.
+
 # City asset workflow
 
 - The user wants internet references consulted before building or substantially rebuilding objects. Record useful sources and the construction details used in `reference/asset-references.md`.

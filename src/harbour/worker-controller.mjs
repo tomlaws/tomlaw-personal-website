@@ -1,5 +1,5 @@
 import { harbourTime } from '../hong-kong-time.mjs';
-import { connectPortfolio } from './portfolio-bridge.mjs';
+import { connectRenderClock } from './render-clock.mjs';
 import { startLoadingTimeout } from '../loading-timeout.mjs';
 import { createViewportChange } from './frame-resize.mjs';
 
@@ -9,7 +9,7 @@ import.meta.hot?.dispose(() => { for (const dispose of [...liveWorkers]) dispose
 export function startWorkerRenderer({onFailure = () => {}, backend = 'webgpu',
   canvas = document.getElementById('world'), search = location.search,
   viewport = () => ({width:innerWidth, height:innerHeight, dpr:devicePixelRatio}),
-  connect = connectPortfolio, signal} = {}) {
+  connect = connectRenderClock, signal} = {}) {
   return new Promise((resolve, reject) => {
     if (signal?.aborted) { reject(new DOMException('Renderer disposed','AbortError')); return; }
     const worker = backend === 'webgl'

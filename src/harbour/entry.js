@@ -11,8 +11,6 @@ function showError(error) {
   loading.className = "error";
   loading.querySelector("p").textContent =
     "The harbour could not load. Please reload or try a browser with WebGL enabled.";
-  if (parent !== window)
-    parent.postMessage({ type: "harbour:error" }, location.origin);
 }
 
 // Use WebGL by default; WebGPU remains available for explicit testing.

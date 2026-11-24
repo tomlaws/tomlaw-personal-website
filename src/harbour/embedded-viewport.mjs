@@ -1,4 +1,4 @@
-// Match the mobile iframe's blank top margin. Standalone map views and
+// Match the mobile city surface’s blank top margin. Standalone map views and
 // desktop retain the full viewport.
 export function embeddedTopInset(search, width) {
   return width <= 650 && new URLSearchParams(search).get('embedded') === '1' ? 250 : 0;
