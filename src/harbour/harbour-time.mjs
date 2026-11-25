@@ -1,8 +1,10 @@
 import * as T from 'three';
 import {WHEEL_LIGHT_COLOUR} from './wheel-uplights.mjs';
 import {TRAM_TRACK_LIGHTS,tramTrackLightPose} from './tram-track-mist.mjs';
+import {cloudSunFactor} from './cloud-sunlight.mjs';
 
 export function createHarbourTime(scene,world,lighting){
+  let sunBase=lighting.sun.intensity,solarNight=0;
   const night={value:0},materials=new Set(),softWindows=new Set();
   world.root.traverse(object=>{if(object.isMesh)for(const material of Array.isArray(object.material)?object.material:[object.material]){
     if(material.isMeshStandardMaterial&&object.geometry.attributes.harbourEmission)materials.add(material);
@@ -113,7 +115,8 @@ export function createHarbourTime(scene,world,lighting){
     lighting.sky.intensity=T.MathUtils.lerp(1.05,.23,t);
     lighting.sky.color.set('#e4f1f4').lerp(new T.Color('#647dab'),t);
     lighting.sky.groundColor.set('#cdbb97').lerp(new T.Color('#31384c'),t);
-    lighting.sun.intensity=T.MathUtils.lerp(2,.23,t);
+    sunBase=T.MathUtils.lerp(2,.23,t);solarNight=t;
+    lighting.sun.intensity=sunBase;
     lighting.sun.color.set('#fff1d2').lerp(new T.Color('#a5b9ed'),t).lerp(new T.Color('#ffb887'),dusk*.22);
     lighting.sun.position.set(-6,14-10*t,9);
     lighting.rim.intensity=T.MathUtils.lerp(.38,.30,t);
@@ -146,5 +149,10 @@ export function createHarbourTime(scene,world,lighting){
     world.materials.sea.emissiveIntensity=waterBase*(1-t*.8);
     waterMaterials.forEach((material,index)=>material.color.copy(waterDayColours[index]).lerp(waterNightColours[index],t));
   }
-  return {set,windowUniform:night,lamps,wheelUplights,wheelCabinFill,tramInteriors,trackLights};
+  function updateSun(elapsed,motion=true){
+    const factor=cloudSunFactor(elapsed,solarNight,motion);
+    lighting.sun.intensity=sunBase*factor;
+    return factor;
+  }
+  return {set,updateSun,windowUniform:night,lamps,wheelUplights,wheelCabinFill,tramInteriors,trackLights};
 }

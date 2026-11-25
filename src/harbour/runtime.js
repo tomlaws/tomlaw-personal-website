@@ -529,6 +529,7 @@ renderer.setAnimationLoop(timestamp => {
     reflectionDirty = true;
   }
   world.animate(state.time);
+  timeLighting.updateSun(state.time,motionEnabled);
   lighting.update();
   controls.update();
   profiler?.mark('animation');

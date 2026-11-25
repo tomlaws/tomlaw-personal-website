@@ -23,6 +23,8 @@ Mobile WebGL caches the original PBR shading of immutable, visible opaque meshes
 
 Zero-output night lights are removed from daylight shader variants; moving traffic does not change light counts. Point/spot lights with exactly zero contribution skip their BRDF work while retaining Three's original light, shadow and PBR equations and existing material hooks. These changes preserve the 2× mobile drawing buffer, bloom, continuous animation and live reflections. The caches add bounded offscreen image storage to reduce repeated fragment shading and draw submissions. Tests cover animated/transparent/hidden-helper exclusions, original geometry, clipping, cache invalidation, maximum lighting age, day/night light output and failure cleanup. Headless Safari evidence is recorded locally; it does not establish physical-phone scroll or iOS presentation FPS.
 
+Passing-cloud variation gently reduces the existing directional sunlight by 7–12% during daylight, with slow irregular fades, brief holds and clear spells. Ambient illumination and emissive lights stay steady, and the variation fades out toward night. It uses the existing active animation clock and normal shading/reflection-cache refreshes; it adds no lights, textures, render passes, cache invalidations or shadow-atlas updates. Reduced motion keeps the original steady sunlight.
+
 ## Lighting and background
 
 `src/hong-kong-time.mjs` uses SunCalc at 22.2845 N, 114.1589 E and always formats the clock in `Asia/Hong_Kong`. The existing map lighting follows seasonal solar elevation, updating every 30 seconds and when returning to the tab. `src/harbour-theme.mjs` derives the page background, foreground, rules and accent from the same daylight amount.

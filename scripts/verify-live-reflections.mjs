@@ -16,7 +16,8 @@ const data=await readSceneData(new Response(await readFile('public/world/'+asset
 const world=restorePreparedWorld(data),ferry=world.boats.find(boat=>boat.design==='star');
 assert.ok(ferry,'Use the actual animated Star Ferry');
 const litScene=new Scene();litScene.add(world.root);
-const timeLighting=createHarbourTime(litScene,world,createCoastalLighting(litScene,world));
+const lighting=createCoastalLighting(litScene,world);
+const timeLighting=createHarbourTime(litScene,world,lighting);
 timeLighting.set(0);
 const nightOnly=[...timeLighting.lamps,...timeLighting.trackLights,...timeLighting.wheelUplights,
   timeLighting.wheelCabinFill,...timeLighting.tramInteriors];
@@ -25,6 +26,17 @@ for(const light of nightOnly){assert.equal(light.intensity,0);assert.equal(light
 timeLighting.set(1);
 for(const light of nightOnly){assert.ok(light.intensity>0);assert.equal(light.visible,true,'Every original night light returns');}
 timeLighting.set(0);
+const skyBefore=lighting.sky.intensity,rimBefore=lighting.rim.intensity;
+lighting.sun.shadow.needsUpdate=false;
+timeLighting.updateSun(8,true);
+assert.ok(Math.abs(lighting.sun.intensity-2*.89)<1e-10);
+timeLighting.updateSun(8,true);
+assert.ok(Math.abs(lighting.sun.intensity-2*.89)<1e-10,'Cloud dimming cannot compound over successive frames');
+assert.equal(lighting.sun.shadow.needsUpdate,false,'Intensity changes do not regenerate the shadow atlas');
+assert.equal(lighting.sky.intensity,skyBefore);assert.equal(lighting.rim.intensity,rimBefore,'Ambient light stays steady');
+timeLighting.updateSun(8,false);assert.equal(lighting.sun.intensity,2);
+timeLighting.set(1);timeLighting.updateSun(8,true);assert.equal(lighting.sun.intensity,.23,'Night illumination stays at its original intensity');
+timeLighting.set(0);timeLighting.updateSun(18,true);assert.equal(lighting.sun.intensity,2);
 const materials=new Map(),geometry=new Map();
 const appearance=material=>JSON.stringify({color:material.color?.toArray(),emissive:material.emissive?.toArray(),
   metalness:material.metalness,roughness:material.roughness,clearcoat:material.clearcoat,

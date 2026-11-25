@@ -226,7 +226,7 @@ export async function startWebGPU({ host = createBrowserRenderHost(), onFailure 
         if(moving||cameraDirty){
           pose(); reflectionDirty = true;
         }
-        world.animate(time); lighting.update(); look(); profiler?.mark('animation');
+        world.animate(time); timeLighting.updateSun(time,motion); lighting.update(); look(); profiler?.mark('animation');
         // Schedule the shared sun atlas before either camera consumes it.
         if (timestamp - lastShadow >= 1000 / 6) { lighting.sun.shadow.needsUpdate = true; lastShadow = timestamp; }
         // Match WebGL's live reflection cadence; camera and lighting changes
