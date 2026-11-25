@@ -27,6 +27,8 @@ import lightingAsset from './prepared-lighting-asset.json' with {type:'json'};
 import { compileWebGLView } from './startup-work.mjs';
 import { cacheBloomPass } from './cached-bloom.mjs';
 import { createMobileGlazing } from './mobile-glazing.mjs';
+import { staticShadingMeshes, createStaticShadingCache } from './static-shading-cache.mjs';
+import { cullInvisibleLocalLighting } from './local-light-visibility.mjs';
 
 export async function startWebGL({host = createBrowserRenderHost(), onFailure = () => {}} = {}) {
 const canvas = host.canvas;
@@ -211,10 +213,13 @@ scene.add(harbourGlint);
 // Capture the skyline once, and only refresh on view or lighting changes.
 // This keeps reflections without re-rendering the city on every frame.
 let activeSky = DAY_SKY;
+const staticMeshes = staticShadingMeshes(world);
+cullInvisibleLocalLighting(scene);
 const harbourMirror = createWaterReflection(renderer, scene, camera, {
   level: world.ocean.level, size: world.worldSize, center: world.worldCenter,
   resolution: harbourRenderProfile(host.width).reflectionResolution,
   waterColor: '#5fb6d6', sky: () => skyDome(activeSky),
+  staticMeshes, cacheEnabled:()=>harbourRenderProfile(host.width).mobile,
 });
 harbourMirror.mesh.visible = false;
 const nightDistrict = null;
@@ -271,14 +276,19 @@ composer.addPass(bloom);
 // or an intermediate full-resolution atmosphere render target/pass.
 preserveBloomCoverage(bloom);
 const atmosphere = createPortfolioOutput();
+const staticShading = createStaticShadingCache(scene,camera,staticMeshes,{
+  enabled:()=>harbourRenderProfile(host.width).mobile,
+  canCapture:()=>!renderer.shadowMap.needsUpdate,
+  canRefresh:()=>!reflectionUpdated,
+});
 const renderBeauty = beauty.render.bind(beauty);
-beauty.render = (renderer, ...args) => {
+beauty.render = (renderer, writeBuffer, readBuffer, ...args) => {
   const background = scene.background;
   const clearColour = renderer.getClearColor(new T.Color());
   const clearAlpha = renderer.getClearAlpha();
   scene.background = null;
   renderer.setClearColor(0x000000, 0);
-  try { renderBeauty(renderer, ...args); }
+  try { if(!staticShading.render(renderer,readBuffer))renderBeauty(renderer,writeBuffer,readBuffer,...args); }
   finally {
     scene.background = background;
     renderer.setClearColor(clearColour, clearAlpha);
@@ -395,6 +405,7 @@ function setNight(night) {
   harbourMirror.updateSky();
 }
 function setTimeOfDay(value) {
+  staticShading.invalidate();harbourMirror.invalidate();
   const t=T.MathUtils.clamp(value,0,1);
   state.night=t>.55;host.setNight(t);
   timeLighting.set(t);
@@ -552,7 +563,7 @@ function dispose(){
   renderer.setAnimationLoop(null);disconnectControls();
   disconnectResize(); disconnectMotion(); disconnectDispose();
   frameQueue.dispose();
-  harbourMirror.dispose();
+  harbourMirror.dispose();staticShading.dispose();
   environmentBlend.dispose();
   if(loadedLighting)loadedLighting.forEach(texture=>texture.dispose());
   else environmentTargets.forEach(target=>target.dispose());

@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { compileWebGLView } from './startup-work.mjs';
+import { createStaticShadingCache } from './static-shading-cache.mjs';
 
 // A true planar reflection for the harbour.
 //
@@ -20,7 +21,7 @@ import { compileWebGLView } from './startup-work.mjs';
 // Captured repeatedly from the live scene, including the moving ferry. Its
 // frustum covers the water plate independently of the main camera's zoom/crop.
 export function createWaterReflection(renderer, scene, camera, {
-  level, waterColor = '#5fb6d6', strength = .9, opacity = .52, average = .52, resolution = 1024, size = 24, center = [0, 0], sky = null,
+  staticMeshes, cacheEnabled=()=>false, level, waterColor = '#5fb6d6', strength = .9, opacity = .52, average = .52, resolution = 1024, size = 24, center = [0, 0], sky = null,
 }) {
   const target = new T.WebGLRenderTarget(resolution, resolution, { type: T.HalfFloatType });
   const virtualCamera = new T.OrthographicCamera();
@@ -158,18 +159,22 @@ export function createWaterReflection(renderer, scene, camera, {
     }
   }
 
+  const shading=staticMeshes?createStaticShadingCache(scene,virtualCamera,staticMeshes,{
+    enabled:cacheEnabled,canCapture:()=>!renderer.shadowMap.needsUpdate,interval:250,
+  }):null;
   function update() {
     if(!prepareCamera())return;
-    duringReflection(()=>renderer.render(scene,virtualCamera),true);
+    duringReflection(()=>{if(!shading?.render(renderer,target))renderer.render(scene,virtualCamera);},true);
   }
 
   function dispose() {
     if(dome){scene.remove(dome);dome.geometry.dispose();dome.material.dispose();}
-    target.dispose(); mesh.geometry.dispose(); material.dispose(); scene.remove(mesh);
+    shading?.dispose();target.dispose(); mesh.geometry.dispose(); material.dispose(); scene.remove(mesh);
   }
 
   const dayWater = new T.Color(waterColor), nightWater = new T.Color('#397b9b');
   return { mesh, update, updateSky, dispose,
+    invalidate(){shading?.invalidate();},
     async compile() {
       if(!prepareCamera())return;
       // compileAsync captures its program parameters synchronously. Restore

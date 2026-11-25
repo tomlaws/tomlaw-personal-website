@@ -18,6 +18,13 @@ assert.ok(ferry,'Use the actual animated Star Ferry');
 const litScene=new Scene();litScene.add(world.root);
 const timeLighting=createHarbourTime(litScene,world,createCoastalLighting(litScene,world));
 timeLighting.set(0);
+const nightOnly=[...timeLighting.lamps,...timeLighting.trackLights,...timeLighting.wheelUplights,
+  timeLighting.wheelCabinFill,...timeLighting.tramInteriors];
+assert.ok(nightOnly.length>15);
+for(const light of nightOnly){assert.equal(light.intensity,0);assert.equal(light.visible,false,'Zero-output night lights are absent from daylight shaders');}
+timeLighting.set(1);
+for(const light of nightOnly){assert.ok(light.intensity>0);assert.equal(light.visible,true,'Every original night light returns');}
+timeLighting.set(0);
 const materials=new Map(),geometry=new Map();
 const appearance=material=>JSON.stringify({color:material.color?.toArray(),emissive:material.emissive?.toArray(),
   metalness:material.metalness,roughness:material.roughness,clearcoat:material.clearcoat,

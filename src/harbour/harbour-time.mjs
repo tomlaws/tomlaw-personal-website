@@ -102,6 +102,7 @@ export function createHarbourTime(scene,world,lighting){
     }
     return light;
   }));
+  const localLights=[...lamps,...windowSpill,peakEntrance,...peakAtrium,...wheelUplights,wheelCabinFill,...trackLights,...tramInteriors];
   const waterBase=world.materials.sea.emissiveIntensity;
   const waterMaterials=[world.materials.sea,world.ocean.sides.material,world.ocean.upper.material];
   const waterDayColours=waterMaterials.map(material=>material.color.clone());
@@ -126,6 +127,10 @@ export function createHarbourTime(scene,world,lighting){
     trackLights.forEach(light=>light.intensity=windows*1.75*light.userData.washGain);
     trackMist.forEach(material=>material.opacity=windows*.065*material.userData.trackMistGain);
     tramInteriors.forEach(light=>light.intensity=windows*.55);
+    // These are wholly inactive in daylight. Keep traffic lights stable as
+    // cars move, but remove zero-output night lights from the daylight shader.
+    // This switches only at dawn/dusk, never on individual animation frames.
+    localLights.forEach(light=>light.visible=light.intensity>0);
     for(const [key,gain] of Object.entries({tramWindow:.26,tramInteriorWood:.20,tramInteriorFloor:.25,
       tramCeilingLight:1.8,tramGuideLight:.7,tramBallast:0,tramRail:0,tramSleeper:0})){
       world.materials[key].emissiveIntensity=windows*gain;
